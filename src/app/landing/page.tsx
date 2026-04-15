@@ -65,9 +65,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-4 gap-6 text-center">
             {[
               { value: "100+", label: t.proof.clients },
-              { value: "44,000+", label: t.proof.candidates },
+              { value: "10", label: t.proof.candidates },
               { value: "3x", label: t.proof.faster },
-              { value: "$0", label: t.proof.commission },
+              { value: "48h", label: t.proof.commission },
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="text-[28px] font-semibold text-zinc-900 tabular-nums">{stat.value}</p>
@@ -425,7 +425,7 @@ const en = {
     demo: "See it in action",
     noCommission: "No long-term commitment. Cancel anytime.",
   },
-  proof: { clients: "Clients served", candidates: "Candidates in database", faster: "Faster time-to-hire", commission: "Flat monthly fee" },
+  proof: { clients: "Clients served", candidates: "Criteria AI scoring", faster: "Faster time-to-hire", commission: "First candidates delivered" },
   how: {
     label: "How it works",
     title: "From job opening to hire in 3 steps",
@@ -532,7 +532,7 @@ const fr = {
     demo: "Voir en action",
     noCommission: "Aucun engagement a long terme. Annulez en tout temps.",
   },
-  proof: { clients: "Clients servis", candidates: "Candidats en base", faster: "Recrutement accelere", commission: "Forfait mensuel fixe" },
+  proof: { clients: "Clients servis", candidates: "Criteres de scoring IA", faster: "Recrutement accelere", commission: "Premiers candidats livres" },
   how: {
     label: "Comment ca marche",
     title: "Du poste ouvert a l'embauche en 3 etapes",

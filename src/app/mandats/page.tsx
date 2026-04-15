@@ -1,11 +1,25 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { mockMandates } from "@/lib/mock-data";
+import { getMandates, type Mandate } from "@/lib/supabase";
 import { useI18n } from "@/i18n/provider";
-import { MapPin, DollarSign, Building2, Users, ArrowRight } from "lucide-react";
+import { MapPin, DollarSign, Building2, Users, ArrowRight, Loader2 } from "lucide-react";
 
 export default function MandatsPage() {
   const { t } = useI18n();
+  const [mandates, setMandates] = useState<Mandate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getMandates();
+      setMandates(data);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>;
 
   return (
     <div className="max-w-4xl">
@@ -15,7 +29,7 @@ export default function MandatsPage() {
       </div>
 
       <div className="space-y-4">
-        {mockMandates.map((mandate) => (
+        {mandates.map((mandate) => (
           <Link
             key={mandate.id}
             href={`/mandats/${mandate.id}`}

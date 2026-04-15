@@ -1,8 +1,25 @@
 "use client";
-import { mockReports } from "@/lib/mock-data";
+import { useEffect, useState } from "react";
+import { getReports, type Report } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
 
 export default function RapportsPage() {
-  const report = mockReports[0];
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getReports();
+      setReports(data);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>;
+
+  const report = reports[0];
+  if (!report) return <div className="p-8 text-zinc-400">No reports available yet.</div>;
 
   return (
     <div>

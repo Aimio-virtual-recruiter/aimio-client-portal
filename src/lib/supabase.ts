@@ -29,6 +29,7 @@ export interface Mandate {
   work_mode: string
   status: string
   scoring_criteria: object[]
+  candidates_delivered: number
   created_at: string
   candidates?: Candidate[]
 }
@@ -53,6 +54,10 @@ export interface Candidate {
   availability: string
   salary_expectations: string
   status: string
+  internal_status: string
+  internal_notes: string | null
+  approved_by: string | null
+  approved_at: string | null
   feedback_reason: string | null
   delivered_at: string
   created_at: string

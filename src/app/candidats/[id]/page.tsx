@@ -1,20 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ScoreBar, ScoreCircle } from "@/components/ScoreBar";
-import { mockCandidates } from "@/lib/mock-data";
+import { getCandidate, type Candidate } from "@/lib/supabase";
 import { Sidebar } from "@/components/Sidebar";
 import { useI18n } from "@/i18n/provider";
-import { ArrowLeft, MapPin, Clock, GraduationCap, Globe, DollarSign, CalendarCheck, CheckCircle2, XCircle, MessageSquare, Briefcase, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, GraduationCap, Globe, DollarSign, CalendarCheck, CheckCircle2, XCircle, MessageSquare, Briefcase, ChevronRight, Sparkles, Loader2 } from "lucide-react";
 
 export default function CandidateDetailPage() {
   const params = useParams();
-  const candidate = mockCandidates.find((c) => c.id === params.id) || mockCandidates[0];
-  const [feedback, setFeedback] = useState(candidate.status);
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
+  const [feedback, setFeedback] = useState("");
   const [reason, setReason] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const { t } = useI18n();
+
+  useEffect(() => {
+    async function load() {
+      if (params.id) {
+        const c = await getCandidate(params.id as string);
+        setCandidate(c);
+        setFeedback(c.status);
+      }
+    }
+    load();
+  }, [params.id]);
+
+  if (!candidate) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 size={20} className="animate-spin text-zinc-300" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">

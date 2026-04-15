@@ -1,10 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, type Mandate } from "@/lib/supabase";
 import { Sparkles, Loader2, ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
-export default function NewCandidatePage() {
+export default function NewCandidateWrapper() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>}>
+      <NewCandidatePage />
+    </Suspense>
+  );
+}
+
+function NewCandidatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedMandate = searchParams.get('mandate');

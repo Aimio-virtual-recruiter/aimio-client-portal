@@ -1,10 +1,28 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { mockMandates, mockCandidates } from "@/lib/mock-data";
+import { useParams } from "next/navigation";
+import { getMandate, getCandidatesByMandate, type Mandate, type Candidate } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
 
 export default function MandateDetailPage() {
-  const mandate = mockMandates[0];
-  const candidates = mockCandidates;
+  const params = useParams();
+  const [mandate, setMandate] = useState<Mandate | null>(null);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      if (params.id) {
+        const m = await getMandate(params.id as string);
+        const c = await getCandidatesByMandate(params.id as string);
+        setMandate(m);
+        setCandidates(c);
+      }
+    }
+    load();
+  }, [params.id]);
+
+  if (!mandate) return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>;
 
   return (
     <div>
