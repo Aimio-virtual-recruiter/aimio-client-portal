@@ -587,7 +587,7 @@ const fr = {
   },
   pricing: {
     title: "Tarification simple et transparente",
-    subtitle: "Aucune commission. Aucun frais cache. Annulez en tout temps.",
+    subtitle: "Forfait simple. Aucun frais cache. Annulez en tout temps.",
     popular: "Le plus populaire",
     positions: "postes actifs",
     month: "mois",
