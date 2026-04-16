@@ -533,7 +533,7 @@ const en = {
   },
   platform: {
     label: "The platform",
-    title: "Everything you need. Nothing you don't.",
+    title: "Your unfair advantage in hiring.",
     subtitle: "A dedicated portal where you track candidates, review AI scores, and manage your entire hiring pipeline.",
     tabs: ["Candidates", "AI Scoring", "Insights"],
     f1: {
@@ -603,7 +603,7 @@ const fr = {
   },
   platform: {
     label: "La plateforme",
-    title: "Tout ce dont vous avez besoin. Rien de plus.",
+    title: "Votre avantage competitif en recrutement.",
     subtitle: "Un portail dedie ou vous suivez les candidats, consultez les scores IA et gerez votre pipeline.",
     tabs: ["Candidats", "Scoring IA", "Intelligence"],
     f1: {
