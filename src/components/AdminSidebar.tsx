@@ -2,15 +2,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Nouveau candidat", href: "/admin/candidates/new", icon: UserPlus },
-  { label: "Mandats", href: "/admin/mandates", icon: Briefcase },
-  { label: "Approbations", href: "/admin/approvals", icon: CheckSquare, badge: 2 },
-  { label: "Messages clients", href: "/admin/messages", icon: MessageCircle },
-  { label: "Paramètres", href: "/admin/settings", icon: Settings },
+  { label: "New candidate", href: "/admin/candidates/new", icon: UserPlus },
+  { label: "Outreach", href: "/admin/outreach", icon: Send },
+  { label: "Mandates", href: "/admin/mandates", icon: Briefcase },
+  { label: "Approvals", href: "/admin/approvals", icon: CheckSquare, badge: 2 },
+  { label: "Client messages", href: "/admin/messages", icon: MessageCircle },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {
