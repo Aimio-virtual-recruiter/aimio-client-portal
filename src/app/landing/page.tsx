@@ -495,9 +495,7 @@ export default function LandingPage() {
       <footer className="bg-zinc-950 border-t border-zinc-900 py-10 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-[#6C2BD9] rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-[7px] tracking-wider">iii</span>
-            </div>
+            <Image src="/aimio-logo.png" alt="Aimio" width={60} height={18} className="invert opacity-50" />
             <span className="text-[12px] text-zinc-600">© 2026 Aimio Inc.</span>
           </div>
           <div className="flex items-center gap-6 text-[12px] text-zinc-600">
