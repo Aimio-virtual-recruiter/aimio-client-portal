@@ -65,17 +65,17 @@ export default function LandingPage() {
 
         {/* Product Preview — Premium */}
         <div className="relative z-10 max-w-5xl mx-auto px-6 pb-20">
-          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-1.5 shadow-2xl shadow-[#6C2BD9]/10">
-            <div className="bg-zinc-950 rounded-xl p-6">
+          <div className="bg-white rounded-2xl border border-zinc-200 p-1.5 shadow-2xl shadow-black/20">
+            <div className="bg-[#fafafa] rounded-xl p-6">
               {/* Browser bar */}
               <div className="flex items-center gap-2 mb-5">
                 <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                 </div>
-                <div className="flex-1 bg-zinc-900 rounded-md h-6 flex items-center px-3">
-                  <span className="text-[10px] text-zinc-600">app.aimio.ai/dashboard</span>
+                <div className="flex-1 bg-zinc-100 rounded-md h-6 flex items-center px-3">
+                  <span className="text-[10px] text-zinc-400">app.aimio.ai/dashboard</span>
                 </div>
               </div>
 
@@ -83,7 +83,7 @@ export default function LandingPage() {
                 {/* Sidebar */}
                 <div className="w-44 shrink-0 space-y-0.5">
                   <div className="flex items-center gap-2 mb-5 px-2">
-                    <Image src="/aimio-logo.png" alt="Aimio" width={70} height={20} className="invert opacity-90" />
+                    <Image src="/aimio-logo.png" alt="Aimio" width={70} height={20} />
                   </div>
                   {[
                     { n: "Dashboard", active: true },
@@ -92,26 +92,26 @@ export default function LandingPage() {
                     { n: "Reports", active: false },
                     { n: "Messages", active: false, badge: "3" },
                   ].map((item) => (
-                    <div key={item.n} className={`px-3 py-2 rounded-lg text-[10px] flex items-center justify-between ${item.active ? "bg-zinc-800 text-white font-medium" : "text-zinc-600"}`}>
+                    <div key={item.n} className={`px-3 py-2 rounded-lg text-[10px] flex items-center justify-between ${item.active ? "bg-zinc-100 text-zinc-900 font-medium" : "text-zinc-400"}`}>
                       {item.n}
                       {item.badge && <span className="bg-[#6C2BD9] text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{item.badge}</span>}
                     </div>
                   ))}
 
                   {/* AI Insight mini */}
-                  <div className="mt-4 bg-[#6C2BD9]/10 rounded-lg p-3 border border-[#6C2BD9]/20">
+                  <div className="mt-4 bg-[#6C2BD9]/5 rounded-lg p-3 border border-[#6C2BD9]/10">
                     <p className="text-[8px] text-[#6C2BD9] font-bold uppercase tracking-wider mb-1">AI Insight</p>
-                    <p className="text-[9px] text-zinc-400 leading-relaxed">3 top candidates ready for interview this week</p>
+                    <p className="text-[9px] text-zinc-500 leading-relaxed">3 top candidates ready for interview this week</p>
                   </div>
                 </div>
 
                 {/* Main content */}
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[14px] text-white font-semibold">Welcome back, Sarah</p>
+                    <p className="text-[14px] text-zinc-900 font-semibold">Welcome back, Sarah</p>
                     <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                      <span className="text-[9px] text-zinc-500">Live updates</span>
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-[9px] text-zinc-400">Live updates</span>
                     </div>
                   </div>
 
@@ -123,10 +123,10 @@ export default function LandingPage() {
                       { v: "18", l: "Interested", c: "#3B82F6" },
                       { v: "7", l: "Interviews scheduled", c: "#F59E0B" },
                     ].map((s) => (
-                      <div key={s.l} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                        <p className="text-[18px] font-bold text-white">{s.v}</p>
-                        <p className="text-[8px] text-zinc-600 uppercase tracking-wider">{s.l}</p>
-                        <div className="mt-2 h-0.5 bg-zinc-800 rounded-full">
+                      <div key={s.l} className="bg-white rounded-lg p-3 border border-zinc-100 shadow-sm">
+                        <p className="text-[18px] font-bold text-zinc-900">{s.v}</p>
+                        <p className="text-[8px] text-zinc-400 uppercase tracking-wider">{s.l}</p>
+                        <div className="mt-2 h-0.5 bg-zinc-100 rounded-full">
                           <div className="h-full rounded-full" style={{ width: "70%", backgroundColor: s.c }} />
                         </div>
                       </div>
@@ -136,7 +136,7 @@ export default function LandingPage() {
                   {/* Two columns */}
                   <div className="grid grid-cols-2 gap-2">
                     {/* Candidates */}
-                    <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-3">
+                    <div className="bg-white rounded-lg border border-zinc-100 p-3 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium">Top candidates this week</p>
                         <span className="text-[8px] text-[#6C2BD9]">View all</span>
@@ -148,13 +148,13 @@ export default function LandingPage() {
                         { n: "David Park", s: "8.3", t: "Senior Estimator — 7 yrs", status: "new" },
                         { n: "Michael Torres", s: "7.6", t: "Estimator — 5 yrs", status: "interview" },
                       ].map((c) => (
-                        <div key={c.n} className="flex items-center justify-between py-1.5 border-b border-zinc-800/30 last:border-0">
+                        <div key={c.n} className="flex items-center justify-between py-1.5 border-b border-zinc-100 last:border-0">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-zinc-800 rounded-full flex items-center justify-center">
-                              <span className="text-[7px] font-bold text-zinc-400">{c.n.split(" ").map(n => n[0]).join("")}</span>
+                            <div className="w-6 h-6 bg-zinc-100 rounded-full flex items-center justify-center">
+                              <span className="text-[7px] font-bold text-zinc-500">{c.n.split(" ").map(n => n[0]).join("")}</span>
                             </div>
                             <div>
-                              <span className="text-[10px] text-white">{c.n}</span>
+                              <span className="text-[10px] text-zinc-900">{c.n}</span>
                               <p className="text-[8px] text-zinc-600">{c.t}</p>
                             </div>
                           </div>
@@ -169,26 +169,26 @@ export default function LandingPage() {
                     {/* AI Summary + Active mandates */}
                     <div className="space-y-2">
                       {/* AI Summary */}
-                      <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-3">
+                      <div className="bg-white rounded-lg border border-zinc-100 p-3 shadow-sm">
                         <div className="flex items-center gap-1.5 mb-2">
                           <Sparkles size={10} className="text-[#6C2BD9]" />
                           <p className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium">AI Summary</p>
                         </div>
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
                           {[{ v: "847", l: "Sourced" }, { v: "142", l: "Approached" }, { v: "47", l: "Delivered" }].map(s => (
-                            <div key={s.l} className="bg-zinc-800/50 rounded-md p-2 text-center">
-                              <p className="text-[12px] font-bold text-white">{s.v}</p>
+                            <div key={s.l} className="bg-zinc-50 rounded-md p-2 text-center">
+                              <p className="text-[12px] font-bold text-zinc-900">{s.v}</p>
                               <p className="text-[7px] text-zinc-600">{s.l}</p>
                             </div>
                           ))}
                         </div>
                         <div className="bg-[#6C2BD9]/5 rounded-md p-2 border border-[#6C2BD9]/10">
-                          <p className="text-[8px] text-zinc-400 leading-relaxed">Market trend: Senior estimator demand up 12% this quarter. Recommend adjusting salary range for faster results.</p>
+                          <p className="text-[8px] text-zinc-500 leading-relaxed">Market trend: Senior estimator demand up 12% this quarter. Recommend adjusting salary range for faster results.</p>
                         </div>
                       </div>
 
                       {/* Active mandates */}
-                      <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-3">
+                      <div className="bg-white rounded-lg border border-zinc-100 p-3 shadow-sm">
                         <p className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium mb-2">Active mandates</p>
                         {[
                           { t: "Senior Estimator", l: "Toronto, ON", c: 12 },
@@ -196,7 +196,7 @@ export default function LandingPage() {
                           { t: "Financial Controller", l: "Toronto, ON", c: 15 },
                           { t: "Construction Manager", l: "Calgary, AB", c: 6 },
                         ].map((m) => (
-                          <div key={m.t} className="flex items-center justify-between py-1.5 border-b border-zinc-800/30 last:border-0">
+                          <div key={m.t} className="flex items-center justify-between py-1.5 border-b border-zinc-100 last:border-0">
                             <div>
                               <p className="text-[10px] text-white">{m.t}</p>
                               <p className="text-[8px] text-zinc-600">{m.l}</p>
