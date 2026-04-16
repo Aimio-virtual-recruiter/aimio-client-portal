@@ -14,7 +14,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-xl border-b border-zinc-100/50 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Image src="/aimio-logo.png" alt="Aimio" width={90} height={26} />
-          <div className="flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8">
             <a href="#how" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">{t.nav.how}</a>
             <a href="#platform" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">{t.nav.platform}</a>
             <a href="#pricing" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">{t.nav.pricing}</a>
@@ -22,6 +22,14 @@ export default function LandingPage() {
               {lang === "en" ? "FR" : "EN"}
             </button>
             <a href="/" className="px-5 py-2 bg-zinc-900 text-white rounded-full text-[13px] font-medium hover:bg-zinc-800 transition-all duration-200">
+              {t.nav.cta}
+            </a>
+          </div>
+          <div className="flex md:hidden items-center gap-3">
+            <button onClick={() => setLang(lang === "en" ? "fr" : "en")} className="text-[11px] text-zinc-400 border border-zinc-200 rounded-full px-2.5 py-1">
+              {lang === "en" ? "FR" : "EN"}
+            </button>
+            <a href="/" className="px-4 py-2 bg-zinc-900 text-white rounded-full text-[12px] font-medium">
               {t.nav.cta}
             </a>
           </div>
@@ -34,16 +42,16 @@ export default function LandingPage() {
         <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#6C2BD9]/20 rounded-full blur-[150px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/15 rounded-full blur-[120px]" />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-40 pb-32 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-28 md:pt-40 pb-16 md:pb-32 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur border border-white/10 rounded-full mb-8">
             <div className="w-1.5 h-1.5 bg-[#6C2BD9] rounded-full animate-pulse" />
             <span className="text-[12px] text-zinc-400 tracking-wide">{t.hero.badge}</span>
           </div>
 
-          <h1 className="text-[72px] font-bold text-white tracking-tight leading-[0.95] mb-4">
+          <h1 className="text-[36px] md:text-[72px] font-bold text-white tracking-tight leading-[0.95] mb-4">
             {t.hero.line1}
           </h1>
-          <h2 className="text-[72px] font-bold tracking-tight leading-[0.95] mb-8 bg-gradient-to-r from-[#6C2BD9] via-[#8B5CF6] to-[#A78BFA] bg-clip-text text-transparent">
+          <h2 className="text-[36px] md:text-[72px] font-bold tracking-tight leading-[0.95] mb-8 bg-gradient-to-r from-[#6C2BD9] via-[#8B5CF6] to-[#A78BFA] bg-clip-text text-transparent">
             {t.hero.line2}
           </h2>
 
@@ -63,8 +71,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Product Preview — Premium */}
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pb-20">
+        {/* Product Preview — Premium (hidden on mobile) */}
+        <div className="relative z-10 max-w-5xl mx-auto px-6 pb-20 hidden md:block">
           <div className="bg-white rounded-2xl border border-zinc-200 p-1.5 shadow-2xl shadow-black/20">
             <div className="bg-[#fafafa] rounded-xl p-6">
               {/* Browser bar */}
@@ -219,7 +227,7 @@ export default function LandingPage() {
 
       {/* Value propositions — bold statements */}
       <section className="py-24 px-6 border-b border-zinc-100">
-        <div className="max-w-5xl mx-auto grid grid-cols-3 gap-16">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16">
           {t.values.map((v: {title: string; desc: string}, i: number) => (
             <div key={i} className="text-center">
               <h3 className="text-[24px] font-bold text-zinc-900 tracking-tight mb-3">{v.title}</h3>
@@ -234,10 +242,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-20">
             <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">{t.how.label}</p>
-            <h2 className="text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.how.title}</h2>
+            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.how.title}</h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             {[
               { icon: Search, num: "01", title: t.how.s1.title, desc: t.how.s1.desc },
               { icon: MessageSquare, num: "02", title: t.how.s2.title, desc: t.how.s2.desc },
@@ -263,7 +271,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">{t.platform.label}</p>
-            <h2 className="text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.platform.title}</h2>
+            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.platform.title}</h2>
             <p className="text-[16px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.platform.subtitle}</p>
           </div>
 
@@ -283,7 +291,7 @@ export default function LandingPage() {
           </div>
 
           {/* Feature descriptions */}
-          <div className="grid grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <div>
               {activeDemo === 0 && (
                 <div>
@@ -411,7 +419,7 @@ export default function LandingPage() {
       {/* Benefits — Bold statements */}
       <section className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 gap-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20">
             {[
               { icon: Zap, title: t.benefits.b1.title, desc: t.benefits.b1.desc },
               { icon: Shield, title: t.benefits.b2.title, desc: t.benefits.b2.desc },
@@ -436,11 +444,11 @@ export default function LandingPage() {
       <section id="pricing" className="py-28 px-6 bg-zinc-50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-[44px] font-bold text-zinc-900 tracking-tight">{t.pricing.title}</h2>
+            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight">{t.pricing.title}</h2>
             <p className="text-[16px] text-zinc-500 mt-4">{t.pricing.subtitle}</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { name: "Starter", price: "1,999", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false },
               { name: "Pro", price: "2,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true },
@@ -510,7 +518,7 @@ export default function LandingPage() {
 }
 
 const en = {
-  nav: { how: "How it works", platform: "Platform", pricing: "Pricing", cta: "Get started" },
+  nav: { how: "How it works", platform: "Platform", pricing: "Pricing", cta: "Book a call" },
   hero: {
     badge: "AI-Powered Recruitment Platform",
     line1: "Your AI recruiting team.",
@@ -580,7 +588,7 @@ const en = {
 };
 
 const fr = {
-  nav: { how: "Fonctionnement", platform: "Plateforme", pricing: "Tarifs", cta: "Commencer" },
+  nav: { how: "Fonctionnement", platform: "Plateforme", pricing: "Tarifs", cta: "R\u00e9server un appel" },
   hero: {
     badge: "Plateforme de recrutement propuls\u00e9e par l\u2019IA",
     line1: "Votre \u00e9quipe de recrutement IA.",
