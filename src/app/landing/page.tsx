@@ -131,12 +131,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Logos / Social proof line */}
-      <section className="py-16 px-6 border-b border-zinc-100">
-        <p className="text-center text-[11px] text-zinc-400 uppercase tracking-[0.2em] mb-8">{t.social.title}</p>
-        <div className="flex items-center justify-center gap-16 opacity-30">
-          {["Construction", "Finance", "Legal", "Manufacturing", "Technology"].map((name) => (
-            <span key={name} className="text-[14px] font-semibold text-zinc-900 tracking-wide">{name}</span>
+      {/* Value propositions — bold statements */}
+      <section className="py-24 px-6 border-b border-zinc-100">
+        <div className="max-w-5xl mx-auto grid grid-cols-3 gap-16">
+          {t.values.map((v: {title: string; desc: string}, i: number) => (
+            <div key={i} className="text-center">
+              <h3 className="text-[24px] font-bold text-zinc-900 tracking-tight mb-3">{v.title}</h3>
+              <p className="text-[14px] text-zinc-400 leading-relaxed">{v.desc}</p>
+            </div>
           ))}
         </div>
       </section>
@@ -354,7 +356,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-3 gap-6">
             {[
-              { name: "Starter", price: "1,499", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false },
+              { name: "Starter", price: "1,999", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false },
               { name: "Pro", price: "2,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true },
               { name: "Enterprise", price: "4,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false },
             ].map((plan) => (
@@ -433,7 +435,11 @@ const en = {
     cta: "Get started free",
     demo: "See the platform",
   },
-  social: { title: "Trusted across industries" },
+  values: [
+    { title: "Pre-qualified talent", desc: "Every candidate has been contacted, screened, and has confirmed interest in your role." },
+    { title: "AI-powered precision", desc: "10-criteria scoring customized to your requirements. See strengths and concerns at a glance." },
+    { title: "Your dedicated portal", desc: "Track candidates, review scores, and manage your pipeline — all in one place." },
+  ],
   how: {
     label: "How it works",
     title: "Three steps to your next hire",
@@ -499,7 +505,11 @@ const fr = {
     cta: "Commencer gratuitement",
     demo: "Voir la plateforme",
   },
-  social: { title: "La confiance de toutes les industries" },
+  values: [
+    { title: "Talents pre-qualifies", desc: "Chaque candidat a ete contacte, evalue et a confirme son interet pour votre poste." },
+    { title: "Precision propulsee par l'IA", desc: "Scoring sur 10 criteres personnalises. Forces et points d'attention en un coup d'oeil." },
+    { title: "Votre portail dedie", desc: "Suivez les candidats, consultez les scores et gerez votre pipeline — au meme endroit." },
+  ],
   how: {
     label: "Comment ca marche",
     title: "Trois etapes vers votre prochaine embauche",
