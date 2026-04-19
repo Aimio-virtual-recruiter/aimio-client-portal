@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-4 gap-3 mb-6">
         {[
           { label: "Mandats actifs", value: activeMandates.length, icon: Briefcase, color: "#6C2BD9" },
-          { label: "En attente d'approbation", value: drafts.length, icon: Clock, color: "#F59E0B" },
+          { label: "En attente d'approbation", value: drafts.length, icon: Clock, color: "#6C2BD9" },
           { label: "Candidats livres", value: approved.length, icon: CheckSquare, color: "#10B981" },
           { label: "Total candidats", value: candidates.length, icon: Users, color: "#3B82F6" },
         ].map((stat) => {
@@ -68,17 +68,17 @@ export default function AdminDashboardPage() {
 
       {/* Pending Approvals */}
       {drafts.length > 0 && (
-        <div className="bg-amber-50 rounded-xl border border-amber-200 p-5 mb-6">
+        <div className="bg-zinc-50 rounded-xl border border-zinc-200 p-5 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <AlertCircle size={15} className="text-amber-600" />
-            <h2 className="text-[13px] font-semibold text-amber-800">{drafts.length} candidat(s) en attente d approbation</h2>
+            <AlertCircle size={15} className="text-[#6C2BD9]" />
+            <h2 className="text-[13px] font-semibold text-zinc-900">{drafts.length} candidat(s) en attente d approbation</h2>
           </div>
           <div className="space-y-2">
             {drafts.map((c) => (
-              <div key={c.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100">
+              <div key={c.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-zinc-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                    <span className="text-[10px] font-semibold text-amber-700">{c.name.split(" ").map(n => n[0]).join("")}</span>
+                  <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
+                    <span className="text-[10px] font-semibold text-zinc-700">{c.name.split(" ").map(n => n[0]).join("")}</span>
                   </div>
                   <div>
                     <p className="text-[13px] font-medium text-zinc-900">{c.name}</p>
@@ -135,12 +135,12 @@ export default function AdminDashboardPage() {
                 <span className="text-[12px] font-semibold text-zinc-600 tabular-nums">{c.score}/10</span>
                 <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${
                   c.internal_status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
-                  c.internal_status === 'draft' ? 'bg-amber-50 text-amber-700' :
+                  c.internal_status === 'draft' ? 'bg-[#6C2BD9]/10 text-[#6C2BD9]' :
                   'bg-red-50 text-red-600'
                 }`}>
                   <div className={`w-1 h-1 rounded-full ${
                     c.internal_status === 'approved' ? 'bg-emerald-500' :
-                    c.internal_status === 'draft' ? 'bg-amber-500' :
+                    c.internal_status === 'draft' ? 'bg-[#6C2BD9]' :
                     'bg-red-500'
                   }`} />
                   {c.internal_status === 'approved' ? 'Livre' : c.internal_status === 'draft' ? 'En attente' : 'Rejete'}

@@ -466,7 +466,7 @@ export default function SourcingPage() {
                           </span>
                         )}
                         {c.email_status === "likely_to_engage" && (
-                          <span className="flex items-center gap-1 text-amber-600">
+                          <span className="flex items-center gap-1 text-zinc-500">
                             <Mail size={10} />
                             Email probable
                           </span>

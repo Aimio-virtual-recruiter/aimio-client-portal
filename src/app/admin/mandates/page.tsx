@@ -126,13 +126,13 @@ export default function AdminMandatesPage() {
               <div className="flex items-center gap-2">
                 <span className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold ${
                   m.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
-                  m.status === 'paused' ? 'bg-amber-50 text-amber-700' :
+                  m.status === 'paused' ? 'bg-zinc-100 text-zinc-600' :
                   m.status === 'filled' ? 'bg-blue-50 text-blue-700' :
                   'bg-zinc-50 text-zinc-500'
                 }`}>
                   <div className={`w-1 h-1 rounded-full ${
                     m.status === 'active' ? 'bg-emerald-500' :
-                    m.status === 'paused' ? 'bg-amber-500' :
+                    m.status === 'paused' ? 'bg-zinc-500' :
                     m.status === 'filled' ? 'bg-blue-500' :
                     'bg-zinc-400'
                   }`} />

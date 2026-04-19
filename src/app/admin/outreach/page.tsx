@@ -63,7 +63,7 @@ export default function OutreachPage() {
       <div className="grid grid-cols-4 gap-3 mb-6">
         {[
           { label: "Total emails sent", value: stats.total, icon: Send, color: "#6C2BD9" },
-          { label: "Awaiting response", value: stats.pending, icon: Clock, color: "#F59E0B" },
+          { label: "Awaiting response", value: stats.pending, icon: Clock, color: "#6C2BD9" },
           { label: "Replied", value: stats.replied, icon: MessageSquare, color: "#10B981" },
           { label: "Response rate", value: stats.total > 0 ? `${Math.round((stats.replied / stats.total) * 100)}%` : "—", icon: CheckCircle2, color: "#3B82F6" },
         ].map((stat) => {
@@ -115,7 +115,7 @@ export default function OutreachPage() {
                         <CheckCircle2 size={10} /> Replied
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 rounded-md text-[10px] font-semibold">
+                      <span className="flex items-center gap-1 px-2 py-1 bg-[#6C2BD9]/10 text-[#6C2BD9] rounded-md text-[10px] font-semibold">
                         <Clock size={10} /> Pending
                       </span>
                     )}

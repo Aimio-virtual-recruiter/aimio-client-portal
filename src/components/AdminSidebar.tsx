@@ -29,8 +29,8 @@ export function AdminSidebar() {
           <span className="text-[15px] font-semibold text-white tracking-tight">Aimio</span>
         </div>
         <div className="flex items-center gap-1.5 mt-1.5 ml-9">
-          <Shield size={10} className="text-amber-500" />
-          <p className="text-[10px] text-amber-500 font-medium tracking-wide uppercase">Admin Panel</p>
+          <Shield size={10} className="text-zinc-500" />
+          <p className="text-[10px] text-zinc-500 font-medium tracking-wide uppercase">Admin Panel</p>
         </div>
       </div>
 

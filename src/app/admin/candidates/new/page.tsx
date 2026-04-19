@@ -238,9 +238,9 @@ function NewCandidatePage() {
           )}
 
           {!form.candidate_email && (
-            <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex items-start gap-3">
-              <AlertCircle size={15} className="text-amber-500 mt-0.5 shrink-0" />
-              <p className="text-[12px] text-amber-700">No email provided. The candidate will be scored and a LinkedIn message will be generated, but no email will be sent automatically.</p>
+            <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-200 flex items-start gap-3">
+              <AlertCircle size={15} className="text-zinc-500 mt-0.5 shrink-0" />
+              <p className="text-[12px] text-zinc-700">No email provided. The candidate will be scored and a LinkedIn message will be generated, but no email will be sent automatically.</p>
             </div>
           )}
 
@@ -281,7 +281,7 @@ function NewCandidatePage() {
                 ))}
               </div>
               <div className="bg-zinc-50 rounded-lg p-3 border border-zinc-100">
-                <p className="label text-amber-700 mb-2">Concerns</p>
+                <p className="label text-zinc-600 mb-2">Concerns</p>
                 {(scoring?.concerns as string[])?.map((c, i) => (
                   <p key={i} className="text-[11px] text-zinc-600 mb-1">• {c}</p>
                 ))}
@@ -299,7 +299,7 @@ function NewCandidatePage() {
                   <CheckCircle2 size={11} /> Sent automatically
                 </span>
               ) : (
-                <span className="ml-auto flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md text-[10px] font-semibold">
+                <span className="ml-auto flex items-center gap-1.5 px-2.5 py-1 bg-zinc-100 text-zinc-600 rounded-md text-[10px] font-semibold">
                   <AlertCircle size={11} /> No email provided
                 </span>
               )}
