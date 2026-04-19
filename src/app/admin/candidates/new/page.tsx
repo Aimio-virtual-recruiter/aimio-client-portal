@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, type Mandate } from "@/lib/supabase";
-import { Sparkles, Loader2, ArrowLeft, Plus, Trash2, CheckCircle2, Send, Copy, Mail, Linkedin, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, ArrowLeft, Plus, Trash2, CheckCircle2, Send, Copy, Mail, Link2, AlertCircle } from "lucide-react";
 
 export default function NewCandidateWrapper() {
   return (
@@ -15,7 +15,15 @@ export default function NewCandidateWrapper() {
 function NewCandidatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Params from sourcing (Apollo) or elsewhere
   const preselectedMandate = searchParams.get('mandate');
+  const prefillName = searchParams.get('name');
+  const prefillTitle = searchParams.get('title');
+  const prefillCompany = searchParams.get('company');
+  const prefillLocation = searchParams.get('location');
+  const prefillEmail = searchParams.get('email');
+  const prefillLinkedIn = searchParams.get('linkedin');
 
   const [mandates, setMandates] = useState<Mandate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,17 +33,17 @@ function NewCandidatePage() {
 
   const [form, setForm] = useState({
     mandate_id: preselectedMandate || '',
-    name: '',
-    current_title: '',
-    current_company: '',
-    location: '',
+    name: prefillName || '',
+    current_title: prefillTitle || '',
+    current_company: prefillCompany || '',
+    location: prefillLocation || '',
     experience_years: '',
     education: '',
     languages: 'English',
     salary_expectations: '',
     availability: '',
-    candidate_email: '',
-    notes: '',
+    candidate_email: prefillEmail || '',
+    notes: prefillLinkedIn ? `LinkedIn: ${prefillLinkedIn}` : '',
     career_history: [{ title: '', company: '', period: '' }],
   });
 
@@ -300,7 +308,7 @@ function NewCandidatePage() {
               <p className="text-[11px] text-zinc-500 mb-1">Subject: <strong className="text-zinc-700">{outreach?.email_subject as string}</strong></p>
               <p className="text-[12px] text-zinc-600 leading-relaxed mt-2">{outreach?.email_body as string}</p>
             </div>
-            {outreach?.email_sent && (
+            {Boolean(outreach?.email_sent) && (
               <p className="text-[10px] text-zinc-400 mt-2">Auto follow-up in 3 days if no reply. Final follow-up at day 7.</p>
             )}
           </div>
@@ -308,7 +316,7 @@ function NewCandidatePage() {
           {/* LinkedIn InMail */}
           <div className="bg-white rounded-xl border border-zinc-200 p-5 shadow-card">
             <div className="flex items-center gap-2 mb-4">
-              <Linkedin size={15} className="text-[#0A66C2]" />
+              <Link2 size={15} className="text-[#0A66C2]" />
               <h2 className="text-[13px] font-semibold text-zinc-900">LinkedIn InMail</h2>
               <span className="ml-auto label text-zinc-400">Copy & paste to LinkedIn</span>
             </div>
