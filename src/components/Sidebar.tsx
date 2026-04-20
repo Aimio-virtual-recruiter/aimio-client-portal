@@ -1,14 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/provider";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { LayoutDashboard, Briefcase, BarChart3, LogOut, Building2, TrendingUp, MessageCircle, History, Bell } from "lucide-react";
+import { AimioTeamWidget } from "./AimioTeamWidget";
+import { MeetingRequestModal } from "./MeetingRequestModal";
+import { LayoutDashboard, Briefcase, BarChart3, LogOut, Building2, TrendingUp, MessageCircle, History, Bell, Calendar, Plus } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
 
   const navItems = [
     { label: t("nav.dashboard"), href: "/dashboard", icon: LayoutDashboard },
@@ -60,16 +64,42 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Quick actions */}
+      <div className="px-3 mb-3 space-y-1.5">
+        <Link
+          href="/mandats/nouveau"
+          className="flex items-center gap-2 px-3 py-2.5 bg-[#6C2BD9] hover:bg-[#5521B5] text-white rounded-lg text-[12px] font-semibold transition-premium btn-press"
+        >
+          <Plus size={14} />
+          Nouveau mandat
+        </Link>
+        <button
+          onClick={() => setMeetingModalOpen(true)}
+          className="w-full flex items-center gap-2 px-3 py-2.5 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-[12px] font-medium transition-premium"
+        >
+          <Calendar size={14} />
+          Demander rencontre
+        </button>
+      </div>
+
+      {/* Aimio Team Widget */}
+      <div className="px-3 mb-3">
+        <AimioTeamWidget compact />
+      </div>
+
       {/* Alert */}
       <div className="px-3 mb-2">
-        <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+        <div className="bg-[#6C2BD9]/5 rounded-lg p-3 border border-[#6C2BD9]/10">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <Bell size={12} className="text-amber-600" />
-            <p className="text-[11px] font-medium text-amber-700">{t("nav.newAlert")}</p>
+            <Bell size={12} className="text-[#6C2BD9]" />
+            <p className="text-[11px] font-medium text-[#6C2BD9]">{t("nav.newAlert")}</p>
           </div>
-          <p className="text-[11px] text-amber-600/70 leading-relaxed">{t("nav.alertText")}</p>
+          <p className="text-[11px] text-zinc-600 leading-relaxed">{t("nav.alertText")}</p>
         </div>
       </div>
+
+      {/* Meeting Request Modal */}
+      <MeetingRequestModal open={meetingModalOpen} onClose={() => setMeetingModalOpen(false)} />
 
       {/* Language */}
       <div className="px-3 mb-2">
