@@ -1,12 +1,55 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import { ArrowRight, Check, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play } from "lucide-react";
+import { ArrowRight, Check, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function LandingPage() {
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [activeDemo, setActiveDemo] = useState(0);
   const t = lang === "en" ? en : fr;
+
+  // Lead form state
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    company: "",
+    country: "",
+    role: "",
+    team_size: "",
+    active_mandates: "",
+    hiring_for: "",
+    message: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string; isQuebec?: boolean } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitResult(null);
+    try {
+      const res = await fetch("/api/leads/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, source: "landing" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Submit failed");
+      setSubmitResult({
+        success: true,
+        message: data.message,
+        isQuebec: data.is_quebec_lead,
+      });
+      // Reset form on success
+      setForm({ name: "", email: "", company: "", country: "", role: "", team_size: "", active_mandates: "", hiring_for: "", message: "" });
+    } catch (err) {
+      setSubmitResult({
+        success: false,
+        message: err instanceof Error ? err.message : "Something went wrong. Please email us directly at marcantoine.cote@aimiorecrutement.com",
+      });
+    }
+    setSubmitting(false);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -60,7 +103,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <a href="#pricing" className="group px-8 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2">
+            <a href="#book-demo" className="group px-8 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2">
               {t.hero.cta}
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </a>
@@ -474,7 +517,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <a href="#" className={`w-full py-3.5 rounded-full text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
+                <a href="#book-demo" className={`w-full py-3.5 rounded-full text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
                   plan.pop ? "bg-white text-zinc-900 hover:bg-zinc-100" : "bg-zinc-900 text-white hover:bg-zinc-800"
                 }`}>
                   {t.pricing.cta} <ArrowRight size={14} />
@@ -486,13 +529,206 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Book a Demo Form */}
+      <section id="book-demo" className="py-28 px-6 bg-white border-t border-zinc-100">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">
+              {lang === "en" ? "Book your demo" : "Réservez votre démo"}
+            </p>
+            <h2 className="text-[32px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight mb-4">
+              {lang === "en" ? "Talk to a recruiting expert." : "Parlez à un expert en recrutement."}
+            </h2>
+            <p className="text-[15px] text-zinc-500 leading-relaxed max-w-xl mx-auto">
+              {lang === "en"
+                ? "30-min discovery call. We'll understand your hiring needs and show you how Aimio can deliver qualified candidates in days, not weeks."
+                : "Appel de découverte de 30 min. On comprend vos besoins et on vous montre comment Aimio livre des candidats qualifiés en quelques jours."}
+            </p>
+          </div>
+
+          {submitResult?.success ? (
+            <div className={`rounded-2xl p-8 text-center ${
+              submitResult.isQuebec
+                ? "bg-amber-50 border border-amber-200"
+                : "bg-emerald-50 border border-emerald-200"
+            }`}>
+              <CheckCircle2 size={36} className={`mx-auto mb-4 ${
+                submitResult.isQuebec ? "text-amber-500" : "text-emerald-500"
+              }`} />
+              <h3 className="text-[18px] font-semibold text-zinc-900 mb-2">
+                {lang === "en" ? "Got it — we'll be in touch shortly." : "Reçu — on vous contacte rapidement."}
+              </h3>
+              <p className="text-[14px] text-zinc-600 max-w-md mx-auto">{submitResult.message}</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-200 p-8 shadow-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                    {lang === "en" ? "Full name *" : "Nom complet *"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder={lang === "en" ? "Jane Doe" : "Marie Tremblay"}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                    {lang === "en" ? "Work email *" : "Courriel professionnel *"}
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder={lang === "en" ? "you@company.com" : "vous@entreprise.com"}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                    {lang === "en" ? "Company *" : "Entreprise *"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.company}
+                    onChange={(e) => setForm({ ...form, company: e.target.value })}
+                    placeholder={lang === "en" ? "Acme Inc." : "Votre entreprise"}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                    {lang === "en" ? "Your role" : "Votre poste"}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                    placeholder={lang === "en" ? "Head of Talent" : "VP People"}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                    {lang === "en" ? "Country *" : "Pays *"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                    placeholder={lang === "en" ? "United States" : "États-Unis"}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                    {lang === "en" ? "Team size" : "Taille d'équipe"}
+                  </label>
+                  <select
+                    value={form.team_size}
+                    onChange={(e) => setForm({ ...form, team_size: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none bg-white"
+                  >
+                    <option value="">—</option>
+                    <option value="1-10">1-10</option>
+                    <option value="11-50">11-50</option>
+                    <option value="51-200">51-200</option>
+                    <option value="201-500">201-500</option>
+                    <option value="500+">500+</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                  {lang === "en" ? "How many roles are you actively hiring for?" : "Combien de postes recrutez-vous activement?"}
+                </label>
+                <select
+                  value={form.active_mandates}
+                  onChange={(e) => setForm({ ...form, active_mandates: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none bg-white"
+                >
+                  <option value="">—</option>
+                  <option value="1-2">1-2</option>
+                  <option value="3-5">3-5</option>
+                  <option value="6-10">6-10</option>
+                  <option value="10+">10+</option>
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                  {lang === "en" ? "What roles are you hiring for?" : "Quels postes recrutez-vous?"}
+                </label>
+                <input
+                  type="text"
+                  value={form.hiring_for}
+                  onChange={(e) => setForm({ ...form, hiring_for: e.target.value })}
+                  placeholder={lang === "en" ? "e.g. Senior Engineers, Product Managers" : "ex: Devs seniors, Chefs de produit"}
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
+                  {lang === "en" ? "Anything else we should know?" : "Quelque chose d'autre à savoir?"}
+                </label>
+                <textarea
+                  value={form.message}
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  rows={3}
+                  placeholder={lang === "en" ? "Tell us about your hiring challenges..." : "Parlez-nous de vos défis de recrutement..."}
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] resize-none focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                />
+              </div>
+
+              {submitResult && !submitResult.success && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                  <AlertCircle size={14} className="text-red-600 mt-0.5 shrink-0" />
+                  <p className="text-[12px] text-red-700">{submitResult.message}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-4 bg-[#6C2BD9] hover:bg-[#5521B5] disabled:opacity-50 text-white rounded-full text-[14px] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" /> {lang === "en" ? "Submitting..." : "Envoi..."}
+                  </>
+                ) : (
+                  <>
+                    {lang === "en" ? "Book my demo" : "Réserver ma démo"} <ArrowRight size={15} />
+                  </>
+                )}
+              </button>
+
+              <p className="text-[11px] text-zinc-400 text-center mt-4">
+                {lang === "en"
+                  ? "We'll respond within 24 hours. No spam, ever."
+                  : "Réponse sous 24h. Pas de spam, promis."}
+              </p>
+            </form>
+          )}
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-28 px-6 bg-zinc-950 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#6C2BD9]/10 rounded-full blur-[150px]" />
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <h2 className="text-[44px] font-bold text-white tracking-tight mb-6">{t.cta.title}</h2>
           <p className="text-[16px] text-zinc-400 mb-10">{t.cta.subtitle}</p>
-          <a href="#" className="group inline-flex items-center gap-2 px-10 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200">
+          <a href="#book-demo" className="group inline-flex items-center gap-2 px-10 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200">
             {t.cta.button}
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </a>
@@ -520,11 +756,11 @@ export default function LandingPage() {
 const en = {
   nav: { how: "How it works", platform: "Platform", pricing: "Pricing", cta: "Book a call" },
   hero: {
-    badge: "AI-Powered Recruitment Platform",
+    badge: "AI-Powered Recruitment Service",
     line1: "Your AI recruiting team.",
     line2: "On demand.",
     subtitle: "We source, contact, and qualify candidates for you. You receive pre-screened, interested talent — ready to interview.",
-    cta: "Get started free",
+    cta: "Book a demo",
     demo: "See the platform",
   },
   values: [
@@ -571,8 +807,8 @@ const en = {
     subtitle: "Predictable monthly fee. No hidden costs. Cancel anytime.",
     popular: "Most popular",
     mo: "mo",
-    cta: "Get started",
-    note: "No setup fees. No long-term commitment. Cancel anytime.",
+    cta: "Book a demo",
+    note: "Sales-led onboarding. No setup fees. Cancel anytime after the first month.",
     s1desc: "For teams hiring 1-2 roles",
     s2desc: "For growing companies",
     s3desc: "For high-volume hiring",
@@ -582,8 +818,8 @@ const en = {
   },
   cta: {
     title: "Ready to transform your hiring?",
-    subtitle: "Get your first qualified candidates for free. No obligation. See the quality for yourself.",
-    button: "Start for free",
+    subtitle: "Book a 30-min discovery call. We'll understand your needs and show you exactly how we'd deliver candidates for your team.",
+    button: "Book a demo",
   },
 };
 
@@ -594,7 +830,7 @@ const fr = {
     line1: "Votre \u00e9quipe de recrutement IA.",
     line2: "Sur demande.",
     subtitle: "On source, contacte et qualifie les candidats pour vous. Vous recevez des talents pr\u00e9-qualifi\u00e9s et int\u00e9ress\u00e9s \u2014 pr\u00eats \u00e0 interviewer.",
-    cta: "Commencer gratuitement",
+    cta: "R\u00e9server une d\u00e9mo",
     demo: "Voir la plateforme",
   },
   values: [
@@ -641,8 +877,8 @@ const fr = {
     subtitle: "Forfait mensuel pr\u00e9visible. Aucun frais cach\u00e9. Annulez en tout temps.",
     popular: "Le plus populaire",
     mo: "mois",
-    cta: "Commencer",
-    note: "Aucun frais de setup. Aucun engagement. Annulez en tout temps.",
+    cta: "R\u00e9server une d\u00e9mo",
+    note: "Onboarding accompagn\u00e9. Aucun frais de setup. Annulez apr\u00e8s le 1er mois.",
     s1desc: "Pour les \u00e9quipes qui recrutent 1-2 postes",
     s2desc: "Pour les entreprises en croissance",
     s3desc: "Pour le recrutement \u00e0 haut volume",
@@ -652,7 +888,7 @@ const fr = {
   },
   cta: {
     title: "Pr\u00eat \u00e0 transformer votre recrutement?",
-    subtitle: "Recevez vos premiers candidats qualifi\u00e9s gratuitement. Aucune obligation.",
-    button: "Commencer gratuitement",
+    subtitle: "R\u00e9servez un appel de d\u00e9couverte de 30 min. On comprend vos besoins et on vous montre comment livrer vos candidats.",
+    button: "R\u00e9server une d\u00e9mo",
   },
 };

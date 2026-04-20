@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send, Search, Database } from "lucide-react";
+import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send, Search, Database, UserCheck } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Sourcing Apollo", href: "/admin/sourcing", icon: Search },
+  { label: "Enrich (Apollo)", href: "/admin/sourcing/enrich", icon: UserCheck },
   { label: "Sourcing Apify", href: "/admin/sourcing/apify", icon: Database },
   { label: "New candidate", href: "/admin/candidates/new", icon: UserPlus },
   { label: "Outreach", href: "/admin/outreach", icon: Send },
