@@ -14,6 +14,8 @@ import {
   AlertCircle,
   X,
   CheckCircle2,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 
 interface Prospect {
@@ -63,8 +65,60 @@ export default function ProspectsPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [enrichingId, setEnrichingId] = useState<string | null>(null);
+  const [bulkEnriching, setBulkEnriching] = useState(false);
+  const [bulkResult, setBulkResult] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
+
+  const enrichProspect = async (prospectId: string) => {
+    setEnrichingId(prospectId);
+    try {
+      const res = await fetch("/api/prospects/enrich-waterfall", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prospect_id: prospectId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchData();
+      } else {
+        alert(
+          `Aucune donnée additionnelle trouvée. Sources tentées : ${data.attempts
+            ?.map((a: { source: string }) => a.source)
+            .join(", ")}`
+        );
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur");
+    }
+    setEnrichingId(null);
+  };
+
+  const bulkEnrich = async () => {
+    if (!confirm("Enrichir jusqu'à 50 prospects sans email/phone via waterfall? Ça peut prendre 1-2 minutes.")) return;
+    setBulkEnriching(true);
+    setBulkResult(null);
+    try {
+      const res = await fetch("/api/prospects/enrich-bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit: 50 }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBulkResult(
+          `✅ ${data.processed} traités · ${data.emails_found} emails trouvés · ${data.phones_found} phones trouvés (${data.success_rate}% hit rate)`
+        );
+        await fetchData();
+      } else {
+        setBulkResult(`Erreur : ${data.error ?? "unknown"}`);
+      }
+    } catch (err) {
+      setBulkResult(err instanceof Error ? err.message : "Erreur");
+    }
+    setBulkEnriching(false);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -122,6 +176,18 @@ export default function ProspectsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={bulkEnrich}
+            disabled={bulkEnriching}
+            className="flex items-center gap-1.5 px-3 py-2 border border-[#6C2BD9]/30 bg-[#6C2BD9]/5 hover:bg-[#6C2BD9]/10 text-[#6C2BD9] rounded-lg text-[12px] font-semibold disabled:opacity-50"
+          >
+            {bulkEnriching ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Zap size={13} />
+            )}
+            Bulk Enrich (50)
+          </button>
           <Link
             href="/admin/prospects/import"
             className="flex items-center gap-1.5 px-3 py-2 border border-zinc-200 rounded-lg text-[12px] font-medium hover:bg-zinc-50"
@@ -186,6 +252,13 @@ export default function ProspectsPage() {
         </div>
       )}
 
+      {bulkResult && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 flex items-start gap-2">
+          <CheckCircle2 size={15} className="text-emerald-600 mt-0.5" />
+          <p className="text-[13px] text-emerald-800">{bulkResult}</p>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-xl border border-zinc-200 shadow-card overflow-hidden">
         {loading ? (
@@ -226,11 +299,13 @@ export default function ProspectsPage() {
                   <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">Status</th>
                   <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">Touches</th>
                   <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">Source</th>
+                  <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {filtered.map((p) => {
                   const status = STATUSES.find((s) => s.value === p.status);
+                  const needsEnrich = !p.email || !p.phone;
                   return (
                     <tr key={p.id} className="hover:bg-zinc-50">
                       <td className="px-4 py-3">
@@ -311,6 +386,24 @@ export default function ProspectsPage() {
                       </td>
                       <td className="px-4 py-3 text-zinc-500">{p.touch_count}</td>
                       <td className="px-4 py-3 text-[11px] text-zinc-400">{p.source ?? "manual"}</td>
+                      <td className="px-4 py-3">
+                        {needsEnrich ? (
+                          <button
+                            onClick={() => enrichProspect(p.id)}
+                            disabled={enrichingId === p.id}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-[#6C2BD9]/10 hover:bg-[#6C2BD9]/20 text-[#6C2BD9] rounded text-[10px] font-semibold disabled:opacity-50"
+                          >
+                            {enrichingId === p.id ? (
+                              <Loader2 size={10} className="animate-spin" />
+                            ) : (
+                              <Sparkles size={10} />
+                            )}
+                            Enrich
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-emerald-600">✓ Complete</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
