@@ -96,33 +96,56 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero — Dark, Apple-style */}
+      {/* Hero — Dark, Premium Editorial */}
       <section className="relative bg-zinc-950 overflow-hidden">
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#2445EB]/20 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#4B5DF5]/15 rounded-full blur-[120px]" />
+        {/* Animated gradient orbs */}
+        <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#2445EB]/25 rounded-full blur-[160px] float-orb" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#4B5DF5]/20 rounded-full blur-[130px] float-orb" style={{ animationDelay: "5s" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#7A8FF5]/10 rounded-full blur-[200px]" />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-28 md:pt-40 pb-16 md:pb-32 text-center">
-          <h1 className="font-display text-[64px] md:text-[120px] lg:text-[160px] font-semibold text-white tracking-[-0.04em] leading-[0.88] mb-3">
+        {/* Subtle grid texture */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-6 pt-24 md:pt-36 pb-20 md:pb-32 text-center">
+          {/* Editorial label */}
+          <div className="flex items-center justify-center gap-4 mb-10 opacity-70">
+            <div className="h-px w-12 bg-white/30" />
+            <span className="text-[11px] uppercase tracking-[0.3em] text-white/60 font-medium">
+              {lang === "en" ? "The future of hiring" : "Le futur du recrutement"}
+            </span>
+            <div className="h-px w-12 bg-white/30" />
+          </div>
+
+          <h1 className="font-display text-[56px] md:text-[112px] lg:text-[152px] font-semibold text-white tracking-[-0.04em] leading-[0.88] mb-2">
             {t.hero.line1}
           </h1>
-          <h2 className="font-display text-[64px] md:text-[120px] lg:text-[160px] font-semibold tracking-[-0.04em] leading-[0.88] mb-14 gradient-text" style={{ fontStyle: "italic" }}>
+          <h2 className="font-display text-[56px] md:text-[112px] lg:text-[152px] font-semibold tracking-[-0.04em] leading-[0.88] mb-16 gradient-text" style={{ fontStyle: "italic" }}>
             {t.hero.line2}
           </h2>
 
-          <p className="text-[20px] md:text-[24px] text-zinc-300 max-w-3xl mx-auto leading-[1.45] mb-14 font-light">
+          <p className="text-[18px] md:text-[22px] text-zinc-300 max-w-3xl mx-auto leading-[1.5] mb-14 font-light">
             {t.hero.subtitle}
           </p>
 
-          <div className="flex items-center justify-center gap-4">
-            <a href="#book-demo" className="group px-8 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
+            <a href="#book-demo" className="group px-8 py-4 bg-white text-zinc-900 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2 shadow-2xl shadow-white/10">
               {t.hero.cta}
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </a>
-            <a href="#platform" className="px-8 py-4 bg-white/5 text-white border border-white/10 rounded-full text-[15px] font-medium hover:bg-white/10 transition-all duration-200 flex items-center gap-2 backdrop-blur">
-              <Play size={14} />
+            <a href="#platform" className="px-8 py-4 bg-white/5 text-white border border-white/10 rounded-full text-[14px] font-medium hover:bg-white/10 transition-all duration-200 flex items-center gap-2 backdrop-blur">
+              <Play size={13} />
               {t.hero.demo}
             </a>
+          </div>
+
+          {/* Signature trust line */}
+          <div className="pt-10 border-t border-white/5 max-w-2xl mx-auto">
+            <p className="text-[11px] uppercase tracking-[0.25em] text-white/40 font-medium">
+              {lang === "en" ? "Trusted by growing companies across" : "Utilisé par des entreprises en croissance en"}
+            </p>
+            <p className="text-[13px] text-white/70 mt-3 font-medium tracking-wide">
+              United States · Canada · United Kingdom · Ireland · Australia
+            </p>
           </div>
         </div>
 
