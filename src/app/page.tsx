@@ -856,10 +856,10 @@ export default function LandingPage() {
 const en = {
   nav: { how: "How it works", platform: "Platform", pricing: "Pricing", cta: "Book a call" },
   hero: {
-    badge: "AI + Seasoned Recruiters — Delivered as a Service",
-    line1: "AI + seasoned recruiters.",
-    line2: "Delivered as a service.",
-    subtitle: "15-25 pre-qualified candidates delivered monthly by AI plus seasoned recruiters with 5-15 years of experience. First shortlist in 5-7 days. 30-day qualified candidate guarantee.",
+    badge: "AI-Powered Recruitment Service",
+    line1: "Your AI recruiting team.",
+    line2: "On demand.",
+    subtitle: "We source, contact, and qualify candidates for you. You receive pre-screened, interested talent — ready to interview.",
     cta: "Book a demo",
     demo: "See the platform",
   },
@@ -872,7 +872,7 @@ const en = {
     label: "How it works",
     title: "Three steps to your next hire",
     s1: { title: "AI-powered sourcing", desc: "Our AI scans the market continuously to identify the best passive candidates for your open roles. Hundreds of profiles reviewed daily." },
-    s2: { title: "Seasoned recruiter qualification", desc: "Our senior recruiters (5-15 years of experience) personally reach out to top matches, validate interest, motivation, salary expectations, and availability through real conversations." },
+    s2: { title: "Human qualification", desc: "We personally reach out to top matches, validate interest, motivation, salary expectations, and availability through real conversations." },
     s3: { title: "Ready-to-interview candidates", desc: "You receive only interested, qualified candidates with detailed AI scoring. Review profiles, give feedback, and interview — all from your portal." },
   },
   platform: {
@@ -961,10 +961,10 @@ const en = {
 const fr = {
   nav: { how: "Fonctionnement", platform: "Plateforme", pricing: "Tarifs", cta: "R\u00e9server un appel" },
   hero: {
-    badge: "IA + Recruteurs s\u00e9niors \u2014 Livr\u00e9 comme un service",
-    line1: "IA + recruteurs s\u00e9niors.",
-    line2: "Livr\u00e9 comme un service.",
-    subtitle: "15-25 candidats pr\u00e9-qualifi\u00e9s livr\u00e9s chaque mois par notre IA et nos recruteurs s\u00e9niors avec 5-15 ans d\u2019exp\u00e9rience. Premi\u00e8re shortlist en 5-7 jours. Garantie 30 jours sur les candidats qualifi\u00e9s.",
+    badge: "Plateforme de recrutement propuls\u00e9e par l\u2019IA",
+    line1: "Votre \u00e9quipe de recrutement IA.",
+    line2: "Sur demande.",
+    subtitle: "On source, contacte et qualifie les candidats pour vous. Vous recevez des talents pr\u00e9-qualifi\u00e9s et int\u00e9ress\u00e9s \u2014 pr\u00eats \u00e0 interviewer.",
     cta: "R\u00e9server une d\u00e9mo",
     demo: "Voir la plateforme",
   },
@@ -977,7 +977,7 @@ const fr = {
     label: "Comment \u00e7a marche",
     title: "Trois \u00e9tapes vers votre prochaine embauche",
     s1: { title: "Sourcing propuls\u00e9 par l\u2019IA", desc: "Notre IA scanne le march\u00e9 en continu pour identifier les meilleurs candidats passifs pour vos postes ouverts." },
-    s2: { title: "Qualification par recruteurs s\u00e9niors", desc: "Nos recruteurs s\u00e9niors (5-15 ans d\u2019exp\u00e9rience) contactent personnellement les meilleurs profils, valident l\u2019int\u00e9r\u00eat, la motivation, les attentes salariales et la disponibilit\u00e9." },
+    s2: { title: "Qualification humaine", desc: "On contacte personnellement les meilleurs profils, on valide l\u2019int\u00e9r\u00eat, la motivation, les attentes salariales et la disponibilit\u00e9." },
     s3: { title: "Candidats pr\u00eats \u00e0 interviewer", desc: "Vous recevez uniquement des candidats int\u00e9ress\u00e9s et qualifi\u00e9s avec un scoring IA d\u00e9taill\u00e9. Le tout dans votre portail." },
   },
   platform: {
