@@ -75,7 +75,10 @@ export default function LandingPage() {
             <button onClick={() => setLang(lang === "en" ? "fr" : "en")} className="text-[11px] text-zinc-400 hover:text-zinc-600 border border-zinc-200 rounded-full px-2.5 py-1 transition-all duration-200">
               {lang === "en" ? "FR" : "EN"}
             </button>
-            <a href="/" className="px-5 py-2 bg-zinc-900 text-white rounded-full text-[13px] font-medium hover:bg-zinc-800 transition-all duration-200">
+            <a href="/login" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">
+              {lang === "en" ? "Client login" : "Connexion client"}
+            </a>
+            <a href="#book-demo" className="px-5 py-2 bg-zinc-900 text-white rounded-full text-[13px] font-medium hover:bg-zinc-800 transition-all duration-200">
               {t.nav.cta}
             </a>
           </div>
@@ -83,7 +86,10 @@ export default function LandingPage() {
             <button onClick={() => setLang(lang === "en" ? "fr" : "en")} className="text-[11px] text-zinc-400 border border-zinc-200 rounded-full px-2.5 py-1">
               {lang === "en" ? "FR" : "EN"}
             </button>
-            <a href="/" className="px-4 py-2 bg-zinc-900 text-white rounded-full text-[12px] font-medium">
+            <a href="/login" className="text-[12px] text-zinc-500 hover:text-zinc-900">
+              {lang === "en" ? "Login" : "Connexion"}
+            </a>
+            <a href="#book-demo" className="px-4 py-2 bg-zinc-900 text-white rounded-full text-[12px] font-medium">
               {t.nav.cta}
             </a>
           </div>
