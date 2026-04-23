@@ -290,7 +290,7 @@ export default function LandingPage() {
                           <p className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium">AI Summary</p>
                         </div>
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
-                          {[{ v: "847", l: "Sourced" }, { v: "142", l: "Approached" }, { v: "47", l: "Delivered" }].map(s => (
+                          {[{ v: "847", l: "Found" }, { v: "142", l: "Contacted" }, { v: "47", l: "Delivered" }].map(s => (
                             <div key={s.l} className="bg-white rounded-md p-2 text-center">
                               <p className="text-[12px] font-bold text-zinc-900">{s.v}</p>
                               <p className="text-[7px] text-zinc-600">{s.l}</p>
@@ -508,7 +508,7 @@ export default function LandingPage() {
                     <p className="text-[12px] font-semibold text-zinc-900">AI Weekly Insights</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-4">
-                    {[{ v: "312", l: "Sourced" }, { v: "58", l: "Approached" }, { v: "5", l: "Delivered" }].map(s => (
+                    {[{ v: "312", l: "Found" }, { v: "58", l: "Contacted" }, { v: "5", l: "Delivered" }].map(s => (
                       <div key={s.l} className="bg-white rounded-lg p-3 border border-zinc-100 text-center">
                         <p className="text-[18px] font-semibold text-zinc-900">{s.v}</p>
                         <p className="text-[9px] text-zinc-400">{s.l}</p>
@@ -1000,7 +1000,7 @@ const en = {
   how: {
     label: "How it works",
     title: "Three steps to your next hire",
-    s1: { title: "AI-powered sourcing", desc: "Our AI scans the market continuously to identify the best passive candidates for your open roles. Hundreds of profiles reviewed daily." },
+    s1: { title: "AI-powered talent search", desc: "Our AI scans the market continuously across 50+ platforms to identify the best passive candidates for your open roles. Hundreds of profiles reviewed daily." },
     s2: { title: "Human qualification", desc: "We personally reach out to top matches, validate interest, motivation, salary expectations, and availability through real conversations." },
     s3: { title: "Ready-to-interview candidates", desc: "You receive only interested, qualified candidates with detailed AI scoring. Review profiles, give feedback, and interview — all from your portal." },
   },
@@ -1011,7 +1011,7 @@ const en = {
     tabs: ["Candidates", "AI Scoring", "Insights"],
     f1: {
       title: "Pre-screened candidates delivered to you",
-      desc: "Every candidate in your portal has been sourced by AI, contacted by our team, and has confirmed interest in your role.",
+      desc: "Every candidate in your portal has been found by AI, contacted by our team, and has confirmed interest in your role.",
       points: ["Only interested candidates — no cold profiles", "Detailed career history and motivation notes", "Real-time updates as new candidates are delivered"],
     },
     f2: {
@@ -1029,7 +1029,7 @@ const en = {
     b1: { title: "Faster than traditional recruiting", desc: "Our AI works around the clock. You receive your first qualified candidates within days, not weeks." },
     b2: { title: "Pre-qualified and interested", desc: "Every candidate has been personally contacted and has confirmed interest. No wasted interviews." },
     b3: { title: "Data-driven hiring decisions", desc: "AI scoring, market benchmarks, and weekly insights give you clarity at every step." },
-    b4: { title: "Available globally", desc: "We source talent worldwide. Our platform supports English, French, and Spanish." },
+    b4: { title: "Available globally", desc: "We find talent worldwide. Our platform supports English, French, and Spanish." },
   },
   pricing: {
     title: "Simple pricing. Powerful results.",
@@ -1061,7 +1061,7 @@ const en = {
     c4: "Aimio",
     rows: [
       { label: "Candidate reach", v1: "5% (active seekers only)", v2: "LinkedIn network only", v3: "Agency database", v4: "100% (active + passive)" },
-      { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI sources + humans qualify" },
+      { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + humans qualify" },
       { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
       { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
       { label: "Monthly cost", v1: "$300-800 ads + your time", v2: "$9,500/mo + benefits", v3: "$15-30K per placement", v4: "$1,999-4,999/mo flat" },
@@ -1105,7 +1105,7 @@ const fr = {
   how: {
     label: "Comment \u00e7a marche",
     title: "Trois \u00e9tapes vers votre prochaine embauche",
-    s1: { title: "Sourcing propuls\u00e9 par l\u2019IA", desc: "Notre IA scanne le march\u00e9 en continu pour identifier les meilleurs candidats passifs pour vos postes ouverts." },
+    s1: { title: "Recherche de talents propuls\u00e9e par l\u2019IA", desc: "Notre IA scanne le march\u00e9 en continu sur 50+ plateformes pour identifier les meilleurs candidats passifs pour vos postes ouverts." },
     s2: { title: "Qualification humaine", desc: "On contacte personnellement les meilleurs profils, on valide l\u2019int\u00e9r\u00eat, la motivation, les attentes salariales et la disponibilit\u00e9." },
     s3: { title: "Candidats pr\u00eats \u00e0 interviewer", desc: "Vous recevez uniquement des candidats int\u00e9ress\u00e9s et qualifi\u00e9s avec un scoring IA d\u00e9taill\u00e9. Le tout dans votre portail." },
   },
@@ -1134,7 +1134,7 @@ const fr = {
     b1: { title: "Plus rapide que le recrutement traditionnel", desc: "Notre IA travaille 24/7. Vous recevez vos premiers candidats qualifi\u00e9s en quelques jours." },
     b2: { title: "Pr\u00e9-qualifi\u00e9s et int\u00e9ress\u00e9s", desc: "Chaque candidat a \u00e9t\u00e9 contact\u00e9 personnellement et a confirm\u00e9 son int\u00e9r\u00eat. Z\u00e9ro entrevue gaspill\u00e9e." },
     b3: { title: "D\u00e9cisions bas\u00e9es sur les donn\u00e9es", desc: "Scoring IA, benchmarks de march\u00e9 et insights hebdomadaires pour plus de clart\u00e9." },
-    b4: { title: "Disponible mondialement", desc: "On source des talents partout. Notre plateforme supporte l\u2019anglais, le fran\u00e7ais et l\u2019espagnol." },
+    b4: { title: "Disponible mondialement", desc: "On trouve des talents partout. Notre plateforme supporte l\u2019anglais, le fran\u00e7ais et l\u2019espagnol." },
   },
   pricing: {
     title: "Tarification simple. R\u00e9sultats puissants.",
@@ -1166,7 +1166,7 @@ const fr = {
     c4: "Aimio",
     rows: [
       { label: "Port\u00e9e du march\u00e9", v1: "5% (candidats actifs seulement)", v2: "R\u00e9seau LinkedIn", v3: "Base de donn\u00e9es de l\u2019agence", v4: "100% (actifs + passifs)" },
-      { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA source + humains qualifient" },
+      { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA trouve + humains qualifient" },
       { label: "Qualit\u00e9 candidat", v1: "Auto-s\u00e9lectionn\u00e9s, non filtr\u00e9s", v2: "D\u00e9pend du recruteur", v3: "Qui ils ont", v4: "Scor\u00e9 IA + v\u00e9rifi\u00e9 humain" },
       { label: "Premi\u00e8re livraison", v1: "Des mois", v2: "2-8 semaines", v3: "1-4 semaines", v4: "5-7 jours" },
       { label: "Co\u00fbt mensuel", v1: "300-800$ d\u2019annonces + temps", v2: "9 500$/mois + b\u00e9n\u00e9fices", v3: "15-30K$ par placement", v4: "1 999-4 999$/mois forfait" },
