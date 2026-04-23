@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Check, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowRight, Check, X, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function LandingPage() {
   const [lang, setLang] = useState<"en" | "fr">("en");
@@ -550,39 +550,81 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Comparison Table — NEW */}
-      <section id="compare" className="py-28 px-6 bg-white border-t border-zinc-100">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
+      {/* Comparison Table — Premium animated */}
+      <section id="compare" className="py-28 px-6 bg-white border-t border-zinc-100 relative overflow-hidden">
+        {/* Ambient blue glow behind Aimio column */}
+        <div className="absolute top-1/2 right-[15%] w-[400px] h-[400px] bg-[#2445EB]/8 rounded-full blur-[130px] -z-0" />
+
+        <div className="max-w-6xl mx-auto relative">
+          <div className="reveal text-center mb-14">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.compare.label}</p>
             <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.compare.title}</h2>
             <p className="text-[15px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.compare.subtitle}</p>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="reveal overflow-x-auto rounded-2xl bg-white/60 backdrop-blur shadow-card border border-zinc-100">
             <table className="w-full min-w-[780px] border-collapse">
               <thead>
                 <tr>
-                  <th className="py-4 px-4 text-left text-[11px] font-semibold text-zinc-500 uppercase tracking-wider border-b border-zinc-200">{t.compare.dimension}</th>
-                  <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c1}</th>
-                  <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c2}</th>
-                  <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c3}</th>
-                  <th className="py-4 px-3 text-center text-[13px] font-bold text-white bg-[#2445EB] rounded-t-lg">{t.compare.c4}</th>
+                  <th className="py-5 px-5 text-left text-[11px] font-semibold text-zinc-500 uppercase tracking-wider border-b border-zinc-200">{t.compare.dimension}</th>
+                  <th className="py-5 px-3 text-center text-[12px] font-medium text-zinc-500 border-b border-zinc-200">{t.compare.c1}</th>
+                  <th className="py-5 px-3 text-center text-[12px] font-medium text-zinc-500 border-b border-zinc-200">{t.compare.c2}</th>
+                  <th className="py-5 px-3 text-center text-[12px] font-medium text-zinc-500 border-b border-zinc-200">{t.compare.c3}</th>
+                  <th className="py-5 px-3 text-center text-[13px] font-bold text-white border-b border-zinc-200 relative">
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#2445EB] to-[#1A36C4] rounded-t-xl shadow-lg shadow-[#2445EB]/30" />
+                    <span className="relative z-10 flex items-center justify-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full live-dot" />
+                      {t.compare.c4}
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {t.compare.rows.map((row: {label: string; v1: string; v2: string; v3: string; v4: string}, i: number) => (
-                  <tr key={i} className="border-b border-zinc-100 last:border-0 hover:bg-white/50 transition-colors">
-                    <td className="py-4 px-4 text-[13px] font-medium text-zinc-900">{row.label}</td>
-                    <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v1}</td>
-                    <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v2}</td>
-                    <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v3}</td>
-                    <td className="py-4 px-3 text-center text-[12px] font-semibold text-[#2445EB] bg-[#2445EB]/5">{row.v4}</td>
+                  <tr
+                    key={i}
+                    className="reveal border-b border-zinc-100 last:border-0 group/row hover:bg-[#2445EB]/[0.03] transition-all duration-300"
+                    style={{ transitionDelay: `${i * 50}ms` }}
+                  >
+                    <td className="py-5 px-5 text-[14px] font-semibold text-zinc-900 group-hover/row:text-[#2445EB] transition-colors">
+                      {row.label}
+                    </td>
+                    <td className="py-5 px-3 text-center text-[12px] text-zinc-400">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <X size={12} className="text-red-400/60" />
+                        <span>{row.v1}</span>
+                      </div>
+                    </td>
+                    <td className="py-5 px-3 text-center text-[12px] text-zinc-400">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <X size={12} className="text-red-400/60" />
+                        <span>{row.v2}</span>
+                      </div>
+                    </td>
+                    <td className="py-5 px-3 text-center text-[12px] text-zinc-400">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <X size={12} className="text-red-400/60" />
+                        <span>{row.v3}</span>
+                      </div>
+                    </td>
+                    <td className="py-5 px-3 text-center text-[12.5px] font-semibold text-[#2445EB] bg-gradient-to-b from-[#2445EB]/[0.06] to-[#2445EB]/[0.03] relative">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Check size={13} className="text-[#2445EB] shrink-0" strokeWidth={2.5} />
+                        <span>{row.v4}</span>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Killer line */}
+          <p className="reveal mt-10 text-center text-[15px] md:text-[17px] text-zinc-600 max-w-2xl mx-auto italic font-light">
+            {lang === "en"
+              ? "Built for teams who care about the outcome — not just the process."
+              : "Conçu pour les équipes qui se soucient du résultat — pas juste du processus."}
+          </p>
         </div>
       </section>
 
