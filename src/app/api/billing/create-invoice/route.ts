@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-09-30.clover" });
+    const stripe = new Stripe(stripeKey);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -128,10 +128,7 @@ export async function POST(request: Request) {
     // Step 6 — Update our DB
     await supabase
       .from("clients")
-      .update({
-        billing_status: "active",
-        stripe_subscription_id: sent.subscription ? String(sent.subscription) : null,
-      })
+      .update({ billing_status: "active" })
       .eq("id", client.id);
 
     // Log activity

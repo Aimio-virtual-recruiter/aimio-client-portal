@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         await resend.emails.send({
           from: "Marc-Antoine Côté <marc@send.aimiorecrutement.com>",
           to: [body.contact_email],
-          reply_to: "marc@aimiorecrutement.com",
+          replyTo: "marc@aimiorecrutement.com",
           subject: `Bienvenue chez Aimio — démarrons votre recrutement 🚀`,
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #18181b;">

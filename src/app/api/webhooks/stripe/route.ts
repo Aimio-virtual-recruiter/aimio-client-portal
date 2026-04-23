@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "STRIPE_SECRET_KEY not set" }, { status: 500 });
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-09-30.clover" });
+    const stripe = new Stripe(stripeKey);
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
 

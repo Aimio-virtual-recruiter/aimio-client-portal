@@ -135,7 +135,7 @@ export async function POST(request: Request) {
         await resend.emails.send({
           from: "Aimio Recrutement <candidates@send.aimiorecrutement.com>",
           to: [client.contact_email],
-          reply_to: "marc@aimiorecrutement.com",
+          replyTo: "marc@aimiorecrutement.com",
           subject: `🎯 Nouveau candidat livré pour ${client.company_name}`,
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #18181b;">
