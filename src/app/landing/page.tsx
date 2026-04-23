@@ -97,11 +97,6 @@ export default function LandingPage() {
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#4B5DF5]/15 rounded-full blur-[120px]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-28 md:pt-40 pb-16 md:pb-32 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur border border-white/10 rounded-full mb-8">
-            <div className="w-1.5 h-1.5 bg-[#2445EB] rounded-full animate-pulse" />
-            <span className="text-[12px] text-zinc-400 tracking-wide">{t.hero.badge}</span>
-          </div>
-
           <h1 className="text-[56px] md:text-[104px] lg:text-[128px] font-black text-white tracking-[-0.04em] leading-[0.88] mb-4">
             {t.hero.line1}
           </h1>
