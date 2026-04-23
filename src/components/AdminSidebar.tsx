@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send, Search, Database, UserCheck, TrendingUp, Flame, Trophy, Phone, Activity, Users2 } from "lucide-react";
+import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send, Search, Database, UserCheck, TrendingUp, Flame, Trophy, Phone, Activity, Users2, Sparkles, CreditCard } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Onboard client RV", href: "/admin/clients/new", icon: Sparkles, badge: "NEW" },
+  { label: "Billing · Invoices", href: "/admin/billing", icon: CreditCard },
   { label: "Sales · Live", href: "/admin/sales", icon: Activity },
   { label: "Lead Queue", href: "/admin/queue", icon: Phone },
   { label: "Prospects DB", href: "/admin/prospects", icon: Users2 },

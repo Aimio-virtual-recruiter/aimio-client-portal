@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ArrowRight, Check, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -7,6 +7,17 @@ export default function LandingPage() {
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [activeDemo, setActiveDemo] = useState(0);
   const t = lang === "en" ? en : fr;
+
+  // Auto-detect browser language + URL param support
+  useEffect(() => {
+    const urlParam = new URLSearchParams(window.location.search).get("lang");
+    if (urlParam === "fr" || urlParam === "en") {
+      setLang(urlParam);
+      return;
+    }
+    const browserLang = navigator.language.toLowerCase();
+    if (browserLang.startsWith("fr")) setLang("fr");
+  }, []);
 
   // Lead form state
   const [form, setForm] = useState({
@@ -483,6 +494,42 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Comparison Table — NEW */}
+      <section id="compare" className="py-28 px-6 bg-white border-t border-zinc-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">{t.compare.label}</p>
+            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.compare.title}</h2>
+            <p className="text-[15px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.compare.subtitle}</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[780px] border-collapse">
+              <thead>
+                <tr>
+                  <th className="py-4 px-4 text-left text-[11px] font-semibold text-zinc-500 uppercase tracking-wider border-b border-zinc-200">{t.compare.dimension}</th>
+                  <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c1}</th>
+                  <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c2}</th>
+                  <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c3}</th>
+                  <th className="py-4 px-3 text-center text-[13px] font-bold text-white bg-[#6C2BD9] rounded-t-lg">{t.compare.c4}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {t.compare.rows.map((row: {label: string; v1: string; v2: string; v3: string; v4: string}, i: number) => (
+                  <tr key={i} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-4 px-4 text-[13px] font-medium text-zinc-900">{row.label}</td>
+                    <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v1}</td>
+                    <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v2}</td>
+                    <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v3}</td>
+                    <td className="py-4 px-3 text-center text-[12px] font-semibold text-[#6C2BD9] bg-[#6C2BD9]/5">{row.v4}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section id="pricing" className="py-28 px-6 bg-zinc-50">
         <div className="max-w-4xl mx-auto">
@@ -526,6 +573,59 @@ export default function LandingPage() {
             ))}
           </div>
           <p className="text-center text-[12px] text-zinc-400 mt-8">{t.pricing.note}</p>
+        </div>
+      </section>
+
+      {/* Guarantee + ROI — NEW */}
+      <section className="py-28 px-6 bg-white border-t border-zinc-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+            {/* Left — Guarantee */}
+            <div>
+              <div className="w-14 h-14 bg-[#6C2BD9]/10 rounded-2xl flex items-center justify-center mb-6">
+                <Shield size={26} className="text-[#6C2BD9]" strokeWidth={1.5} />
+              </div>
+              <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-3">{t.guarantee.label}</p>
+              <h2 className="text-[30px] md:text-[40px] font-bold text-zinc-900 tracking-tight leading-tight mb-4">{t.guarantee.title}</h2>
+              <p className="text-[15px] text-zinc-600 leading-relaxed mb-6">{t.guarantee.desc}</p>
+              <ul className="space-y-3">
+                {t.guarantee.points.map((p: string, i: number) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-[#6C2BD9]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
+                      <Check size={12} className="text-[#6C2BD9]" />
+                    </div>
+                    <span className="text-[14px] text-zinc-700">{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Right — ROI Calculator */}
+            <div className="bg-zinc-900 rounded-2xl p-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-[300px] h-[200px] bg-[#6C2BD9]/20 rounded-full blur-[100px]" />
+              <div className="relative z-10">
+                <p className="text-[11px] text-[#A78BFA] font-semibold uppercase tracking-[0.2em] mb-3">{t.guarantee.roi_label}</p>
+                <h3 className="text-[22px] font-bold tracking-tight mb-6">{t.guarantee.roi_title}</h3>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                    <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_internal}</span>
+                    <span className="text-[18px] font-bold text-white">$117,500/yr</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                    <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_aimio}</span>
+                    <span className="text-[18px] font-bold text-white">$36,000/yr</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-[14px] font-semibold text-white">{t.guarantee.roi_save}</span>
+                    <span className="text-[28px] font-bold text-[#A78BFA]">$81,500/yr</span>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-zinc-500 mt-6 leading-relaxed">{t.guarantee.roi_note}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -756,10 +856,10 @@ export default function LandingPage() {
 const en = {
   nav: { how: "How it works", platform: "Platform", pricing: "Pricing", cta: "Book a call" },
   hero: {
-    badge: "AI-Powered Recruitment Service",
-    line1: "Your AI recruiting team.",
-    line2: "On demand.",
-    subtitle: "We source, contact, and qualify candidates for you. You receive pre-screened, interested talent — ready to interview.",
+    badge: "AI + Seasoned Recruiters — Delivered as a Service",
+    line1: "AI + seasoned recruiters.",
+    line2: "Delivered as a service.",
+    subtitle: "15-25 pre-qualified candidates delivered monthly by AI plus seasoned recruiters with 5-15 years of experience. First shortlist in 5-7 days. 30-day qualified candidate guarantee.",
     cta: "Book a demo",
     demo: "See the platform",
   },
@@ -772,7 +872,7 @@ const en = {
     label: "How it works",
     title: "Three steps to your next hire",
     s1: { title: "AI-powered sourcing", desc: "Our AI scans the market continuously to identify the best passive candidates for your open roles. Hundreds of profiles reviewed daily." },
-    s2: { title: "Human qualification", desc: "We personally reach out to top matches, validate interest, motivation, salary expectations, and availability through real conversations." },
+    s2: { title: "Seasoned recruiter qualification", desc: "Our senior recruiters (5-15 years of experience) personally reach out to top matches, validate interest, motivation, salary expectations, and availability through real conversations." },
     s3: { title: "Ready-to-interview candidates", desc: "You receive only interested, qualified candidates with detailed AI scoring. Review profiles, give feedback, and interview — all from your portal." },
   },
   platform: {
@@ -821,15 +921,50 @@ const en = {
     subtitle: "Book a 30-min discovery call. We'll understand your needs and show you exactly how we'd deliver candidates for your team.",
     button: "Book a demo",
   },
+  compare: {
+    label: "The comparison",
+    title: "Why teams choose Aimio over the alternatives.",
+    subtitle: "Every option has trade-offs. Here's how we stack up against what you're probably doing today.",
+    dimension: "Dimension",
+    c1: "Job Posting",
+    c2: "Internal Recruiter",
+    c3: "Traditional Agency",
+    c4: "Aimio",
+    rows: [
+      { label: "Candidate reach", v1: "5% (active seekers only)", v2: "LinkedIn network only", v3: "Agency database", v4: "100% (active + passive)" },
+      { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI sources + humans qualify" },
+      { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
+      { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
+      { label: "Monthly cost", v1: "$300-800 ads + your time", v2: "$9,500/mo + benefits", v3: "$15-30K per placement", v4: "$1,999-4,999/mo flat" },
+      { label: "Guarantee", v1: "None", v2: "None", v3: "90-day replacement", v4: "30-day full refund" },
+    ],
+  },
+  guarantee: {
+    label: "The guarantee",
+    title: "30-day qualified candidate guarantee.",
+    desc: "If we don't deliver qualified candidates within 30 days, you get a full refund. No fine print. That's how confident we are.",
+    points: [
+      "Qualified = contacted, scored, verified interest + availability",
+      "Full refund if promise not met in 30 days",
+      "Cancel anytime after month 1 — no annual lock-in",
+      "Portal access + data exports yours to keep",
+    ],
+    roi_label: "ROI Math",
+    roi_title: "Aimio vs. an internal recruiter.",
+    roi_internal: "Internal recruiter (salary + benefits + tools)",
+    roi_aimio: "Aimio Pro ($2,999/mo)",
+    roi_save: "You save",
+    roi_note: "Based on avg. $90K salary + 25% benefits + $5K tools. Your mileage may vary.",
+  },
 };
 
 const fr = {
   nav: { how: "Fonctionnement", platform: "Plateforme", pricing: "Tarifs", cta: "R\u00e9server un appel" },
   hero: {
-    badge: "Plateforme de recrutement propuls\u00e9e par l\u2019IA",
-    line1: "Votre \u00e9quipe de recrutement IA.",
-    line2: "Sur demande.",
-    subtitle: "On source, contacte et qualifie les candidats pour vous. Vous recevez des talents pr\u00e9-qualifi\u00e9s et int\u00e9ress\u00e9s \u2014 pr\u00eats \u00e0 interviewer.",
+    badge: "IA + Recruteurs s\u00e9niors \u2014 Livr\u00e9 comme un service",
+    line1: "IA + recruteurs s\u00e9niors.",
+    line2: "Livr\u00e9 comme un service.",
+    subtitle: "15-25 candidats pr\u00e9-qualifi\u00e9s livr\u00e9s chaque mois par notre IA et nos recruteurs s\u00e9niors avec 5-15 ans d\u2019exp\u00e9rience. Premi\u00e8re shortlist en 5-7 jours. Garantie 30 jours sur les candidats qualifi\u00e9s.",
     cta: "R\u00e9server une d\u00e9mo",
     demo: "Voir la plateforme",
   },
@@ -842,7 +977,7 @@ const fr = {
     label: "Comment \u00e7a marche",
     title: "Trois \u00e9tapes vers votre prochaine embauche",
     s1: { title: "Sourcing propuls\u00e9 par l\u2019IA", desc: "Notre IA scanne le march\u00e9 en continu pour identifier les meilleurs candidats passifs pour vos postes ouverts." },
-    s2: { title: "Qualification humaine", desc: "On contacte personnellement les meilleurs profils, on valide l\u2019int\u00e9r\u00eat, la motivation, les attentes salariales et la disponibilit\u00e9." },
+    s2: { title: "Qualification par recruteurs s\u00e9niors", desc: "Nos recruteurs s\u00e9niors (5-15 ans d\u2019exp\u00e9rience) contactent personnellement les meilleurs profils, valident l\u2019int\u00e9r\u00eat, la motivation, les attentes salariales et la disponibilit\u00e9." },
     s3: { title: "Candidats pr\u00eats \u00e0 interviewer", desc: "Vous recevez uniquement des candidats int\u00e9ress\u00e9s et qualifi\u00e9s avec un scoring IA d\u00e9taill\u00e9. Le tout dans votre portail." },
   },
   platform: {
@@ -890,5 +1025,40 @@ const fr = {
     title: "Pr\u00eat \u00e0 transformer votre recrutement?",
     subtitle: "R\u00e9servez un appel de d\u00e9couverte de 30 min. On comprend vos besoins et on vous montre comment livrer vos candidats.",
     button: "R\u00e9server une d\u00e9mo",
+  },
+  compare: {
+    label: "La comparaison",
+    title: "Pourquoi les \u00e9quipes choisissent Aimio.",
+    subtitle: "Chaque option a ses compromis. Voici comment on se compare \u00e0 ce que vous faites probablement aujourd\u2019hui.",
+    dimension: "Dimension",
+    c1: "Affichage de poste",
+    c2: "Recruteur interne",
+    c3: "Agence classique",
+    c4: "Aimio",
+    rows: [
+      { label: "Port\u00e9e du march\u00e9", v1: "5% (candidats actifs seulement)", v2: "R\u00e9seau LinkedIn", v3: "Base de donn\u00e9es de l\u2019agence", v4: "100% (actifs + passifs)" },
+      { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA source + humains qualifient" },
+      { label: "Qualit\u00e9 candidat", v1: "Auto-s\u00e9lectionn\u00e9s, non filtr\u00e9s", v2: "D\u00e9pend du recruteur", v3: "Qui ils ont", v4: "Scor\u00e9 IA + v\u00e9rifi\u00e9 humain" },
+      { label: "Premi\u00e8re livraison", v1: "Des mois", v2: "2-8 semaines", v3: "1-4 semaines", v4: "5-7 jours" },
+      { label: "Co\u00fbt mensuel", v1: "300-800$ d\u2019annonces + temps", v2: "9 500$/mois + b\u00e9n\u00e9fices", v3: "15-30K$ par placement", v4: "1 999-4 999$/mois forfait" },
+      { label: "Garantie", v1: "Aucune", v2: "Aucune", v3: "Remplacement 90 jours", v4: "Remboursement 30 jours" },
+    ],
+  },
+  guarantee: {
+    label: "La garantie",
+    title: "Garantie 30 jours sur les candidats qualifi\u00e9s.",
+    desc: "Si on ne livre pas de candidats qualifi\u00e9s en 30 jours, remboursement complet. Aucun fine print. C\u2019est comme \u00e7a qu\u2019on est confiants.",
+    points: [
+      "Qualifi\u00e9 = contact\u00e9, scor\u00e9, int\u00e9r\u00eat + dispo v\u00e9rifi\u00e9s",
+      "Remboursement complet si promesse non tenue en 30 jours",
+      "Annulez en tout temps apr\u00e8s le 1er mois \u2014 aucun engagement annuel",
+      "Acc\u00e8s portail + exports de donn\u00e9es \u00e0 vous pour toujours",
+    ],
+    roi_label: "Calcul ROI",
+    roi_title: "Aimio vs. un recruteur interne.",
+    roi_internal: "Recruteur interne (salaire + b\u00e9n\u00e9fices + outils)",
+    roi_aimio: "Aimio Pro (2 999$/mois)",
+    roi_save: "Vous \u00e9conomisez",
+    roi_note: "Bas\u00e9 sur salaire moyen 90K$ + 25% b\u00e9n\u00e9fices + 5K$ outils. Les r\u00e9sultats varient.",
   },
 };
