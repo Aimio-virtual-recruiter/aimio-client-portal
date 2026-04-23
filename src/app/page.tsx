@@ -591,7 +591,12 @@ export default function LandingPage() {
                   <th className="py-8 px-4 text-center w-[18%]">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-[#2445EB] flex items-center justify-center shadow-lg shadow-[#2445EB]/25">
-                        <Sparkles size={18} className="text-white" strokeWidth={2} />
+                        {/* Aimio iii mark */}
+                        <div className="flex gap-[3px] items-end">
+                          <div className="w-[3px] h-4 bg-white rounded-sm" />
+                          <div className="w-[3px] h-5 bg-white rounded-sm" />
+                          <div className="w-[3px] h-[22px] bg-white rounded-sm" />
+                        </div>
                       </div>
                       <span className="text-[13px] font-semibold text-zinc-900">{t.compare.c4}</span>
                     </div>
