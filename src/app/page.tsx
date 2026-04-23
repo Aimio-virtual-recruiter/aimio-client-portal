@@ -93,23 +93,23 @@ export default function LandingPage() {
       {/* Hero — Dark, Apple-style */}
       <section className="relative bg-zinc-950 overflow-hidden">
         {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#6C2BD9]/20 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/15 rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#2445EB]/20 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#4B5DF5]/15 rounded-full blur-[120px]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-28 md:pt-40 pb-16 md:pb-32 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur border border-white/10 rounded-full mb-8">
-            <div className="w-1.5 h-1.5 bg-[#6C2BD9] rounded-full animate-pulse" />
+            <div className="w-1.5 h-1.5 bg-[#2445EB] rounded-full animate-pulse" />
             <span className="text-[12px] text-zinc-400 tracking-wide">{t.hero.badge}</span>
           </div>
 
-          <h1 className="text-[36px] md:text-[72px] font-bold text-white tracking-tight leading-[0.95] mb-4">
+          <h1 className="text-[56px] md:text-[104px] lg:text-[128px] font-black text-white tracking-[-0.04em] leading-[0.88] mb-4">
             {t.hero.line1}
           </h1>
-          <h2 className="text-[36px] md:text-[72px] font-bold tracking-tight leading-[0.95] mb-8 bg-gradient-to-r from-[#6C2BD9] via-[#8B5CF6] to-[#A78BFA] bg-clip-text text-transparent">
+          <h2 className="text-[56px] md:text-[104px] lg:text-[128px] font-black tracking-[-0.04em] leading-[0.88] mb-10 bg-gradient-to-r from-[#2445EB] via-[#4B5DF5] to-[#7A8FF5] bg-clip-text text-transparent">
             {t.hero.line2}
           </h2>
 
-          <p className="text-[18px] text-zinc-400 max-w-xl mx-auto leading-relaxed mb-12">
+          <p className="text-[20px] md:text-[24px] text-zinc-300 max-w-2xl mx-auto leading-[1.4] mb-12 font-medium">
             {t.hero.subtitle}
           </p>
 
@@ -156,13 +156,13 @@ export default function LandingPage() {
                   ].map((item) => (
                     <div key={item.n} className={`px-3 py-2 rounded-lg text-[10px] flex items-center justify-between ${item.active ? "bg-zinc-100 text-zinc-900 font-medium" : "text-zinc-400"}`}>
                       {item.n}
-                      {item.badge && <span className="bg-[#6C2BD9] text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{item.badge}</span>}
+                      {item.badge && <span className="bg-[#2445EB] text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{item.badge}</span>}
                     </div>
                   ))}
 
                   {/* AI Insight mini */}
-                  <div className="mt-4 bg-[#6C2BD9]/5 rounded-lg p-3 border border-[#6C2BD9]/10">
-                    <p className="text-[8px] text-[#6C2BD9] font-bold uppercase tracking-wider mb-1">AI Insight</p>
+                  <div className="mt-4 bg-[#2445EB]/5 rounded-lg p-3 border border-[#2445EB]/10">
+                    <p className="text-[8px] text-[#2445EB] font-bold uppercase tracking-wider mb-1">AI Insight</p>
                     <p className="text-[9px] text-zinc-500 leading-relaxed">3 top candidates ready for interview this week</p>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ export default function LandingPage() {
                   {/* KPIs */}
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { v: "8", l: "Active mandates", c: "#6C2BD9" },
+                      { v: "8", l: "Active mandates", c: "#2445EB" },
                       { v: "47", l: "Candidates delivered", c: "#10B981" },
                       { v: "18", l: "Interested", c: "#3B82F6" },
                       { v: "7", l: "Interviews scheduled", c: "#F59E0B" },
@@ -201,7 +201,7 @@ export default function LandingPage() {
                     <div className="bg-white rounded-lg border border-zinc-100 p-3 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium">Top candidates this week</p>
-                        <span className="text-[8px] text-[#6C2BD9]">View all</span>
+                        <span className="text-[8px] text-[#2445EB]">View all</span>
                       </div>
                       {[
                         { n: "Sarah Blackwood", s: "9.7", t: "Chief Estimator — 18 yrs", status: "new" },
@@ -221,8 +221,8 @@ export default function LandingPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-[#6C2BD9]">{c.s}</span>
-                            <div className={`w-1.5 h-1.5 rounded-full ${c.status === "new" ? "bg-[#6C2BD9]" : c.status === "interested" ? "bg-emerald-400" : "bg-blue-400"}`} />
+                            <span className="text-[10px] font-bold text-[#2445EB]">{c.s}</span>
+                            <div className={`w-1.5 h-1.5 rounded-full ${c.status === "new" ? "bg-[#2445EB]" : c.status === "interested" ? "bg-emerald-400" : "bg-blue-400"}`} />
                           </div>
                         </div>
                       ))}
@@ -233,7 +233,7 @@ export default function LandingPage() {
                       {/* AI Summary */}
                       <div className="bg-white rounded-lg border border-zinc-100 p-3 shadow-sm">
                         <div className="flex items-center gap-1.5 mb-2">
-                          <Sparkles size={10} className="text-[#6C2BD9]" />
+                          <Sparkles size={10} className="text-[#2445EB]" />
                           <p className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium">AI Summary</p>
                         </div>
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
@@ -244,7 +244,7 @@ export default function LandingPage() {
                             </div>
                           ))}
                         </div>
-                        <div className="bg-[#6C2BD9]/5 rounded-md p-2 border border-[#6C2BD9]/10">
+                        <div className="bg-[#2445EB]/5 rounded-md p-2 border border-[#2445EB]/10">
                           <p className="text-[8px] text-zinc-500 leading-relaxed">Market trend: Senior estimator demand up 12% this quarter. Recommend adjusting salary range for faster results.</p>
                         </div>
                       </div>
@@ -295,7 +295,7 @@ export default function LandingPage() {
       <section id="how" className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-20">
-            <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">{t.how.label}</p>
+            <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.how.label}</p>
             <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.how.title}</h2>
           </div>
 
@@ -324,7 +324,7 @@ export default function LandingPage() {
       <section id="platform" className="py-28 px-6 bg-zinc-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">{t.platform.label}</p>
+            <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.platform.label}</p>
             <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.platform.title}</h2>
             <p className="text-[16px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.platform.subtitle}</p>
           </div>
@@ -354,8 +354,8 @@ export default function LandingPage() {
                   <ul className="space-y-4">
                     {t.platform.f1.points.map((point: string, i: number) => (
                       <li key={i} className="flex items-start gap-3">
-                        <div className="w-5 h-5 bg-[#6C2BD9]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
-                          <Check size={12} className="text-[#6C2BD9]" />
+                        <div className="w-5 h-5 bg-[#2445EB]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
+                          <Check size={12} className="text-[#2445EB]" />
                         </div>
                         <span className="text-[14px] text-zinc-600">{point}</span>
                       </li>
@@ -370,8 +370,8 @@ export default function LandingPage() {
                   <ul className="space-y-4">
                     {t.platform.f2.points.map((point: string, i: number) => (
                       <li key={i} className="flex items-start gap-3">
-                        <div className="w-5 h-5 bg-[#6C2BD9]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
-                          <Check size={12} className="text-[#6C2BD9]" />
+                        <div className="w-5 h-5 bg-[#2445EB]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
+                          <Check size={12} className="text-[#2445EB]" />
                         </div>
                         <span className="text-[14px] text-zinc-600">{point}</span>
                       </li>
@@ -386,8 +386,8 @@ export default function LandingPage() {
                   <ul className="space-y-4">
                     {t.platform.f3.points.map((point: string, i: number) => (
                       <li key={i} className="flex items-start gap-3">
-                        <div className="w-5 h-5 bg-[#6C2BD9]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
-                          <Check size={12} className="text-[#6C2BD9]" />
+                        <div className="w-5 h-5 bg-[#2445EB]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
+                          <Check size={12} className="text-[#2445EB]" />
                         </div>
                         <span className="text-[14px] text-zinc-600">{point}</span>
                       </li>
@@ -414,7 +414,7 @@ export default function LandingPage() {
                         <p className="text-[13px] font-medium text-zinc-900">{c.n}</p>
                         <p className="text-[11px] text-zinc-400">{c.t}</p>
                       </div>
-                      <span className="text-[14px] font-bold text-[#6C2BD9]">{c.s}</span>
+                      <span className="text-[14px] font-bold text-[#2445EB]">{c.s}</span>
                     </div>
                   ))}
                 </div>
@@ -430,7 +430,7 @@ export default function LandingPage() {
                       <p className="text-[11px] text-zinc-400">18 years experience</p>
                     </div>
                     <div className="ml-auto text-center">
-                      <p className="text-[28px] font-bold text-[#6C2BD9]">9.7</p>
+                      <p className="text-[28px] font-bold text-[#2445EB]">9.7</p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -438,7 +438,7 @@ export default function LandingPage() {
                       <div key={c} className="flex items-center gap-3">
                         <span className="text-[11px] text-zinc-400 w-20">{c}</span>
                         <div className="flex-1 h-1.5 bg-zinc-100 rounded-full">
-                          <div className="h-full bg-[#6C2BD9] rounded-full" style={{ width: `${[100, 100, 100, 90, 100][i]}%` }} />
+                          <div className="h-full bg-[#2445EB] rounded-full" style={{ width: `${[100, 100, 100, 90, 100][i]}%` }} />
                         </div>
                       </div>
                     ))}
@@ -448,7 +448,7 @@ export default function LandingPage() {
               {activeDemo === 2 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <Sparkles size={14} className="text-[#6C2BD9]" />
+                    <Sparkles size={14} className="text-[#2445EB]" />
                     <p className="text-[12px] font-semibold text-zinc-900">AI Weekly Insights</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-4">
@@ -459,8 +459,8 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                  <div className="bg-[#6C2BD9]/5 rounded-lg p-4 border border-[#6C2BD9]/10">
-                    <p className="text-[10px] text-[#6C2BD9] font-semibold uppercase tracking-wider mb-1">AI Recommendation</p>
+                  <div className="bg-[#2445EB]/5 rounded-lg p-4 border border-[#2445EB]/10">
+                    <p className="text-[10px] text-[#2445EB] font-semibold uppercase tracking-wider mb-1">AI Recommendation</p>
                     <p className="text-[12px] text-zinc-600 leading-relaxed">Adjust salary range to $110-125K and offer hybrid flexibility to increase qualified candidate pool by 40%.</p>
                   </div>
                 </div>
@@ -498,7 +498,7 @@ export default function LandingPage() {
       <section id="compare" className="py-28 px-6 bg-white border-t border-zinc-100">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">{t.compare.label}</p>
+            <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.compare.label}</p>
             <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.compare.title}</h2>
             <p className="text-[15px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.compare.subtitle}</p>
           </div>
@@ -511,7 +511,7 @@ export default function LandingPage() {
                   <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c1}</th>
                   <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c2}</th>
                   <th className="py-4 px-3 text-center text-[12px] font-medium text-zinc-600 border-b border-zinc-200">{t.compare.c3}</th>
-                  <th className="py-4 px-3 text-center text-[13px] font-bold text-white bg-[#6C2BD9] rounded-t-lg">{t.compare.c4}</th>
+                  <th className="py-4 px-3 text-center text-[13px] font-bold text-white bg-[#2445EB] rounded-t-lg">{t.compare.c4}</th>
                 </tr>
               </thead>
               <tbody>
@@ -521,7 +521,7 @@ export default function LandingPage() {
                     <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v1}</td>
                     <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v2}</td>
                     <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v3}</td>
-                    <td className="py-4 px-3 text-center text-[12px] font-semibold text-[#6C2BD9] bg-[#6C2BD9]/5">{row.v4}</td>
+                    <td className="py-4 px-3 text-center text-[12px] font-semibold text-[#2445EB] bg-[#2445EB]/5">{row.v4}</td>
                   </tr>
                 ))}
               </tbody>
@@ -544,9 +544,9 @@ export default function LandingPage() {
               { name: "Pro", price: "2,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true },
               { name: "Enterprise", price: "4,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false },
             ].map((plan) => (
-              <div key={plan.name} className={`rounded-2xl p-8 relative ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#6C2BD9]" : "bg-white border border-zinc-200"}`}>
+              <div key={plan.name} className={`rounded-2xl p-8 relative ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB]" : "bg-white border border-zinc-200"}`}>
                 {plan.pop && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#6C2BD9] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#2445EB] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
                     {t.pricing.popular}
                   </div>
                 )}
@@ -559,7 +559,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f: string) => (
                     <li key={f} className={`flex items-start gap-2.5 text-[13px] ${plan.pop ? "text-zinc-300" : "text-zinc-600"}`}>
-                      <Check size={14} className={`mt-0.5 shrink-0 ${plan.pop ? "text-[#6C2BD9]" : "text-zinc-400"}`} />
+                      <Check size={14} className={`mt-0.5 shrink-0 ${plan.pop ? "text-[#2445EB]" : "text-zinc-400"}`} />
                       {f}
                     </li>
                   ))}
@@ -582,17 +582,17 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
             {/* Left — Guarantee */}
             <div>
-              <div className="w-14 h-14 bg-[#6C2BD9]/10 rounded-2xl flex items-center justify-center mb-6">
-                <Shield size={26} className="text-[#6C2BD9]" strokeWidth={1.5} />
+              <div className="w-14 h-14 bg-[#2445EB]/10 rounded-2xl flex items-center justify-center mb-6">
+                <Shield size={26} className="text-[#2445EB]" strokeWidth={1.5} />
               </div>
-              <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-3">{t.guarantee.label}</p>
+              <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-3">{t.guarantee.label}</p>
               <h2 className="text-[30px] md:text-[40px] font-bold text-zinc-900 tracking-tight leading-tight mb-4">{t.guarantee.title}</h2>
               <p className="text-[15px] text-zinc-600 leading-relaxed mb-6">{t.guarantee.desc}</p>
               <ul className="space-y-3">
                 {t.guarantee.points.map((p: string, i: number) => (
                   <li key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 bg-[#6C2BD9]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
-                      <Check size={12} className="text-[#6C2BD9]" />
+                    <div className="w-5 h-5 bg-[#2445EB]/10 rounded-full flex items-center justify-center mt-0.5 shrink-0">
+                      <Check size={12} className="text-[#2445EB]" />
                     </div>
                     <span className="text-[14px] text-zinc-700">{p}</span>
                   </li>
@@ -602,9 +602,9 @@ export default function LandingPage() {
 
             {/* Right — ROI Calculator */}
             <div className="bg-zinc-900 rounded-2xl p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-[300px] h-[200px] bg-[#6C2BD9]/20 rounded-full blur-[100px]" />
+              <div className="absolute top-0 right-0 w-[300px] h-[200px] bg-[#2445EB]/20 rounded-full blur-[100px]" />
               <div className="relative z-10">
-                <p className="text-[11px] text-[#A78BFA] font-semibold uppercase tracking-[0.2em] mb-3">{t.guarantee.roi_label}</p>
+                <p className="text-[11px] text-[#7A8FF5] font-semibold uppercase tracking-[0.2em] mb-3">{t.guarantee.roi_label}</p>
                 <h3 className="text-[22px] font-bold tracking-tight mb-6">{t.guarantee.roi_title}</h3>
 
                 <div className="space-y-4">
@@ -618,7 +618,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-[14px] font-semibold text-white">{t.guarantee.roi_save}</span>
-                    <span className="text-[28px] font-bold text-[#A78BFA]">$81,500/yr</span>
+                    <span className="text-[28px] font-bold text-[#7A8FF5]">$81,500/yr</span>
                   </div>
                 </div>
 
@@ -633,7 +633,7 @@ export default function LandingPage() {
       <section id="book-demo" className="py-28 px-6 bg-white border-t border-zinc-100">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-[12px] text-[#6C2BD9] font-semibold uppercase tracking-[0.2em] mb-4">
+            <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">
               {lang === "en" ? "Book your demo" : "Réservez votre démo"}
             </p>
             <h2 className="text-[32px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight mb-4">
@@ -673,7 +673,7 @@ export default function LandingPage() {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder={lang === "en" ? "Jane Doe" : "Marie Tremblay"}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                   />
                 </div>
                 <div>
@@ -686,7 +686,7 @@ export default function LandingPage() {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder={lang === "en" ? "you@company.com" : "vous@entreprise.com"}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                   />
                 </div>
                 <div>
@@ -699,7 +699,7 @@ export default function LandingPage() {
                     value={form.company}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
                     placeholder={lang === "en" ? "Acme Inc." : "Votre entreprise"}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                   />
                 </div>
                 <div>
@@ -711,7 +711,7 @@ export default function LandingPage() {
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
                     placeholder={lang === "en" ? "Head of Talent" : "VP People"}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                   />
                 </div>
                 <div>
@@ -724,7 +724,7 @@ export default function LandingPage() {
                     value={form.country}
                     onChange={(e) => setForm({ ...form, country: e.target.value })}
                     placeholder={lang === "en" ? "United States" : "États-Unis"}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                   />
                 </div>
                 <div>
@@ -734,7 +734,7 @@ export default function LandingPage() {
                   <select
                     value={form.team_size}
                     onChange={(e) => setForm({ ...form, team_size: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none bg-white"
                   >
                     <option value="">—</option>
                     <option value="1-10">1-10</option>
@@ -753,7 +753,7 @@ export default function LandingPage() {
                 <select
                   value={form.active_mandates}
                   onChange={(e) => setForm({ ...form, active_mandates: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none bg-white"
                 >
                   <option value="">—</option>
                   <option value="1-2">1-2</option>
@@ -772,7 +772,7 @@ export default function LandingPage() {
                   value={form.hiring_for}
                   onChange={(e) => setForm({ ...form, hiring_for: e.target.value })}
                   placeholder={lang === "en" ? "e.g. Senior Engineers, Product Managers" : "ex: Devs seniors, Chefs de produit"}
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                 />
               </div>
 
@@ -785,7 +785,7 @@ export default function LandingPage() {
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
                   rows={3}
                   placeholder={lang === "en" ? "Tell us about your hiring challenges..." : "Parlez-nous de vos défis de recrutement..."}
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] resize-none focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-[14px] resize-none focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none placeholder:text-zinc-300"
                 />
               </div>
 
@@ -799,7 +799,7 @@ export default function LandingPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 bg-[#6C2BD9] hover:bg-[#5521B5] disabled:opacity-50 text-white rounded-full text-[14px] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
+                className="w-full py-4 bg-[#2445EB] hover:bg-[#1A36C4] disabled:opacity-50 text-white rounded-full text-[14px] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
               >
                 {submitting ? (
                   <>
@@ -824,7 +824,7 @@ export default function LandingPage() {
 
       {/* Final CTA */}
       <section className="py-28 px-6 bg-zinc-950 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#6C2BD9]/10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#2445EB]/10 rounded-full blur-[150px]" />
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <h2 className="text-[44px] font-bold text-white tracking-tight mb-6">{t.cta.title}</h2>
           <p className="text-[16px] text-zinc-400 mb-10">{t.cta.subtitle}</p>
@@ -856,10 +856,10 @@ export default function LandingPage() {
 const en = {
   nav: { how: "How it works", platform: "Platform", pricing: "Pricing", cta: "Book a call" },
   hero: {
-    badge: "AI-Powered Recruitment Service",
-    line1: "Your AI recruiting team.",
-    line2: "On demand.",
-    subtitle: "We source, contact, and qualify candidates for you. You receive pre-screened, interested talent — ready to interview.",
+    badge: "The future of recruiting is here",
+    line1: "Hire smarter.",
+    line2: "Faster. Cheaper.",
+    subtitle: "The future of recruiting is here. AI sources. Humans qualify. You interview pre-screened talent in days — not weeks.",
     cta: "Book a demo",
     demo: "See the platform",
   },
@@ -961,10 +961,10 @@ const en = {
 const fr = {
   nav: { how: "Fonctionnement", platform: "Plateforme", pricing: "Tarifs", cta: "R\u00e9server un appel" },
   hero: {
-    badge: "Plateforme de recrutement propuls\u00e9e par l\u2019IA",
-    line1: "Votre \u00e9quipe de recrutement IA.",
-    line2: "Sur demande.",
-    subtitle: "On source, contacte et qualifie les candidats pour vous. Vous recevez des talents pr\u00e9-qualifi\u00e9s et int\u00e9ress\u00e9s \u2014 pr\u00eats \u00e0 interviewer.",
+    badge: "Le futur du recrutement est ici",
+    line1: "Recrutez mieux.",
+    line2: "Plus vite. Moins cher.",
+    subtitle: "Le futur du recrutement est ici. L\u2019IA source. Les humains qualifient. Vous interviewez des talents pr\u00e9-qualifi\u00e9s en quelques jours \u2014 pas des semaines.",
     cta: "R\u00e9server une d\u00e9mo",
     demo: "Voir la plateforme",
   },
