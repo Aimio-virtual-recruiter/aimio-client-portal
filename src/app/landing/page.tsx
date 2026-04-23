@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Check, X, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowRight, Check, X, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle, FileText } from "lucide-react";
 
 export default function LandingPage() {
   const [lang, setLang] = useState<"en" | "fr">("en");
@@ -550,105 +550,79 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Comparison Table — Premium animated */}
-      <section id="compare" className="py-28 px-6 bg-white border-t border-zinc-100 relative overflow-hidden">
-        {/* Ambient blue glow behind Aimio column */}
-        <div className="absolute top-1/2 right-[15%] w-[500px] h-[500px] bg-[#2445EB]/10 rounded-full blur-[130px] -z-0 float-orb" />
-        <div className="absolute top-0 left-[10%] w-[300px] h-[300px] bg-[#7A8FF5]/8 rounded-full blur-[100px] -z-0" />
-
-        <div className="max-w-6xl mx-auto relative">
-          <div className="reveal text-center mb-14">
-            <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.compare.label}</p>
-            <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.compare.title}</h2>
-            <p className="text-[15px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.compare.subtitle}</p>
+      {/* Comparison Table — Apple-style minimal */}
+      <section id="compare" className="py-32 md:py-40 px-6 bg-white border-t border-zinc-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="reveal text-center mb-20">
+            <h2 className="font-display text-[44px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.compare.title}</h2>
+            <p className="text-[17px] text-zinc-500 mt-5 max-w-2xl mx-auto leading-relaxed">{t.compare.subtitle}</p>
           </div>
 
-          <div className="reveal relative">
-            {/* Floating RECOMMENDED ribbon */}
-            <div className="hidden md:flex absolute -top-4 right-[6%] z-20 items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#2445EB] to-[#1A36C4] text-white rounded-full text-[10px] font-bold uppercase tracking-[0.15em] shadow-xl shadow-[#2445EB]/40">
-              <Sparkles size={11} className="text-yellow-300" />
-              {lang === "en" ? "Best value" : "Meilleur choix"}
-            </div>
-
-            <div className="overflow-x-auto rounded-2xl bg-white/80 backdrop-blur-xl shadow-elevated border border-zinc-100">
-              <table className="w-full min-w-[820px] border-collapse">
-                <thead>
-                  <tr>
-                    <th className="py-6 px-5 text-left text-[11px] font-semibold text-zinc-500 uppercase tracking-wider border-b border-zinc-200">{t.compare.dimension}</th>
-                    <th className="py-6 px-3 text-center text-[12px] font-medium text-zinc-500 border-b border-zinc-200">{t.compare.c1}</th>
-                    <th className="py-6 px-3 text-center text-[12px] font-medium text-zinc-500 border-b border-zinc-200">{t.compare.c2}</th>
-                    <th className="py-6 px-3 text-center text-[12px] font-medium text-zinc-500 border-b border-zinc-200">{t.compare.c3}</th>
-                    <th className="py-6 px-3 text-center text-[14px] font-bold text-white border-b border-zinc-200 relative">
-                      <div className="absolute inset-0 bg-gradient-to-b from-[#2445EB] via-[#1A36C4] to-[#1A36C4] rounded-t-xl shadow-2xl shadow-[#2445EB]/40" />
-                      {/* Shimmer line at bottom of header */}
-                      <div className="absolute bottom-0 left-0 right-0 h-[2px] shimmer-line" />
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        <span className="w-2 h-2 bg-white rounded-full live-dot" />
-                        <span className="font-display italic text-[16px]" style={{ fontStyle: "italic" }}>{t.compare.c4}</span>
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {t.compare.rows.map((row: {label: string; v1: string; v2: string; v3: string; v4: string}, i: number) => (
-                    <tr
-                      key={i}
-                      className="reveal border-b border-zinc-100 last:border-0 group/row hover:bg-gradient-to-r hover:from-transparent hover:via-[#2445EB]/[0.04] hover:to-[#2445EB]/[0.06] transition-all duration-500"
-                      style={{ transitionDelay: `${i * 60}ms` }}
-                    >
-                      <td className="py-5 px-5 text-[14px] font-semibold text-zinc-900 group-hover/row:text-[#2445EB] transition-colors">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-[10px] text-zinc-300 tabular-nums group-hover/row:text-[#2445EB]/60 transition-colors font-mono">0{i + 1}</span>
-                          {row.label}
-                        </div>
-                      </td>
-                      <td className="py-5 px-3 text-center text-[12px] text-zinc-400">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <X size={12} className="text-red-400/60 shrink-0" />
-                          <span>{row.v1}</span>
-                        </div>
-                      </td>
-                      <td className="py-5 px-3 text-center text-[12px] text-zinc-400">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <X size={12} className="text-red-400/60 shrink-0" />
-                          <span>{row.v2}</span>
-                        </div>
-                      </td>
-                      <td className="py-5 px-3 text-center text-[12px] text-zinc-400">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <X size={12} className="text-red-400/60 shrink-0" />
-                          <span>{row.v3}</span>
-                        </div>
-                      </td>
-                      <td className="py-5 px-3 text-center text-[13px] font-bold text-[#2445EB] bg-gradient-to-b from-[#2445EB]/[0.08] to-[#2445EB]/[0.04] relative group-hover/row:from-[#2445EB]/[0.12] group-hover/row:to-[#2445EB]/[0.06] transition-all">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <div className="w-5 h-5 rounded-full bg-[#2445EB] flex items-center justify-center shrink-0 shadow-lg shadow-[#2445EB]/30">
-                            <Check size={11} className="text-white" strokeWidth={3} />
-                          </div>
-                          <span>{row.v4}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                {/* Bottom border glow */}
-                <tfoot>
-                  <tr>
-                    <td colSpan={4} className="h-0"></td>
-                    <td className="h-0 relative">
-                      <div className="absolute bottom-0 left-1 right-1 h-[3px] bg-gradient-to-r from-[#2445EB]/30 via-[#2445EB] to-[#2445EB]/30 blur-sm" />
+          <div className="reveal overflow-x-auto">
+            <table className="w-full min-w-[820px]">
+              {/* Apple-style column headers with icons */}
+              <thead>
+                <tr>
+                  <th className="py-8 px-6 w-[28%]"></th>
+                  <th className="py-8 px-4 text-center w-[18%]">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                        <FileText size={18} className="text-zinc-500" strokeWidth={1.5} />
+                      </div>
+                      <span className="text-[13px] font-medium text-zinc-700">{t.compare.c1}</span>
+                    </div>
+                  </th>
+                  <th className="py-8 px-4 text-center w-[18%]">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                        <Users size={18} className="text-zinc-500" strokeWidth={1.5} />
+                      </div>
+                      <span className="text-[13px] font-medium text-zinc-700">{t.compare.c2}</span>
+                    </div>
+                  </th>
+                  <th className="py-8 px-4 text-center w-[18%]">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                        <BarChart3 size={18} className="text-zinc-500" strokeWidth={1.5} />
+                      </div>
+                      <span className="text-[13px] font-medium text-zinc-700">{t.compare.c3}</span>
+                    </div>
+                  </th>
+                  <th className="py-8 px-4 text-center w-[18%]">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#2445EB] flex items-center justify-center shadow-lg shadow-[#2445EB]/25">
+                        <Sparkles size={18} className="text-white" strokeWidth={2} />
+                      </div>
+                      <span className="text-[13px] font-semibold text-zinc-900">{t.compare.c4}</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {t.compare.rows.map((row: {label: string; v1: string; v2: string; v3: string; v4: string}, i: number) => (
+                  <tr
+                    key={i}
+                    className="reveal border-t border-zinc-100"
+                    style={{ transitionDelay: `${i * 60}ms` }}
+                  >
+                    <td className="py-7 px-6 text-[14px] font-semibold text-zinc-900">{row.label}</td>
+                    <td className="py-7 px-4 text-center text-[13px] text-zinc-500 leading-relaxed">{row.v1}</td>
+                    <td className="py-7 px-4 text-center text-[13px] text-zinc-500 leading-relaxed">{row.v2}</td>
+                    <td className="py-7 px-4 text-center text-[13px] text-zinc-500 leading-relaxed">{row.v3}</td>
+                    <td className="py-7 px-4 text-center text-[13px] font-semibold text-zinc-900 leading-relaxed bg-[#2445EB]/[0.04]">
+                      {row.v4}
                     </td>
                   </tr>
-                </tfoot>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* CTA to pricing */}
-          <div className="reveal mt-14 flex items-center justify-center">
+          <div className="reveal mt-16 flex items-center justify-center">
             <a
               href="#pricing"
-              className="group inline-flex items-center gap-3 px-8 py-4 bg-zinc-900 text-white rounded-full text-[14px] font-semibold hover:bg-[#2445EB] transition-all duration-300 shadow-xl hover:shadow-[#2445EB]/30"
+              className="group inline-flex items-center gap-2 text-[15px] font-medium text-[#2445EB] hover:text-[#1A36C4] transition-colors"
             >
               {lang === "en" ? "See full pricing" : "Voir les tarifs complets"}
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -1061,7 +1035,7 @@ const en = {
     c4: "Aimio",
     rows: [
       { label: "Candidate reach", v1: "5% (active seekers only)", v2: "LinkedIn network only", v3: "Agency database", v4: "100% (active + passive)" },
-      { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + humans qualify" },
+      { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + seasoned recruiters qualify" },
       { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
       { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
       { label: "Monthly cost", v1: "$300-800 ads + your time", v2: "$9,500/mo + benefits", v3: "$15-30K per placement", v4: "$1,999-4,999/mo flat" },
@@ -1166,7 +1140,7 @@ const fr = {
     c4: "Aimio",
     rows: [
       { label: "Port\u00e9e du march\u00e9", v1: "5% (candidats actifs seulement)", v2: "R\u00e9seau LinkedIn", v3: "Base de donn\u00e9es de l\u2019agence", v4: "100% (actifs + passifs)" },
-      { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA trouve + humains qualifient" },
+      { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA trouve + recruteurs s\u00e9niors qualifient" },
       { label: "Qualit\u00e9 candidat", v1: "Auto-s\u00e9lectionn\u00e9s, non filtr\u00e9s", v2: "D\u00e9pend du recruteur", v3: "Qui ils ont", v4: "Scor\u00e9 IA + v\u00e9rifi\u00e9 humain" },
       { label: "Premi\u00e8re livraison", v1: "Des mois", v2: "2-8 semaines", v3: "1-4 semaines", v4: "5-7 jours" },
       { label: "Co\u00fbt mensuel", v1: "300-800$ d\u2019annonces + temps", v2: "9 500$/mois + b\u00e9n\u00e9fices", v3: "15-30K$ par placement", v4: "1 999-4 999$/mois forfait" },
