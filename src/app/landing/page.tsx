@@ -141,10 +141,7 @@ export default function LandingPage() {
           {/* Signature trust line */}
           <div className="pt-10 border-t border-white/5 max-w-2xl mx-auto">
             <p className="text-[11px] uppercase tracking-[0.25em] text-white/40 font-medium">
-              {lang === "en" ? "Trusted by growing companies across" : "Utilisé par des entreprises en croissance en"}
-            </p>
-            <p className="text-[13px] text-white/70 mt-3 font-medium tracking-wide">
-              United States · Canada · United Kingdom · Ireland · Australia
+              {lang === "en" ? "Trusted by growing companies across the world" : "Utilisé par des entreprises en croissance dans le monde"}
             </p>
           </div>
         </div>
