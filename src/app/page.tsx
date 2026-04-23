@@ -239,7 +239,7 @@ export default function LandingPage() {
                         </div>
                         <div className="grid grid-cols-3 gap-1.5 mb-2">
                           {[{ v: "847", l: "Sourced" }, { v: "142", l: "Approached" }, { v: "47", l: "Delivered" }].map(s => (
-                            <div key={s.l} className="bg-zinc-50 rounded-md p-2 text-center">
+                            <div key={s.l} className="bg-white rounded-md p-2 text-center">
                               <p className="text-[12px] font-bold text-zinc-900">{s.v}</p>
                               <p className="text-[7px] text-zinc-600">{s.l}</p>
                             </div>
@@ -293,8 +293,10 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="py-28 px-6">
-        <div className="max-w-5xl mx-auto">
+      <section id="how" className="py-28 px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[#2445EB]/5 rounded-full blur-[120px] -z-10" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#7A8FF5]/8 rounded-full blur-[100px] -z-10" />
+        <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-20">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.how.label}</p>
             <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.how.title}</h2>
@@ -322,7 +324,8 @@ export default function LandingPage() {
       </section>
 
       {/* Platform showcase */}
-      <section id="platform" className="py-28 px-6 bg-zinc-50">
+      <section id="platform" className="py-28 px-6 bg-white relative overflow-hidden">
+        <div className="absolute top-1/3 left-0 w-[600px] h-[600px] bg-[#2445EB]/5 rounded-full blur-[140px] -z-10" />
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.platform.label}</p>
@@ -407,7 +410,7 @@ export default function LandingPage() {
                     { n: "Emily Chen", t: "Director — PCL Construction", s: 9.4, status: "Interested" },
                     { n: "James Richardson", t: "Senior Estimator — EllisDon", s: 8.9, status: "New" },
                   ].map((c) => (
-                    <div key={c.n} className="flex items-center gap-4 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                    <div key={c.n} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-zinc-100">
                       <div className="w-10 h-10 bg-zinc-200 rounded-full flex items-center justify-center">
                         <span className="text-[11px] font-semibold text-zinc-600">{c.n.split(" ").map(n => n[0]).join("")}</span>
                       </div>
@@ -454,7 +457,7 @@ export default function LandingPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-4">
                     {[{ v: "312", l: "Sourced" }, { v: "58", l: "Approached" }, { v: "5", l: "Delivered" }].map(s => (
-                      <div key={s.l} className="bg-zinc-50 rounded-lg p-3 border border-zinc-100 text-center">
+                      <div key={s.l} className="bg-white rounded-lg p-3 border border-zinc-100 text-center">
                         <p className="text-[18px] font-semibold text-zinc-900">{s.v}</p>
                         <p className="text-[9px] text-zinc-400">{s.l}</p>
                       </div>
@@ -517,7 +520,7 @@ export default function LandingPage() {
               </thead>
               <tbody>
                 {t.compare.rows.map((row: {label: string; v1: string; v2: string; v3: string; v4: string}, i: number) => (
-                  <tr key={i} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 transition-colors">
+                  <tr key={i} className="border-b border-zinc-100 last:border-0 hover:bg-white/50 transition-colors">
                     <td className="py-4 px-4 text-[13px] font-medium text-zinc-900">{row.label}</td>
                     <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v1}</td>
                     <td className="py-4 px-3 text-center text-[12px] text-zinc-500">{row.v2}</td>
@@ -532,7 +535,9 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-28 px-6 bg-zinc-50">
+      <section id="pricing" className="py-28 px-6 bg-white relative overflow-hidden">
+        <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-[#2445EB]/5 rounded-full blur-[150px] -z-10" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#7A8FF5]/8 rounded-full blur-[120px] -z-10" />
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight">{t.pricing.title}</h2>
