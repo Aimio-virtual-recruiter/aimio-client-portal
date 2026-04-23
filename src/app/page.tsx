@@ -1,5 +1,9 @@
-// Root page = RV Landing (so aimio.ai/ shows the marketing landing)
-// Login moved to /login
-// Original landing still available at /landing for backwards compatibility
+"use client";
+import LandingPage from "./landing/page";
 
-export { default } from "./landing/page";
+// Root of hireaimio.com = Landing RV
+// Login moved to /login
+// Landing also still accessible at /landing for backwards compatibility
+export default function Home() {
+  return <LandingPage />;
+}
