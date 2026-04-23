@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,13 +28,8 @@ export function Sidebar() {
     <aside className="w-56 bg-white border-r border-zinc-200 min-h-screen flex flex-col">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-zinc-100">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#6C2BD9] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-[10px] tracking-wider">iii</span>
-          </div>
-          <span className="text-[15px] font-semibold text-zinc-900 tracking-tight">Aimio</span>
-        </div>
-        <p className="label mt-1.5 ml-9">{t("common.portalName")}</p>
+        <Image src="/aimio-logo.png" alt="Aimio" width={100} height={28} priority className="h-7 w-auto" />
+        <p className="label mt-2">{t("common.portalName")}</p>
       </div>
 
       {/* Navigation */}

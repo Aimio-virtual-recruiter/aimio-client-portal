@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send, Search, Database, UserCheck, TrendingUp, Flame, Trophy, Phone, Activity, Users2, Sparkles, CreditCard } from "lucide-react";
@@ -32,13 +33,16 @@ export function AdminSidebar() {
     <aside className="w-56 bg-zinc-900 min-h-screen flex flex-col">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-zinc-800">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#6C2BD9] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-[10px] tracking-wider">iii</span>
-          </div>
-          <span className="text-[15px] font-semibold text-white tracking-tight">Aimio</span>
-        </div>
-        <div className="flex items-center gap-1.5 mt-1.5 ml-9">
+        <Image
+          src="/aimio-logo.png"
+          alt="Aimio"
+          width={100}
+          height={28}
+          priority
+          className="h-7 w-auto"
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+        <div className="flex items-center gap-1.5 mt-2">
           <Shield size={10} className="text-zinc-500" />
           <p className="text-[10px] text-zinc-500 font-medium tracking-wide uppercase">Admin Panel</p>
         </div>

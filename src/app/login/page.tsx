@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useI18n } from "@/i18n/provider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ArrowRight, Search, MessageSquare, UserCheck } from "lucide-react";
@@ -30,13 +31,16 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-[10px] tracking-wider">iii</span>
-            </div>
-            <span className="text-[15px] font-semibold text-white tracking-tight">Aimio</span>
-          </div>
-          <p className="label text-zinc-500 ml-9">{t("common.subtitle")}</p>
+          <Image
+            src="/aimio-logo.png"
+            alt="Aimio"
+            width={110}
+            height={32}
+            priority
+            className="h-8 w-auto"
+            style={{ filter: "brightness(0) invert(1)" }}
+          />
+          <p className="label text-zinc-500 mt-2">{t("common.subtitle")}</p>
         </div>
 
         <div className="relative z-10">
@@ -69,11 +73,8 @@ export default function LoginPage() {
 
         <div className="w-full max-w-[340px]">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
-            <div className="w-7 h-7 bg-[#6C2BD9] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-[10px] tracking-wider">iii</span>
-            </div>
-            <span className="text-[15px] font-semibold text-zinc-900 tracking-tight">Aimio</span>
+          <div className="lg:hidden mb-8">
+            <Image src="/aimio-logo.png" alt="Aimio" width={110} height={32} priority className="h-8 w-auto" />
           </div>
 
           <h2 className="text-xl font-semibold text-zinc-900 tracking-tight">{t("login.title")}</h2>
