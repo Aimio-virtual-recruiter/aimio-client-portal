@@ -103,14 +103,14 @@ export default function LandingPage() {
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#4B5DF5]/15 rounded-full blur-[120px]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-28 md:pt-40 pb-16 md:pb-32 text-center">
-          <h1 className="text-[56px] md:text-[104px] lg:text-[128px] font-black text-white tracking-[-0.04em] leading-[0.88] mb-4">
+          <h1 className="font-display text-[64px] md:text-[120px] lg:text-[160px] font-semibold text-white tracking-[-0.04em] leading-[0.88] mb-3">
             {t.hero.line1}
           </h1>
-          <h2 className="text-[56px] md:text-[104px] lg:text-[128px] font-black tracking-[-0.04em] leading-[0.88] mb-10 bg-gradient-to-r from-[#2445EB] via-[#4B5DF5] to-[#7A8FF5] bg-clip-text text-transparent">
+          <h2 className="font-display italic text-[64px] md:text-[120px] lg:text-[160px] font-semibold tracking-[-0.04em] leading-[0.88] mb-14 gradient-text">
             {t.hero.line2}
           </h2>
 
-          <p className="text-[20px] md:text-[24px] text-zinc-300 max-w-2xl mx-auto leading-[1.4] mb-12 font-medium">
+          <p className="text-[20px] md:text-[24px] text-zinc-300 max-w-3xl mx-auto leading-[1.45] mb-14 font-light">
             {t.hero.subtitle}
           </p>
 
@@ -284,9 +284,9 @@ export default function LandingPage() {
       <section className="py-24 px-6 border-b border-zinc-100">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16">
           {t.values.map((v: {title: string; desc: string}, i: number) => (
-            <div key={i} className="text-center">
-              <h3 className="text-[24px] font-bold text-zinc-900 tracking-tight mb-3">{v.title}</h3>
-              <p className="text-[14px] text-zinc-400 leading-relaxed">{v.desc}</p>
+            <div key={i} className="text-center group">
+              <h3 className="font-display text-[28px] md:text-[32px] font-semibold text-zinc-900 tracking-[-0.02em] mb-4 leading-tight">{v.title}</h3>
+              <p className="text-[15px] text-zinc-500 leading-relaxed">{v.desc}</p>
             </div>
           ))}
         </div>
@@ -299,7 +299,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-20">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.how.label}</p>
-            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.how.title}</h2>
+            <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.how.title}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
@@ -329,7 +329,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.platform.label}</p>
-            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.platform.title}</h2>
+            <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.platform.title}</h2>
             <p className="text-[16px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.platform.subtitle}</p>
           </div>
 
@@ -503,7 +503,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.compare.label}</p>
-            <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight leading-tight">{t.compare.title}</h2>
+            <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.compare.title}</h2>
             <p className="text-[15px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.compare.subtitle}</p>
           </div>
 

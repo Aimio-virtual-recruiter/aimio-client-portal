@@ -97,6 +97,53 @@ body {
 
 /* Selection */
 ::selection {
-  background: rgba(108, 43, 217, 0.15);
+  background: rgba(36, 69, 235, 0.15);
   color: #09090b;
+}
+
+/* Display serif class — Playfair for premium editorial headings */
+.font-display {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+}
+
+/* Editorial serif italic accent */
+.italic-serif {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* Premium reveal animations on scroll */
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -30px); }
+}
+.float-orb { animation: float-slow 20s ease-in-out infinite; }
+
+@keyframes gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.gradient-text {
+  background: linear-gradient(135deg, #2445EB 0%, #4B5DF5 50%, #7A8FF5 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 8s ease infinite;
+}
+
+/* Premium hover lift */
+.premium-lift {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+}
+.premium-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(36, 69, 235, 0.15);
+}
+
+/* Marquee slow */
+@keyframes marquee-slow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
