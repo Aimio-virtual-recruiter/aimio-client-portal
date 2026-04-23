@@ -6,6 +6,7 @@ import { ArrowRight, Check, Search, MessageSquare, UserCheck, BarChart3, Shield,
 export default function LandingPage() {
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [activeDemo, setActiveDemo] = useState(0);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const t = lang === "en" ? en : fr;
 
   // Auto-detect browser language + URL param support
@@ -17,6 +18,34 @@ export default function LandingPage() {
     }
     const browserLang = navigator.language.toLowerCase();
     if (browserLang.startsWith("fr")) setLang("fr");
+  }, []);
+
+  // Scroll reveal animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        });
+      },
+      { threshold: 0.1, rootMargin: "-50px" }
+    );
+    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Mouse tracker for hero cursor glow
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const hero = document.getElementById("hero-section");
+      if (!hero) return;
+      const rect = hero.getBoundingClientRect();
+      if (e.clientY < rect.bottom && e.clientY > rect.top) {
+        setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }
+    };
+    window.addEventListener("mousemove", handler);
+    return () => window.removeEventListener("mousemove", handler);
   }, []);
 
   // Lead form state
@@ -96,8 +125,11 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero — Dark, Premium Editorial */}
-      <section className="relative bg-zinc-950 overflow-hidden">
+      {/* Hero — Dark, Premium Editorial with cursor glow */}
+      <section id="hero-section" className="relative bg-zinc-950 overflow-hidden">
+        {/* Mouse-following cursor glow */}
+        <div className="cursor-glow hidden md:block" style={{ left: `${mousePos.x}px`, top: `${mousePos.y}px` }} />
+
         {/* Animated gradient orbs */}
         <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#2445EB]/25 rounded-full blur-[160px] float-orb" />
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#4B5DF5]/20 rounded-full blur-[130px] float-orb" style={{ animationDelay: "5s" }} />
@@ -128,7 +160,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
-            <a href="#book-demo" className="group px-8 py-4 bg-white text-zinc-900 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2 shadow-2xl shadow-white/10">
+            <a href="#book-demo" className="group shine-btn px-8 py-4 bg-white text-zinc-900 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2 shadow-2xl shadow-white/10">
               {t.hero.cta}
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </a>
@@ -317,7 +349,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[#2445EB]/5 rounded-full blur-[120px] -z-10" />
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#7A8FF5]/8 rounded-full blur-[100px] -z-10" />
         <div className="max-w-5xl mx-auto relative">
-          <div className="text-center mb-20">
+          <div className="reveal text-center mb-20">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.how.label}</p>
             <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.how.title}</h2>
           </div>
@@ -347,7 +379,7 @@ export default function LandingPage() {
       <section id="platform" className="py-28 px-6 bg-white relative overflow-hidden">
         <div className="absolute top-1/3 left-0 w-[600px] h-[600px] bg-[#2445EB]/5 rounded-full blur-[140px] -z-10" />
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="reveal text-center mb-16">
             <p className="text-[12px] text-[#2445EB] font-semibold uppercase tracking-[0.2em] mb-4">{t.platform.label}</p>
             <h2 className="font-display text-[40px] md:text-[64px] lg:text-[72px] font-semibold text-zinc-900 tracking-[-0.02em] leading-[1.05]">{t.platform.title}</h2>
             <p className="text-[16px] text-zinc-500 mt-4 max-w-2xl mx-auto">{t.platform.subtitle}</p>
@@ -559,7 +591,7 @@ export default function LandingPage() {
         <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-[#2445EB]/5 rounded-full blur-[150px] -z-10" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#7A8FF5]/8 rounded-full blur-[120px] -z-10" />
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="reveal text-center mb-16">
             <h2 className="text-[28px] md:text-[44px] font-bold text-zinc-900 tracking-tight">{t.pricing.title}</h2>
             <p className="text-[16px] text-zinc-500 mt-4">{t.pricing.subtitle}</p>
           </div>
@@ -570,7 +602,7 @@ export default function LandingPage() {
               { name: "Pro", price: "2,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true },
               { name: "Enterprise", price: "4,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false },
             ].map((plan) => (
-              <div key={plan.name} className={`rounded-2xl p-8 relative ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB]" : "bg-white border border-zinc-200"}`}>
+              <div key={plan.name} className={`rounded-2xl p-8 relative hover-glow ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB] pulse-glow" : "bg-white border border-zinc-200"}`}>
                 {plan.pop && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#2445EB] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
                     {t.pricing.popular}
@@ -938,9 +970,9 @@ const en = {
     s1desc: "For teams hiring 1-2 roles",
     s2desc: "For growing companies",
     s3desc: "For high-volume hiring",
-    s1f: ["Up to 2 active positions", "Pre-screened candidates weekly", "AI scoring on 10 criteria", "Client portal access", "Weekly reports", "Email support"],
-    s2f: ["Up to 5 active positions", "Priority candidate delivery", "AI scoring on 10 criteria", "Client portal + analytics", "Weekly reports + AI insights", "Dedicated account manager"],
-    s3f: ["10+ active positions", "Premium candidate delivery", "Custom AI scoring criteria", "Full analytics dashboard", "Phone qualification included", "Custom reporting + SLA"],
+    s1f: ["1 active position", "Pre-screened candidates weekly", "AI scoring on 10 criteria", "Client portal access", "Weekly reports", "Email support"],
+    s2f: ["Up to 4 active positions", "Priority candidate delivery", "AI scoring on 10 criteria", "Client portal + analytics", "Weekly reports + AI insights", "Dedicated account manager"],
+    s3f: ["5+ active positions", "Premium candidate delivery", "Custom AI scoring criteria", "Full analytics dashboard", "Phone qualification included", "Custom reporting + SLA"],
   },
   cta: {
     title: "Ready to transform your hiring?",
@@ -1043,9 +1075,9 @@ const fr = {
     s1desc: "Pour les \u00e9quipes qui recrutent 1-2 postes",
     s2desc: "Pour les entreprises en croissance",
     s3desc: "Pour le recrutement \u00e0 haut volume",
-    s1f: ["Jusqu\u2019\u00e0 2 postes actifs", "Candidats pr\u00e9-qualifi\u00e9s chaque semaine", "Scoring IA sur 10 crit\u00e8res", "Acc\u00e8s au portail client", "Rapports hebdomadaires", "Support par courriel"],
-    s2f: ["Jusqu\u2019\u00e0 5 postes actifs", "Livraison prioritaire", "Scoring IA sur 10 crit\u00e8res", "Portail + analytique", "Rapports + intelligence IA", "Gestionnaire de compte d\u00e9di\u00e9"],
-    s3f: ["10+ postes actifs", "Livraison premium", "Crit\u00e8res IA personnalis\u00e9s", "Dashboard analytique complet", "Pr\u00e9-qualification t\u00e9l\u00e9phonique incluse", "Rapports personnalis\u00e9s + SLA"],
+    s1f: ["1 poste actif", "Candidats pr\u00e9-qualifi\u00e9s chaque semaine", "Scoring IA sur 10 crit\u00e8res", "Acc\u00e8s au portail client", "Rapports hebdomadaires", "Support par courriel"],
+    s2f: ["Jusqu\u2019\u00e0 4 postes actifs", "Livraison prioritaire", "Scoring IA sur 10 crit\u00e8res", "Portail + analytique", "Rapports + intelligence IA", "Gestionnaire de compte d\u00e9di\u00e9"],
+    s3f: ["5+ postes actifs", "Livraison premium", "Crit\u00e8res IA personnalis\u00e9s", "Dashboard analytique complet", "Pr\u00e9-qualification t\u00e9l\u00e9phonique incluse", "Rapports personnalis\u00e9s + SLA"],
   },
   cta: {
     title: "Pr\u00eat \u00e0 transformer votre recrutement?",
