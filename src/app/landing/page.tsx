@@ -76,7 +76,7 @@ export default function LandingPage() {
               {lang === "en" ? "FR" : "EN"}
             </button>
             <a href="/login" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">
-              {lang === "en" ? "Client login" : "Connexion client"}
+              {lang === "en" ? "Login" : "Connexion"}
             </a>
             <a href="#book-demo" className="px-5 py-2 bg-zinc-900 text-white rounded-full text-[13px] font-medium hover:bg-zinc-800 transition-all duration-200">
               {t.nav.cta}
