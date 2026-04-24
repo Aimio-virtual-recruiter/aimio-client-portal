@@ -107,7 +107,7 @@ export default function LandingPage() {
             <a href="/login" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">
               {lang === "en" ? "Login" : "Connexion"}
             </a>
-            <a href="#book-demo" className="px-5 py-2 bg-zinc-900 text-white rounded-full text-[13px] font-medium hover:bg-zinc-800 transition-all duration-200">
+            <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className="px-5 py-2 bg-zinc-900 text-white rounded-full text-[13px] font-medium hover:bg-zinc-800 transition-all duration-200">
               {t.nav.cta}
             </a>
           </div>
@@ -118,7 +118,7 @@ export default function LandingPage() {
             <a href="/login" className="text-[12px] text-zinc-500 hover:text-zinc-900">
               {lang === "en" ? "Login" : "Connexion"}
             </a>
-            <a href="#book-demo" className="px-4 py-2 bg-zinc-900 text-white rounded-full text-[12px] font-medium">
+            <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-zinc-900 text-white rounded-full text-[12px] font-medium">
               {t.nav.cta}
             </a>
           </div>
@@ -160,7 +160,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
-            <a href="#book-demo" className="group shine-btn px-8 py-4 bg-white text-zinc-900 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2 shadow-2xl shadow-white/10">
+            <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className="group shine-btn px-8 py-4 bg-white text-zinc-900 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 flex items-center gap-2 shadow-2xl shadow-white/10">
               {t.hero.cta}
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </a>
@@ -672,7 +672,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <a href="#book-demo" className={`w-full py-3.5 rounded-full text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
+                <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className={`w-full py-3.5 rounded-full text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
                   plan.pop ? "bg-white text-zinc-900 hover:bg-zinc-100" : "bg-zinc-900 text-white hover:bg-zinc-800"
                 }`}>
                   {t.pricing.cta} <ArrowRight size={14} />
@@ -936,7 +936,7 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <h2 className="text-[44px] font-bold text-white tracking-tight mb-6">{t.cta.title}</h2>
           <p className="text-[16px] text-zinc-400 mb-10">{t.cta.subtitle}</p>
-          <a href="#book-demo" className="group inline-flex items-center gap-2 px-10 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200">
+          <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 px-10 py-4 bg-white text-zinc-900 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200">
             {t.cta.button}
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </a>
