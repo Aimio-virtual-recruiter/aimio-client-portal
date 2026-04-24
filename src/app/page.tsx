@@ -151,7 +151,7 @@ export default function LandingPage() {
           <h1 className="font-display text-[56px] md:text-[112px] lg:text-[152px] font-semibold text-white tracking-[-0.04em] leading-[0.88] mb-2">
             {t.hero.line1}
           </h1>
-          <h2 className="font-display text-[56px] md:text-[112px] lg:text-[152px] font-semibold tracking-[-0.04em] leading-[0.88] mb-16 gradient-text" style={{ fontStyle: "italic" }}>
+          <h2 className="font-display text-[56px] md:text-[112px] lg:text-[152px] font-semibold tracking-[-0.04em] leading-[1.05] pb-4 mb-14 gradient-text" style={{ fontStyle: "italic" }}>
             {t.hero.line2}
           </h2>
 
