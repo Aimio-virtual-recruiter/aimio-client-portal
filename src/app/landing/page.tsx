@@ -725,7 +725,7 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_internal}</span>
-                    <span className="text-[18px] font-bold text-white">$170,000/yr</span>
+                    <span className="text-[18px] font-bold text-white">$117,500/yr</span>
                   </div>
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_aimio}</span>
@@ -733,7 +733,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-[14px] font-semibold text-white">{t.guarantee.roi_save}</span>
-                    <span className="text-[28px] font-bold text-[#7A8FF5]">$110,012/yr</span>
+                    <span className="text-[28px] font-bold text-[#7A8FF5]">$57,512/yr</span>
                   </div>
                 </div>
 
@@ -1050,7 +1050,7 @@ const en = {
       { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + seasoned recruiters qualify" },
       { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
       { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
-      { label: "Annual cost", v1: "$10K ads + your time", v2: "$170K (salary + benefits + tools)", v3: "$100-200K (5-10 hires)", v4: "$36-120K flat (any volume)" },
+      { label: "Annual cost", v1: "$10K ads + your time", v2: "$117K (salary + benefits + tools)", v3: "$100-200K (5-10 hires)", v4: "$36-120K flat (any volume)" },
       { label: "Guarantee", v1: "None", v2: "None", v3: "90-day replacement", v4: "30-day full refund" },
     ],
   },

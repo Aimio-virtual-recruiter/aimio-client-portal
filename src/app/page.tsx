@@ -726,7 +726,7 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_internal}</span>
-                    <span className="text-[18px] font-bold text-white">$170,000/yr</span>
+                    <span className="text-[18px] font-bold text-white">$117,500/yr</span>
                   </div>
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_aimio}</span>
@@ -734,7 +734,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-[14px] font-semibold text-white">{t.guarantee.roi_save}</span>
-                    <span className="text-[28px] font-bold text-[#7A8FF5]">$110,012/yr</span>
+                    <span className="text-[28px] font-bold text-[#7A8FF5]">$57,512/yr</span>
                   </div>
                 </div>
 
@@ -1024,15 +1024,15 @@ const en = {
     popular: "Most popular",
     mo: "mo",
     cta: "Book a demo",
-    note: "Save 15% with annual billing. 30-day replacement guarantee. Cancel anytime after the first month.",
+    note: "Save 15% with annual billing. 30-day refund guarantee. Cancel anytime after the first month.",
     s1desc: "Replace founder DIY hiring",
     s2desc: "Replace 1 internal recruiter",
     s3desc: "Replace a 2-person team",
     s4desc: "Replace your full hiring function",
-    s1f: ["1 active role", "10-15 qualified candidates / month", "AI sourcing + scoring", "Email support", "Weekly sync (30 min)", "30-day replacement guarantee"],
-    s2f: ["Up to 3 active roles", "30-45 qualified candidates / month", "Priority sourcing + scoring", "Dedicated recruiter", "Weekly sync + Slack channel", "30-day replacement guarantee"],
+    s1f: ["1 active role", "10-15 qualified candidates / month", "AI sourcing + scoring", "Email support", "Weekly sync (30 min)", "30-day refund guarantee"],
+    s2f: ["Up to 3 active roles", "30-45 qualified candidates / month", "Priority sourcing + scoring", "Dedicated recruiter", "Weekly sync + Slack channel", "30-day refund guarantee"],
     s3f: ["Up to 7 active roles", "70-100 qualified candidates / month", "Premium sourcing + LinkedIn Recruiter", "Senior recruiter + sourcing specialist", "Twice-weekly syncs", "Custom reporting + SLA"],
-    s4f: ["8+ active roles · unlimited candidates", "Custom AI training on your hiring data", "Dedicated team", "Daily syncs / embedded experience", "White-label reporting", "On-site quarterly reviews"],
+    s4f: ["8+ active roles · unlimited candidates", "Custom AI training on your hiring data", "Dedicated team", "Daily syncs / embedded experience", "White-label reporting", "Quarterly executive business reviews"],
     annual_save: "Save 15% with annual billing",
   },
   cta: {
@@ -1054,7 +1054,7 @@ const en = {
       { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + seasoned recruiters qualify" },
       { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
       { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
-      { label: "Annual cost", v1: "$10K ads + your time", v2: "$170K (salary + benefits + tools)", v3: "$100-200K (5-10 hires)", v4: "$36-120K flat (any volume)" },
+      { label: "Annual cost", v1: "$10K ads + your time", v2: "$117K (salary + benefits + tools)", v3: "$100-200K (5-10 hires)", v4: "$36-120K flat (any volume)" },
       { label: "Guarantee", v1: "None", v2: "None", v3: "90-day replacement", v4: "30-day full refund" },
     ],
   },
@@ -1073,7 +1073,7 @@ const en = {
     roi_internal: "Internal recruiter (salary + benefits + tools)",
     roi_aimio: "Aimio Growth ($4,999/mo)",
     roi_save: "You save",
-    roi_note: "Based on avg. $120K salary + 25% benefits + $20K tools (LinkedIn Recruiter, ATS, etc.). Your mileage may vary.",
+    roi_note: "Based on avg. $90K salary + 25% benefits + $5K tools (LinkedIn Recruiter, ATS). Your mileage may vary.",
   },
 };
 
@@ -1132,15 +1132,15 @@ const fr = {
     popular: "Le plus populaire",
     mo: "mois",
     cta: "R\u00e9server une d\u00e9mo",
-    note: "\u00c9pargnez 15% avec la facturation annuelle. Garantie de remplacement 30 jours. Annulez apr\u00e8s le 1er mois.",
+    note: "\u00c9pargnez 15% avec la facturation annuelle. Garantie de remboursement 30 jours. Annulez apr\u00e8s le 1er mois.",
     s1desc: "Remplacez le recrutement DIY",
     s2desc: "Remplacez 1 recruteur interne",
     s3desc: "Remplacez une \u00e9quipe de 2 personnes",
     s4desc: "Remplacez votre fonction recrutement compl\u00e8te",
-    s1f: ["1 poste actif", "10-15 candidats qualifi\u00e9s / mois", "Sourcing IA + scoring", "Support par courriel", "Sync hebdomadaire (30 min)", "Garantie remplacement 30 jours"],
-    s2f: ["Jusqu\u2019\u00e0 3 postes actifs", "30-45 candidats qualifi\u00e9s / mois", "Sourcing prioritaire", "Recruteur d\u00e9di\u00e9", "Sync + canal Slack", "Garantie remplacement 30 jours"],
+    s1f: ["1 poste actif", "10-15 candidats qualifi\u00e9s / mois", "Sourcing IA + scoring", "Support par courriel", "Sync hebdomadaire (30 min)", "Garantie remboursement 30 jours"],
+    s2f: ["Jusqu\u2019\u00e0 3 postes actifs", "30-45 candidats qualifi\u00e9s / mois", "Sourcing prioritaire", "Recruteur d\u00e9di\u00e9", "Sync + canal Slack", "Garantie remboursement 30 jours"],
     s3f: ["Jusqu\u2019\u00e0 7 postes actifs", "70-100 candidats qualifi\u00e9s / mois", "Sourcing premium + LinkedIn Recruiter", "Recruteur s\u00e9nior + sp\u00e9cialiste sourcing", "Syncs deux fois par semaine", "Rapports custom + SLA"],
-    s4f: ["8+ postes actifs · candidats illimit\u00e9s", "Entra\u00eenement IA custom sur vos donn\u00e9es", "\u00c9quipe d\u00e9di\u00e9e", "Syncs quotidiennes / exp\u00e9rience int\u00e9gr\u00e9e", "Rapports white-label", "Revues trimestrielles sur place"],
+    s4f: ["8+ postes actifs · candidats illimit\u00e9s", "Entra\u00eenement IA custom sur vos donn\u00e9es", "\u00c9quipe d\u00e9di\u00e9e", "Syncs quotidiennes / exp\u00e9rience int\u00e9gr\u00e9e", "Rapports white-label", "Revues ex\u00e9cutives trimestrielles"],
     annual_save: "\u00c9pargnez 15% avec la facturation annuelle",
   },
   cta: {
@@ -1162,7 +1162,7 @@ const fr = {
       { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA trouve + recruteurs s\u00e9niors qualifient" },
       { label: "Qualit\u00e9 candidat", v1: "Auto-s\u00e9lectionn\u00e9s, non filtr\u00e9s", v2: "D\u00e9pend du recruteur", v3: "Qui ils ont", v4: "Scor\u00e9 IA + v\u00e9rifi\u00e9 humain" },
       { label: "Premi\u00e8re livraison", v1: "Des mois", v2: "2-8 semaines", v3: "1-4 semaines", v4: "5-7 jours" },
-      { label: "Co\u00fbt annuel", v1: "10K$ d\u2019annonces + temps", v2: "170K$ (salaire + b\u00e9n\u00e9fices + outils)", v3: "100-200K$ (5-10 placements)", v4: "36-120K$ forfait (tout volume)" },
+      { label: "Co\u00fbt annuel", v1: "10K$ d\u2019annonces + temps", v2: "117K$ (salaire + b\u00e9n\u00e9fices + outils)", v3: "100-200K$ (5-10 placements)", v4: "36-120K$ forfait (tout volume)" },
       { label: "Garantie", v1: "Aucune", v2: "Aucune", v3: "Remplacement 90 jours", v4: "Remboursement 30 jours" },
     ],
   },
@@ -1181,6 +1181,6 @@ const fr = {
     roi_internal: "Recruteur interne (salaire + b\u00e9n\u00e9fices + outils)",
     roi_aimio: "Aimio Growth (4 999$/mois)",
     roi_save: "Vous \u00e9conomisez",
-    roi_note: "Bas\u00e9 sur salaire moyen 120K$ + 25% b\u00e9n\u00e9fices + 20K$ outils (LinkedIn Recruiter, ATS, etc.). Les r\u00e9sultats varient.",
+    roi_note: "Bas\u00e9 sur salaire moyen 90K$ + 25% b\u00e9n\u00e9fices + 5K$ outils (LinkedIn Recruiter, ATS). Les r\u00e9sultats varient.",
   },
 };
