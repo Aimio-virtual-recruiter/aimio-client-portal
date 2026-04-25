@@ -646,41 +646,49 @@ export default function LandingPage() {
             <p className="text-[16px] text-zinc-500 mt-4">{t.pricing.subtitle}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { name: "Starter", price: "1,999", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false },
-              { name: "Pro", price: "2,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true },
-              { name: "Enterprise", price: "4,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false },
+              { name: "Starter", price: "2,999", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false, custom: false },
+              { name: "Growth", price: "4,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true, custom: false },
+              { name: "Scale", price: "9,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false, custom: false },
+              { name: "Enterprise", price: "Custom", desc: t.pricing.s4desc, features: t.pricing.s4f, pop: false, custom: true },
             ].map((plan) => (
-              <div key={plan.name} className={`rounded-2xl p-8 relative hover-glow ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB] pulse-glow" : "bg-white border border-zinc-200"}`}>
+              <div key={plan.name} className={`rounded-2xl p-6 relative hover-glow ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB] pulse-glow" : "bg-white border border-zinc-200"}`}>
                 {plan.pop && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#2445EB] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#2445EB] text-white text-[10px] font-bold rounded-full uppercase tracking-wider whitespace-nowrap">
                     {t.pricing.popular}
                   </div>
                 )}
                 <p className="text-[14px] font-semibold mb-1">{plan.name}</p>
-                <p className={`text-[12px] mb-6 ${plan.pop ? "text-zinc-400" : "text-zinc-400"}`}>{plan.desc}</p>
-                <div className="flex items-baseline gap-1 mb-8">
-                  <span className="text-[40px] font-bold tracking-tight">${plan.price}</span>
-                  <span className={`text-[13px] ${plan.pop ? "text-zinc-400" : "text-zinc-400"}`}>/{t.pricing.mo}</span>
+                <p className={`text-[11px] mb-5 ${plan.pop ? "text-zinc-400" : "text-zinc-500"}`}>{plan.desc}</p>
+                <div className="flex items-baseline gap-1 mb-6">
+                  {plan.custom ? (
+                    <span className="text-[28px] font-bold tracking-tight">{plan.price}</span>
+                  ) : (
+                    <>
+                      <span className="text-[34px] font-bold tracking-tight">${plan.price}</span>
+                      <span className={`text-[12px] ${plan.pop ? "text-zinc-400" : "text-zinc-400"}`}>/{t.pricing.mo}</span>
+                    </>
+                  )}
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-2.5 mb-6">
                   {plan.features.map((f: string) => (
-                    <li key={f} className={`flex items-start gap-2.5 text-[13px] ${plan.pop ? "text-zinc-300" : "text-zinc-600"}`}>
-                      <Check size={14} className={`mt-0.5 shrink-0 ${plan.pop ? "text-[#2445EB]" : "text-zinc-400"}`} />
-                      {f}
+                    <li key={f} className={`flex items-start gap-2 text-[12px] ${plan.pop ? "text-zinc-300" : "text-zinc-600"}`}>
+                      <Check size={12} className={`mt-1 shrink-0 ${plan.pop ? "text-[#2445EB]" : "text-zinc-400"}`} />
+                      <span>{f}</span>
                     </li>
                   ))}
                 </ul>
-                <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className={`w-full py-3.5 rounded-full text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
+                <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className={`w-full py-3 rounded-full text-[12px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
                   plan.pop ? "bg-white text-zinc-900 hover:bg-zinc-100" : "bg-zinc-900 text-white hover:bg-zinc-800"
                 }`}>
-                  {t.pricing.cta} <ArrowRight size={14} />
+                  {plan.custom ? (lang === "en" ? "Talk to sales" : "Parler aux ventes") : t.pricing.cta} <ArrowRight size={12} />
                 </a>
               </div>
             ))}
           </div>
           <p className="text-center text-[12px] text-zinc-400 mt-8">{t.pricing.note}</p>
+          <p className="text-center text-[11px] text-zinc-400 mt-2">{t.pricing.annual_save}</p>
         </div>
       </section>
 
@@ -718,15 +726,15 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_internal}</span>
-                    <span className="text-[18px] font-bold text-white">$117,500/yr</span>
+                    <span className="text-[18px] font-bold text-white">$170,000/yr</span>
                   </div>
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_aimio}</span>
-                    <span className="text-[18px] font-bold text-white">$36,000/yr</span>
+                    <span className="text-[18px] font-bold text-white">$59,988/yr</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-[14px] font-semibold text-white">{t.guarantee.roi_save}</span>
-                    <span className="text-[28px] font-bold text-[#7A8FF5]">$81,500/yr</span>
+                    <span className="text-[28px] font-bold text-[#7A8FF5]">$110,012/yr</span>
                   </div>
                 </div>
 
@@ -967,7 +975,7 @@ const en = {
     badge: "The future of recruiting is here",
     line1: "Hire smarter.",
     line2: "Faster. Cheaper.",
-    subtitle: "The future of hiring is here. Your AI recruiting team delivers qualified, pre-screened talent in days.",
+    subtitle: "AI + seasoned recruiters: your hiring team for a fraction of the cost. Qualified, pre-screened candidates delivered in days — not weeks.",
     cta: "Book a demo",
     demo: "See the platform",
   },
@@ -1011,18 +1019,21 @@ const en = {
     b4: { title: "Available globally", desc: "We find talent worldwide. Our platform supports English, French, and Spanish." },
   },
   pricing: {
-    title: "Simple pricing. Powerful results.",
-    subtitle: "Predictable monthly fee. No hidden costs. Cancel anytime.",
+    title: "Replace your hiring team.",
+    subtitle: "A fraction of the cost of an internal recruiter or recruitment agency. Cancel anytime.",
     popular: "Most popular",
     mo: "mo",
     cta: "Book a demo",
-    note: "Sales-led onboarding. No setup fees. Cancel anytime after the first month.",
-    s1desc: "For teams hiring 1-2 roles",
-    s2desc: "For growing companies",
-    s3desc: "For high-volume hiring",
-    s1f: ["1 active position", "Pre-screened candidates weekly", "AI scoring on 10 criteria", "Client portal access", "Weekly reports", "Email support"],
-    s2f: ["Up to 4 active positions", "Priority candidate delivery", "AI scoring on 10 criteria", "Client portal + analytics", "Weekly reports + AI insights", "Dedicated account manager"],
-    s3f: ["5+ active positions", "Premium candidate delivery", "Custom AI scoring criteria", "Full analytics dashboard", "Phone qualification included", "Custom reporting + SLA"],
+    note: "Save 15% with annual billing. 30-day replacement guarantee. Cancel anytime after the first month.",
+    s1desc: "Replace founder DIY hiring",
+    s2desc: "Replace 1 internal recruiter",
+    s3desc: "Replace a 2-person team",
+    s4desc: "Replace your full hiring function",
+    s1f: ["1 active role", "10-15 qualified candidates / month", "AI sourcing + scoring", "Email support", "Weekly sync (30 min)", "30-day replacement guarantee"],
+    s2f: ["Up to 3 active roles", "30-45 qualified candidates / month", "Priority sourcing + scoring", "Dedicated recruiter", "Weekly sync + Slack channel", "30-day replacement guarantee"],
+    s3f: ["Up to 7 active roles", "70-100 qualified candidates / month", "Premium sourcing + LinkedIn Recruiter", "Senior recruiter + sourcing specialist", "Twice-weekly syncs", "Custom reporting + SLA"],
+    s4f: ["8+ active roles · unlimited candidates", "Custom AI training on your hiring data", "Dedicated team", "Daily syncs / embedded experience", "White-label reporting", "On-site quarterly reviews"],
+    annual_save: "Save 15% with annual billing",
   },
   cta: {
     title: "Ready to transform your hiring?",
@@ -1043,7 +1054,7 @@ const en = {
       { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + seasoned recruiters qualify" },
       { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
       { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
-      { label: "Monthly cost", v1: "$300-800 ads + your time", v2: "$9,500/mo + benefits", v3: "$15-30K per placement", v4: "$1,999-4,999/mo flat" },
+      { label: "Annual cost", v1: "$10K ads + your time", v2: "$170K (salary + benefits + tools)", v3: "$100-200K (5-10 hires)", v4: "$36-120K flat (any volume)" },
       { label: "Guarantee", v1: "None", v2: "None", v3: "90-day replacement", v4: "30-day full refund" },
     ],
   },
@@ -1060,9 +1071,9 @@ const en = {
     roi_label: "ROI Math",
     roi_title: "Aimio vs. an internal recruiter.",
     roi_internal: "Internal recruiter (salary + benefits + tools)",
-    roi_aimio: "Aimio Pro ($2,999/mo)",
+    roi_aimio: "Aimio Growth ($4,999/mo)",
     roi_save: "You save",
-    roi_note: "Based on avg. $90K salary + 25% benefits + $5K tools. Your mileage may vary.",
+    roi_note: "Based on avg. $120K salary + 25% benefits + $20K tools (LinkedIn Recruiter, ATS, etc.). Your mileage may vary.",
   },
 };
 
@@ -1072,7 +1083,7 @@ const fr = {
     badge: "Le futur du recrutement est ici",
     line1: "Recrutez mieux.",
     line2: "Plus vite. Moins cher.",
-    subtitle: "Le futur du recrutement est ici. Votre \u00e9quipe de recrutement IA vous livre des talents qualifi\u00e9s et pr\u00e9-filtr\u00e9s en quelques jours.",
+    subtitle: "IA + recruteurs s\u00e9niors : votre \u00e9quipe de recrutement \u00e0 une fraction du co\u00fbt. Candidats qualifi\u00e9s livr\u00e9s en quelques jours, pas en semaines.",
     cta: "R\u00e9server une d\u00e9mo",
     demo: "Voir la plateforme",
   },
@@ -1116,18 +1127,21 @@ const fr = {
     b4: { title: "Disponible mondialement", desc: "On trouve des talents partout. Notre plateforme supporte l\u2019anglais, le fran\u00e7ais et l\u2019espagnol." },
   },
   pricing: {
-    title: "Tarification simple. R\u00e9sultats puissants.",
-    subtitle: "Forfait mensuel pr\u00e9visible. Aucun frais cach\u00e9. Annulez en tout temps.",
+    title: "Remplacez votre \u00e9quipe de recrutement.",
+    subtitle: "Une fraction du co\u00fbt d\u2019un recruteur interne ou d\u2019une agence. Annulez en tout temps.",
     popular: "Le plus populaire",
     mo: "mois",
     cta: "R\u00e9server une d\u00e9mo",
-    note: "Onboarding accompagn\u00e9. Aucun frais de setup. Annulez apr\u00e8s le 1er mois.",
-    s1desc: "Pour les \u00e9quipes qui recrutent 1-2 postes",
-    s2desc: "Pour les entreprises en croissance",
-    s3desc: "Pour le recrutement \u00e0 haut volume",
-    s1f: ["1 poste actif", "Candidats pr\u00e9-qualifi\u00e9s chaque semaine", "Scoring IA sur 10 crit\u00e8res", "Acc\u00e8s au portail client", "Rapports hebdomadaires", "Support par courriel"],
-    s2f: ["Jusqu\u2019\u00e0 4 postes actifs", "Livraison prioritaire", "Scoring IA sur 10 crit\u00e8res", "Portail + analytique", "Rapports + intelligence IA", "Gestionnaire de compte d\u00e9di\u00e9"],
-    s3f: ["5+ postes actifs", "Livraison premium", "Crit\u00e8res IA personnalis\u00e9s", "Dashboard analytique complet", "Pr\u00e9-qualification t\u00e9l\u00e9phonique incluse", "Rapports personnalis\u00e9s + SLA"],
+    note: "\u00c9pargnez 15% avec la facturation annuelle. Garantie de remplacement 30 jours. Annulez apr\u00e8s le 1er mois.",
+    s1desc: "Remplacez le recrutement DIY",
+    s2desc: "Remplacez 1 recruteur interne",
+    s3desc: "Remplacez une \u00e9quipe de 2 personnes",
+    s4desc: "Remplacez votre fonction recrutement compl\u00e8te",
+    s1f: ["1 poste actif", "10-15 candidats qualifi\u00e9s / mois", "Sourcing IA + scoring", "Support par courriel", "Sync hebdomadaire (30 min)", "Garantie remplacement 30 jours"],
+    s2f: ["Jusqu\u2019\u00e0 3 postes actifs", "30-45 candidats qualifi\u00e9s / mois", "Sourcing prioritaire", "Recruteur d\u00e9di\u00e9", "Sync + canal Slack", "Garantie remplacement 30 jours"],
+    s3f: ["Jusqu\u2019\u00e0 7 postes actifs", "70-100 candidats qualifi\u00e9s / mois", "Sourcing premium + LinkedIn Recruiter", "Recruteur s\u00e9nior + sp\u00e9cialiste sourcing", "Syncs deux fois par semaine", "Rapports custom + SLA"],
+    s4f: ["8+ postes actifs · candidats illimit\u00e9s", "Entra\u00eenement IA custom sur vos donn\u00e9es", "\u00c9quipe d\u00e9di\u00e9e", "Syncs quotidiennes / exp\u00e9rience int\u00e9gr\u00e9e", "Rapports white-label", "Revues trimestrielles sur place"],
+    annual_save: "\u00c9pargnez 15% avec la facturation annuelle",
   },
   cta: {
     title: "Pr\u00eat \u00e0 transformer votre recrutement?",
@@ -1148,7 +1162,7 @@ const fr = {
       { label: "Qui fait le travail", v1: "Vous filtrez 100+ applications", v2: "1 embauche interne", v3: "Agence contacte quelques profils", v4: "IA trouve + recruteurs s\u00e9niors qualifient" },
       { label: "Qualit\u00e9 candidat", v1: "Auto-s\u00e9lectionn\u00e9s, non filtr\u00e9s", v2: "D\u00e9pend du recruteur", v3: "Qui ils ont", v4: "Scor\u00e9 IA + v\u00e9rifi\u00e9 humain" },
       { label: "Premi\u00e8re livraison", v1: "Des mois", v2: "2-8 semaines", v3: "1-4 semaines", v4: "5-7 jours" },
-      { label: "Co\u00fbt mensuel", v1: "300-800$ d\u2019annonces + temps", v2: "9 500$/mois + b\u00e9n\u00e9fices", v3: "15-30K$ par placement", v4: "1 999-4 999$/mois forfait" },
+      { label: "Co\u00fbt annuel", v1: "10K$ d\u2019annonces + temps", v2: "170K$ (salaire + b\u00e9n\u00e9fices + outils)", v3: "100-200K$ (5-10 placements)", v4: "36-120K$ forfait (tout volume)" },
       { label: "Garantie", v1: "Aucune", v2: "Aucune", v3: "Remplacement 90 jours", v4: "Remboursement 30 jours" },
     ],
   },
@@ -1165,8 +1179,8 @@ const fr = {
     roi_label: "Calcul ROI",
     roi_title: "Aimio vs. un recruteur interne.",
     roi_internal: "Recruteur interne (salaire + b\u00e9n\u00e9fices + outils)",
-    roi_aimio: "Aimio Pro (2 999$/mois)",
+    roi_aimio: "Aimio Growth (4 999$/mois)",
     roi_save: "Vous \u00e9conomisez",
-    roi_note: "Bas\u00e9 sur salaire moyen 90K$ + 25% b\u00e9n\u00e9fices + 5K$ outils. Les r\u00e9sultats varient.",
+    roi_note: "Bas\u00e9 sur salaire moyen 120K$ + 25% b\u00e9n\u00e9fices + 20K$ outils (LinkedIn Recruiter, ATS, etc.). Les r\u00e9sultats varient.",
   },
 };

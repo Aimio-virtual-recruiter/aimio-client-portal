@@ -646,36 +646,43 @@ export default function LandingPage() {
             <p className="text-[16px] text-zinc-500 mt-4">{t.pricing.subtitle}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { name: "Starter", price: "1,999", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false },
-              { name: "Pro", price: "2,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true },
-              { name: "Enterprise", price: "4,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false },
+              { name: "Starter", price: "2,999", desc: t.pricing.s1desc, features: t.pricing.s1f, pop: false, custom: false },
+              { name: "Growth", price: "4,999", desc: t.pricing.s2desc, features: t.pricing.s2f, pop: true, custom: false },
+              { name: "Scale", price: "9,999", desc: t.pricing.s3desc, features: t.pricing.s3f, pop: false, custom: false },
+              { name: "Enterprise", price: "Custom", desc: (t.pricing as { s4desc?: string }).s4desc || "Replace your full hiring function", features: (t.pricing as { s4f?: string[] }).s4f || ["8+ active roles · unlimited candidates", "Custom AI training", "Dedicated team", "Daily syncs", "White-label reporting"], pop: false, custom: true },
             ].map((plan) => (
-              <div key={plan.name} className={`rounded-2xl p-8 relative hover-glow ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB] pulse-glow" : "bg-white border border-zinc-200"}`}>
+              <div key={plan.name} className={`rounded-2xl p-6 relative hover-glow ${plan.pop ? "bg-zinc-900 text-white ring-2 ring-[#2445EB] pulse-glow" : "bg-white border border-zinc-200"}`}>
                 {plan.pop && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#2445EB] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#2445EB] text-white text-[10px] font-bold rounded-full uppercase tracking-wider whitespace-nowrap">
                     {t.pricing.popular}
                   </div>
                 )}
                 <p className="text-[14px] font-semibold mb-1">{plan.name}</p>
-                <p className={`text-[12px] mb-6 ${plan.pop ? "text-zinc-400" : "text-zinc-400"}`}>{plan.desc}</p>
-                <div className="flex items-baseline gap-1 mb-8">
-                  <span className="text-[40px] font-bold tracking-tight">${plan.price}</span>
-                  <span className={`text-[13px] ${plan.pop ? "text-zinc-400" : "text-zinc-400"}`}>/{t.pricing.mo}</span>
+                <p className={`text-[11px] mb-5 ${plan.pop ? "text-zinc-400" : "text-zinc-500"}`}>{plan.desc}</p>
+                <div className="flex items-baseline gap-1 mb-6">
+                  {plan.custom ? (
+                    <span className="text-[28px] font-bold tracking-tight">{plan.price}</span>
+                  ) : (
+                    <>
+                      <span className="text-[34px] font-bold tracking-tight">${plan.price}</span>
+                      <span className={`text-[12px] ${plan.pop ? "text-zinc-400" : "text-zinc-400"}`}>/{t.pricing.mo}</span>
+                    </>
+                  )}
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-2.5 mb-6">
                   {plan.features.map((f: string) => (
-                    <li key={f} className={`flex items-start gap-2.5 text-[13px] ${plan.pop ? "text-zinc-300" : "text-zinc-600"}`}>
-                      <Check size={14} className={`mt-0.5 shrink-0 ${plan.pop ? "text-[#2445EB]" : "text-zinc-400"}`} />
-                      {f}
+                    <li key={f} className={`flex items-start gap-2 text-[12px] ${plan.pop ? "text-zinc-300" : "text-zinc-600"}`}>
+                      <Check size={12} className={`mt-1 shrink-0 ${plan.pop ? "text-[#2445EB]" : "text-zinc-400"}`} />
+                      <span>{f}</span>
                     </li>
                   ))}
                 </ul>
-                <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className={`w-full py-3.5 rounded-full text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
+                <a href="https://meetings-na3.hubspot.com/olivier-bujold/virtual-recruiter-exploratory-meeting" target="_blank" rel="noopener noreferrer" className={`w-full py-3 rounded-full text-[12px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
                   plan.pop ? "bg-white text-zinc-900 hover:bg-zinc-100" : "bg-zinc-900 text-white hover:bg-zinc-800"
                 }`}>
-                  {t.pricing.cta} <ArrowRight size={14} />
+                  {plan.custom ? (lang === "en" ? "Talk to sales" : "Parler aux ventes") : t.pricing.cta} <ArrowRight size={12} />
                 </a>
               </div>
             ))}
@@ -718,15 +725,15 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_internal}</span>
-                    <span className="text-[18px] font-bold text-white">$117,500/yr</span>
+                    <span className="text-[18px] font-bold text-white">$170,000/yr</span>
                   </div>
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <span className="text-[12px] text-zinc-400 max-w-[60%]">{t.guarantee.roi_aimio}</span>
-                    <span className="text-[18px] font-bold text-white">$36,000/yr</span>
+                    <span className="text-[18px] font-bold text-white">$59,988/yr</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-[14px] font-semibold text-white">{t.guarantee.roi_save}</span>
-                    <span className="text-[28px] font-bold text-[#7A8FF5]">$81,500/yr</span>
+                    <span className="text-[28px] font-bold text-[#7A8FF5]">$110,012/yr</span>
                   </div>
                 </div>
 
@@ -1043,7 +1050,7 @@ const en = {
       { label: "Who does the work", v1: "You filter 100+ applications", v2: "1 internal hire", v3: "Agency contacts some", v4: "AI finds + seasoned recruiters qualify" },
       { label: "Candidate quality", v1: "Self-selected, unscreened", v2: "Varies by recruiter", v3: "Whoever they have", v4: "AI-scored + human-verified" },
       { label: "First delivery", v1: "Months", v2: "2-8 weeks", v3: "1-4 weeks", v4: "5-7 days" },
-      { label: "Monthly cost", v1: "$300-800 ads + your time", v2: "$9,500/mo + benefits", v3: "$15-30K per placement", v4: "$1,999-4,999/mo flat" },
+      { label: "Annual cost", v1: "$10K ads + your time", v2: "$170K (salary + benefits + tools)", v3: "$100-200K (5-10 hires)", v4: "$36-120K flat (any volume)" },
       { label: "Guarantee", v1: "None", v2: "None", v3: "90-day replacement", v4: "30-day full refund" },
     ],
   },

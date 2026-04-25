@@ -35,13 +35,22 @@ export default function AdminDashboardPage() {
           <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">Admin — Recruteur Virtuel IA</h1>
           <p className="text-zinc-400 text-[13px] mt-0.5">Gerez les candidats, mandats et approbations</p>
         </div>
-        <Link
-          href="/admin/candidates/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[13px] font-medium transition-premium btn-press"
-        >
-          <UserPlus size={15} />
-          Nouveau candidat
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/recruiters"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 rounded-lg text-[13px] font-medium transition-premium btn-press"
+          >
+            <Users size={15} />
+            Recruteurs
+          </Link>
+          <Link
+            href="/admin/candidates/new"
+            className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[13px] font-medium transition-premium btn-press"
+          >
+            <UserPlus size={15} />
+            Nouveau candidat
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
