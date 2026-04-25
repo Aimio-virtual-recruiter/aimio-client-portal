@@ -1,57 +1,161 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useI18n } from "@/i18n/provider";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { AimioTeamWidget } from "./AimioTeamWidget";
-import { MeetingRequestModal } from "./MeetingRequestModal";
-import { LayoutDashboard, Briefcase, BarChart3, LogOut, Building2, TrendingUp, MessageCircle, History, Bell, Calendar, Plus } from "lucide-react";
+import {
+  LayoutDashboard,
+  Briefcase,
+  BarChart3,
+  LogOut,
+  MessageCircle,
+  Plus,
+  Sparkles,
+  GitBranch,
+  FileText,
+  Loader2,
+} from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+interface UserContext {
+  email: string;
+  firstName: string;
+  companyName: string;
+  plan: string;
+  daysActive: number;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { t } = useI18n();
-  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
+  const router = useRouter();
+  const [user, setUser] = useState<UserContext | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [newCandidates, setNewCandidates] = useState(0);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+
+        if (authUser) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("first_name, client_company_id")
+            .eq("id", authUser.id)
+            .single();
+
+          let companyName = "Your Company";
+          let plan = "Growth";
+          let daysActive = 0;
+
+          if (profile?.client_company_id) {
+            const { data: client } = await supabase
+              .from("clients")
+              .select("company_name, plan, billing_start_date")
+              .eq("id", profile.client_company_id)
+              .single();
+            if (client) {
+              companyName = client.company_name;
+              plan = client.plan || "Growth";
+              if (client.billing_start_date) {
+                const start = new Date(client.billing_start_date);
+                daysActive = Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24));
+              }
+            }
+          }
+
+          setUser({
+            email: authUser.email || "",
+            firstName: profile?.first_name || "there",
+            companyName,
+            plan,
+            daysActive,
+          });
+
+          setUnreadMessages(2);
+          setNewCandidates(3);
+        }
+      } catch (err) {
+        console.error("Sidebar init error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   const navItems = [
-    { label: t("nav.dashboard"), href: "/dashboard", icon: LayoutDashboard },
-    { label: t("nav.mandates"), href: "/mandats", icon: Briefcase },
-    { label: t("nav.analytics"), href: "/analytics", icon: TrendingUp },
-    { label: t("nav.reports"), href: "/rapports", icon: BarChart3 },
-    { label: t("nav.messages"), href: "/messages", icon: MessageCircle, badge: 2 },
-    { label: t("nav.history"), href: "/historique", icon: History },
+    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, badge: 0 },
+    { label: "Candidates", href: "/candidats", icon: Briefcase, badge: newCandidates },
+    { label: "Pipeline", href: "/dashboard/pipeline", icon: GitBranch, badge: 0 },
+    { label: "AI Insights", href: "/dashboard/insights", icon: Sparkles, badge: 0 },
+    { label: "Reports", href: "/rapports", icon: BarChart3, badge: 0 },
+    { label: "QBR", href: "/dashboard/qbr", icon: FileText, badge: 0 },
+    { label: "Messages", href: "/messages", icon: MessageCircle, badge: unreadMessages },
   ];
 
   return (
-    <aside className="w-56 bg-white border-r border-zinc-200 min-h-screen flex flex-col">
-      {/* Logo */}
+    <aside className="w-60 bg-white border-r border-zinc-200 min-h-screen flex flex-col">
       <div className="px-5 py-5 border-b border-zinc-100">
         <Image src="/aimio-logo.png" alt="Aimio" width={100} height={28} priority className="h-7 w-auto" />
-        <p className="label mt-2">{t("common.portalName")}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 mt-2">
+          Virtual Recruiter
+        </p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-3 space-y-px">
+      {loading ? (
+        <div className="mx-3 mt-3 p-3 bg-zinc-50 rounded-lg flex items-center justify-center">
+          <Loader2 size={14} className="animate-spin text-zinc-300" />
+        </div>
+      ) : user ? (
+        <div className="mx-3 mt-3 p-3 bg-gradient-to-br from-[#2445EB]/5 to-[#4B5DF5]/5 rounded-lg border border-[#2445EB]/10">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-7 h-7 rounded-full bg-[#2445EB] text-white flex items-center justify-center text-[11px] font-bold">
+              {user.firstName[0]?.toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold text-zinc-900 truncate">{user.firstName}</p>
+              <p className="text-[10px] text-zinc-500 truncate">{user.companyName}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-zinc-500 mt-2">
+            <span className="bg-[#2445EB]/10 text-[#2445EB] px-1.5 py-0.5 rounded font-semibold">
+              {user.plan?.toUpperCase()}
+            </span>
+            <span>Day {user.daysActive}</span>
+          </div>
+        </div>
+      ) : null}
+
+      <nav className="flex-1 px-3 py-3 space-y-px mt-2">
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 px-3 h-8 rounded-md text-[13px] transition-premium relative",
+                "flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] transition-all duration-200 relative",
                 isActive
-                  ? "bg-zinc-100 text-zinc-900 font-medium"
-                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"
+                  ? "bg-[#2445EB]/10 text-[#2445EB] font-semibold"
+                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
               )}
             >
-              <Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
+              <Icon size={15} strokeWidth={isActive ? 2 : 1.5} />
               {item.label}
-              {item.badge && (
-                <span className="absolute right-2.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-semibold flex items-center justify-center bg-[#6C2BD9] text-white">
+              {item.badge > 0 && (
+                <span className="absolute right-2.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center bg-[#2445EB] text-white px-1">
                   {item.badge}
                 </span>
               )}
@@ -60,68 +164,31 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Quick actions */}
       <div className="px-3 mb-3 space-y-1.5">
         <Link
           href="/mandats/nouveau"
-          className="flex items-center gap-2 px-3 py-2.5 bg-[#6C2BD9] hover:bg-[#5521B5] text-white rounded-lg text-[12px] font-semibold transition-premium btn-press"
+          className="flex items-center gap-2 px-3 py-2.5 bg-[#2445EB] hover:bg-[#1A36C4] text-white rounded-lg text-[12px] font-semibold transition-all duration-200 shadow-md shadow-[#2445EB]/20"
         >
           <Plus size={14} />
-          Nouveau mandat
+          New role
         </Link>
-        <button
-          onClick={() => setMeetingModalOpen(true)}
-          className="w-full flex items-center gap-2 px-3 py-2.5 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-[12px] font-medium transition-premium"
-        >
-          <Calendar size={14} />
-          Demander rencontre
-        </button>
-      </div>
-
-      {/* Aimio Team Widget */}
-      <div className="px-3 mb-3">
-        <AimioTeamWidget compact />
-      </div>
-
-      {/* Alert */}
-      <div className="px-3 mb-2">
-        <div className="bg-[#6C2BD9]/5 rounded-lg p-3 border border-[#6C2BD9]/10">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <Bell size={12} className="text-[#6C2BD9]" />
-            <p className="text-[11px] font-medium text-[#6C2BD9]">{t("nav.newAlert")}</p>
-          </div>
-          <p className="text-[11px] text-zinc-600 leading-relaxed">{t("nav.alertText")}</p>
-        </div>
-      </div>
-
-      {/* Meeting Request Modal */}
-      <MeetingRequestModal open={meetingModalOpen} onClose={() => setMeetingModalOpen(false)} />
-
-      {/* Language */}
-      <div className="px-3 mb-2">
-        <LanguageSwitcher />
-      </div>
-
-      {/* Company */}
-      <div className="px-3 pb-3">
-        <div className="bg-zinc-50 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-0.5">
-            <Building2 size={13} className="text-zinc-400" />
-            <p className="text-[13px] font-medium text-zinc-900">Construction Lemieux</p>
-          </div>
-          <p className="text-[11px] text-zinc-400 ml-[21px]">Plan Pro - 5 postes</p>
-        </div>
-      </div>
-
-      {/* Logout */}
-      <div className="px-3 pb-3 border-t border-zinc-100 pt-2">
         <Link
-          href="/"
-          className="flex items-center gap-2.5 px-3 h-8 rounded-md text-[13px] text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-premium"
+          href="/messages"
+          className="w-full flex items-center gap-2 px-3 py-2.5 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-[12px] font-medium transition-all duration-200"
         >
-          <LogOut size={15} strokeWidth={1.5} />
-          {t("common.logout")}
+          <MessageCircle size={14} />
+          Ask your recruiter
         </Link>
+      </div>
+
+      <div className="px-3 pb-4 border-t border-zinc-100 pt-3">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded text-[12px] transition-all duration-200"
+        >
+          <LogOut size={13} />
+          Sign out
+        </button>
       </div>
     </aside>
   );
