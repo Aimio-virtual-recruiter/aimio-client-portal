@@ -240,23 +240,37 @@ async function runApifyLinkedIn(
   if (!apifyToken) return [];
 
   try {
-    const actorId = "apimaestro~linkedin-search-people";
+    // Default: apimaestro/linkedin-profile-search-scraper ($5/1000 results, includes email, no cookies)
+    // Override via APIFY_LINKEDIN_SEARCH_ACTOR if you want to swap actor.
+    const actorSlug =
+      process.env.APIFY_LINKEDIN_SEARCH_ACTOR || "apimaestro/linkedin-profile-search-scraper";
+    const actorId = actorSlug.replace("/", "~");
     const url = `${APIFY_BASE}/acts/${actorId}/run-sync-get-dataset-items?token=${apifyToken}&timeout=180`;
 
-    const searchTerm = searchBrief.primary_keywords.slice(0, 3).join(" ");
+    const jobTitle = searchBrief.seniority_titles[0] || searchBrief.primary_keywords.slice(0, 2).join(" ");
     const location = searchBrief.location_filters[0] || "";
 
+    // Input format for apimaestro/linkedin-profile-search-scraper
+    // - firstName/lastName: optional (omit for broad search)
+    // - maximumProfiles: cap on results
+    // - searchFilters: jobTitle, location, currentCompany, etc.
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        searchTerm: `${searchTerm} ${location}`.trim(),
-        maxResults,
+        maximumProfiles: maxResults,
+        searchFilters: {
+          jobTitle,
+          location,
+          ...(searchBrief.target_companies.length > 0 && {
+            currentCompany: searchBrief.target_companies[0],
+          }),
+        },
       }),
     });
 
     if (!response.ok) {
-      console.error("[Apify LinkedIn] Error:", response.status);
+      console.error("[Apify LinkedIn] Error:", response.status, await response.text().catch(() => ""));
       return [];
     }
 
