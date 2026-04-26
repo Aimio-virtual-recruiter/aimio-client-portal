@@ -54,6 +54,9 @@ async function addLeadsToInstantlyCampaign(
   };
 }
 
+// Use compliance-aware sender that auto-checks opt-out + adds footer + headers
+import { sendCompliantEmail } from "@/lib/email-utils";
+
 async function sendViaResend(
   to: string,
   subject: string,
@@ -61,19 +64,28 @@ async function sendViaResend(
   from: string,
   replyTo: string
 ) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) throw new Error("RESEND_API_KEY not configured");
+  // Convert plain text body to HTML so footer + List-Unsubscribe headers work
+  const htmlBody = body
+    .split("\n")
+    .map((line) => `<p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#3f3f46;">${line || "&nbsp;"}</p>`)
+    .join("");
 
-  const { Resend } = await import("resend");
-  const resend = new Resend(apiKey);
-
-  return await resend.emails.send({
+  const result = await sendCompliantEmail({
+    to,
     from,
-    to: [to],
     replyTo,
     subject,
-    text: body,
+    html: htmlBody,
   });
+
+  if (!result.sent && result.reason === "opted_out") {
+    console.log(`[send-email] ${to} opted out — skipping`);
+    return null;
+  }
+  if (!result.sent) {
+    throw new Error(result.error || "Send failed");
+  }
+  return result;
 }
 
 export async function POST(request: Request) {
