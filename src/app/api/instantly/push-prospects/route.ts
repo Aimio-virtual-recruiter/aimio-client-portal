@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
+
+export const maxDuration = 60;
 
 /**
  * Push Aimio prospects to an Instantly.ai campaign.
@@ -14,6 +17,12 @@ interface PushRequest {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: PushRequest = await request.json();
 
     if (!body.campaign_id || !body.prospect_ids || body.prospect_ids.length === 0) {

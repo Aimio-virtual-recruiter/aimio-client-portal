@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
+import { getCurrentUser } from '@/lib/supabase/server';
+
+export const maxDuration = 120;
 
 interface QualifyRequest {
   candidate_id: string;
@@ -24,6 +27,12 @@ interface QualifyRequest {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: QualifyRequest = await request.json();
 
     if (!body.candidate_id || !body.recruiter_recommendation) {

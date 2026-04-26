@@ -118,6 +118,7 @@ export default function CandidatesPage() {
           query = query.eq("client_id", profile.client_company_id);
         }
 
+        // Paginate — load 50 at a time. UI shows "Load more" if at limit.
         query = query
           .in("status", [
             "delivered",
@@ -128,7 +129,8 @@ export default function CandidatesPage() {
             "replied_interested",
             "outreached",
           ])
-          .order("delivered_at", { ascending: false, nullsFirst: false });
+          .order("delivered_at", { ascending: false, nullsFirst: false })
+          .limit(50);
 
         const { data } = await query;
         setCandidates((data as Candidate[]) || []);

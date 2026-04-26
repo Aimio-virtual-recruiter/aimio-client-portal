@@ -12,8 +12,8 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function load() {
       const [m, c] = await Promise.all([
-        supabase.from('mandates').select('*').order('created_at', { ascending: false }),
-        supabase.from('candidates').select('*').order('created_at', { ascending: false }),
+        supabase.from('mandates').select('*').order('created_at', { ascending: false }).limit(100),
+        supabase.from('candidates').select('*').order('created_at', { ascending: false }).limit(100),
       ]);
       setMandates(m.data || []);
       setCandidates(c.data || []);

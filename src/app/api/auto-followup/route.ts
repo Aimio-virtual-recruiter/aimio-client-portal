@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import Anthropic from '@anthropic-ai/sdk'
 import { supabase } from '@/lib/supabase'
+import { getCurrentUser } from '@/lib/supabase/server'
+
+export const maxDuration = 300
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -9,14 +12,27 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 // This API is called by a cron job (Vercel Cron or external) every day
 // It checks for candidates who haven't responded and sends follow-ups
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Get all sent emails that haven't received a reply
+    // AUTH: accept Vercel Cron secret OR admin user
+    const cronSecret = process.env.CRON_SECRET
+    const authHeader = request.headers.get('authorization')
+    const isCron = cronSecret && authHeader === `Bearer ${cronSecret}`
+
+    if (!isCron) {
+      const user = await getCurrentUser()
+      if (!user || user.role !== 'admin') {
+        return NextResponse.json({ error: 'Auth required (admin or cron secret)' }, { status: 401 })
+      }
+    }
+
+    // Get all sent emails that haven't received a reply (cap at 500 per run to avoid timeout)
     const { data: pendingEmails } = await supabase
       .from('outreach_emails')
       .select('*, candidates(*)')
       .eq('status', 'sent')
       .is('replied_at', null)
+      .limit(500)
 
     if (!pendingEmails || pendingEmails.length === 0) {
       return NextResponse.json({ message: 'No follow-ups needed', count: 0 })

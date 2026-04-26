@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 interface QueueRequest {
   rep_id?: string;
@@ -38,6 +39,12 @@ interface ProspectRow {
  */
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: QueueRequest = await request.json().catch(() => ({}));
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

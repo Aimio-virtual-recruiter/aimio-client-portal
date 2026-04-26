@@ -1,65 +1,129 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+import { createSupabaseAdminClient } from '@/lib/supabase/server';
 
 /**
  * Instantly.ai webhook receiver.
  * Receives events: email_sent, email_opened, email_clicked, email_replied, lead_unsubscribed.
  * Maps to sales_activities + updates prospects.status.
  *
- * Configure in Instantly: Webhook URL = https://aimio-client-portal.vercel.app/api/webhooks/instantly
+ * Security:
+ * - Validates HMAC signature (header: x-instantly-signature) against INSTANTLY_WEBHOOK_SECRET
+ * - Idempotent on event_id (deduplicates retries)
+ *
+ * Configure in Instantly:
+ *  - Webhook URL : https://hireaimio.com/api/webhooks/instantly
+ *  - Secret      : same value as INSTANTLY_WEBHOOK_SECRET in Vercel env
  */
 
 interface InstantlyWebhookEvent {
+  event_id?: string; // for idempotency
   event: 'email_sent' | 'email_opened' | 'email_clicked' | 'email_replied' | 'lead_unsubscribed' | 'email_bounced' | string;
   campaign_id?: string;
   lead_email?: string;
   timestamp?: string;
-  // Custom vars sent during push
   custom_variables?: {
     aimio_prospect_id?: string;
     title?: string;
     linkedin_url?: string;
     icp_score?: string;
   };
-  // Reply content if event = replied
   reply_text?: string;
   reply_subject?: string;
-  // Step info
   step?: number;
   step_subject?: string;
 }
 
+function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
+  if (!signature) return false;
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+  // Constant-time compare to avoid timing attacks
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'));
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const body: InstantlyWebhookEvent = await request.json();
+    // 1. Read raw body for signature verification
+    const rawBody = await request.text();
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+    // 2. Verify signature (if secret configured — recommended in prod)
+    const webhookSecret = process.env.INSTANTLY_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const signature =
+        request.headers.get('x-instantly-signature') ||
+        request.headers.get('x-webhook-signature');
+      if (!verifySignature(rawBody, signature, webhookSecret)) {
+        console.error('[instantly webhook] Signature verification failed');
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+    } else {
+      console.warn(
+        '[instantly webhook] INSTANTLY_WEBHOOK_SECRET not set — webhooks accepted without verification (DEV ONLY)'
+      );
     }
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Find prospect — by custom variable first, then email
+    let body: InstantlyWebhookEvent;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
+
+    // 3. Use admin client (bypasses RLS, webhooks have no user session)
+    let supabase;
+    try {
+      supabase = createSupabaseAdminClient();
+    } catch {
+      console.error('[instantly webhook] SUPABASE_SERVICE_ROLE_KEY not configured');
+      return NextResponse.json({ error: 'DB not configured' }, { status: 500 });
+    }
+
+    // 4. Idempotency — skip if we've already seen this event
+    if (body.event_id) {
+      const { data: existing } = await supabase
+        .from('webhook_events')
+        .select('id')
+        .eq('source', 'instantly')
+        .eq('event_id', body.event_id)
+        .maybeSingle();
+      if (existing) {
+        return NextResponse.json({ received: true, idempotent: true });
+      }
+      // Log the event before processing (best-effort — table may not exist yet)
+      await supabase
+        .from('webhook_events')
+        .insert({
+          source: 'instantly',
+          event_id: body.event_id,
+          event_type: body.event,
+          received_at: new Date().toISOString(),
+        })
+        .then(() => null, () => null);
+    }
+
+    // 5. Find prospect — by custom variable first, then email (now uses index)
     let prospectId = body.custom_variables?.aimio_prospect_id ?? null;
 
     if (!prospectId && body.lead_email) {
       const { data } = await supabase
         .from('prospects')
         .select('id')
-        .eq('email', body.lead_email)
+        .eq('email', body.lead_email.toLowerCase())
         .limit(1)
-        .single();
+        .maybeSingle();
       prospectId = data?.id ?? null;
     }
 
     if (!prospectId) {
-      // Log event even if we can't match — might match later
-      console.warn('Instantly webhook: no matching prospect', body);
+      console.warn('Instantly webhook: no matching prospect', body.lead_email);
       return NextResponse.json({ received: true, matched: false });
     }
 
-    // Map Instantly event → activity
+    // 6. Map Instantly event → activity
     const emailStatusMap: Record<string, string> = {
       email_sent: 'sent',
       email_opened: 'opened',
@@ -71,7 +135,6 @@ export async function POST(request: Request) {
     const emailStatus = emailStatusMap[body.event];
     const activityType = body.event === 'lead_unsubscribed' ? 'note' : 'email';
 
-    // Log the activity
     await supabase.from('sales_activities').insert({
       prospect_id: prospectId,
       activity_type: activityType,
@@ -90,7 +153,7 @@ export async function POST(request: Request) {
       occurred_at: body.timestamp ?? new Date().toISOString(),
     });
 
-    // Update prospect status based on event
+    // 7. Update prospect status based on event
     if (body.event === 'email_replied') {
       await supabase
         .from('prospects')
@@ -123,10 +186,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, prospect_id: prospectId, event: body.event });
   } catch (error) {
     console.error('Instantly webhook error:', error);
-    // Return 200 so Instantly doesn't retry forever
+    // Return 500 so Instantly retries — silent 200 = lost events
     return NextResponse.json(
-      { received: true, error: error instanceof Error ? error.message : 'Unknown' },
-      { status: 200 }
+      { error: error instanceof Error ? error.message : 'Unknown' },
+      { status: 500 }
     );
   }
 }

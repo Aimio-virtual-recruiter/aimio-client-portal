@@ -236,10 +236,33 @@ interface PremiumEmailParams {
   analysis: string | null;
 }
 
+// Escape HTML entities — prevents XSS in user-supplied fields rendered in emails
+function esc(s: string | null | undefined): string {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Validate URL — only http(s), no javascript: / data:
+function safeUrl(u: string | null | undefined): string {
+  if (!u) return "";
+  try {
+    const parsed = new URL(u);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 function buildPremiumEmail(params: PremiumEmailParams): string {
   const { client, candidate, score, analysis } = params;
-  const fullName = `${candidate.first_name} ${candidate.last_name}`;
+  const fullName = esc(`${candidate.first_name} ${candidate.last_name}`);
   const portalUrl = "https://hireaimio.com/dashboard";
+  const linkedinUrl = safeUrl(candidate.linkedin_url);
 
   return `
 <!DOCTYPE html>
@@ -251,33 +274,33 @@ function buildPremiumEmail(params: PremiumEmailParams): string {
       <p style="font-size:11px;color:#71717a;margin:4px 0 0;letter-spacing:.05em;text-transform:uppercase;">Virtual Recruiter</p>
     </div>
 
-    <p style="font-size:16px;line-height:1.6;">Hi ${client.contact_first_name},</p>
-    <p style="font-size:16px;line-height:1.6;">New qualified candidate for <strong>${candidate.position_applying_for}</strong>:</p>
+    <p style="font-size:16px;line-height:1.6;">Hi ${esc(client.contact_first_name)},</p>
+    <p style="font-size:16px;line-height:1.6;">New qualified candidate for <strong>${esc(candidate.position_applying_for)}</strong>:</p>
 
     <div style="background:linear-gradient(135deg,#2445EB 0%,#1A36C4 100%);border-radius:16px;padding:28px;margin:24px 0;color:#fff;">
       <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.75;margin:0 0 8px;">Candidate</p>
       <h2 style="font-size:24px;font-weight:700;margin:0 0 6px;">${fullName}</h2>
-      <p style="font-size:14px;opacity:.9;margin:0 0 16px;">${candidate.current_title}${candidate.current_company ? ` · ${candidate.current_company}` : ""}</p>
-      ${score ? `<div style="display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;">Fit score: ${score}/100</div>` : ""}
+      <p style="font-size:14px;opacity:.9;margin:0 0 16px;">${esc(candidate.current_title)}${candidate.current_company ? ` · ${esc(candidate.current_company)}` : ""}</p>
+      ${score ? `<div style="display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;">Fit score: ${Number(score) || 0}/100</div>` : ""}
     </div>
 
     ${analysis ? `
     <div style="background:#f4f4f5;border-radius:12px;padding:20px;margin-bottom:24px;">
       <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#2445EB;margin:0 0 10px;">AI analysis</p>
-      <p style="font-size:14px;line-height:1.6;margin:0;color:#3f3f46;">${analysis}</p>
+      <p style="font-size:14px;line-height:1.6;margin:0;color:#3f3f46;">${esc(analysis)}</p>
     </div>` : ""}
 
     <div style="background:#f4f4f5;border-radius:12px;padding:20px;margin-bottom:24px;">
       <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#2445EB;margin:0 0 12px;">Quick facts</p>
-      ${candidate.city ? `<p style="font-size:14px;margin:4px 0;"><strong>Location:</strong> ${candidate.city}</p>` : ""}
-      ${candidate.salary_expectation ? `<p style="font-size:14px;margin:4px 0;"><strong>Salary expectation:</strong> ${candidate.salary_expectation}</p>` : ""}
-      ${candidate.availability ? `<p style="font-size:14px;margin:4px 0;"><strong>Availability:</strong> ${candidate.availability}</p>` : ""}
-      ${candidate.linkedin_url ? `<p style="font-size:14px;margin:4px 0;"><strong>LinkedIn:</strong> <a href="${candidate.linkedin_url}" style="color:#2445EB;">View profile</a></p>` : ""}
+      ${candidate.city ? `<p style="font-size:14px;margin:4px 0;"><strong>Location:</strong> ${esc(candidate.city)}</p>` : ""}
+      ${candidate.salary_expectation ? `<p style="font-size:14px;margin:4px 0;"><strong>Salary expectation:</strong> ${esc(candidate.salary_expectation)}</p>` : ""}
+      ${candidate.availability ? `<p style="font-size:14px;margin:4px 0;"><strong>Availability:</strong> ${esc(candidate.availability)}</p>` : ""}
+      ${linkedinUrl ? `<p style="font-size:14px;margin:4px 0;"><strong>LinkedIn:</strong> <a href="${esc(linkedinUrl)}" style="color:#2445EB;">View profile</a></p>` : ""}
     </div>
 
     <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px;margin-bottom:24px;">
       <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#71717a;margin:0 0 10px;">Qualification notes</p>
-      <p style="font-size:14px;line-height:1.6;margin:0;color:#3f3f46;white-space:pre-line;">${candidate.qualification_notes}</p>
+      <p style="font-size:14px;line-height:1.6;margin:0;color:#3f3f46;white-space:pre-line;">${esc(candidate.qualification_notes)}</p>
     </div>
 
     <div style="text-align:center;margin:32px 0;">
@@ -288,7 +311,7 @@ function buildPremiumEmail(params: PremiumEmailParams): string {
 
     <div style="border-top:1px solid #e4e4e7;padding-top:16px;margin-top:32px;">
       <p style="font-size:13px;color:#71717a;margin:0;">
-        ${client.recruteur_lead || "Your Aimio team"}<br>
+        ${esc(client.recruteur_lead) || "Your Aimio team"}<br>
         <a href="https://hireaimio.com" style="color:#2445EB;text-decoration:none;">hireaimio.com</a>
       </p>
     </div>

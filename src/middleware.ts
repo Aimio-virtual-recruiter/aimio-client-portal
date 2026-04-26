@@ -52,11 +52,6 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   // Require auth for protected routes
   const isProtectedRoute =
     pathname.startsWith("/admin") ||
@@ -69,15 +64,39 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/historique") ||
     pathname.startsWith("/analytics");
 
-  if (isProtectedRoute && !user) {
+  // Skip auth processing entirely for non-protected routes — saves ~80ms per request
+  if (!isProtectedRoute) {
+    return response;
+  }
+
+  // Refresh session (only when needed)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based access control
-  if (user && isProtectedRoute) {
-    let role: string | null = null;
+  // Role-based access control — only query DB if path needs role discrimination
+  // (i.e. /admin and /recruiter — for other protected routes we just need auth)
+  const needsRoleCheck =
+    pathname.startsWith("/admin") || pathname.startsWith("/recruiter");
+
+  if (!needsRoleCheck) return response;
+
+  // Try to read role from JWT app_metadata or user_metadata first (zero DB query)
+  // Set this via Supabase Auth Hook on signup OR by trigger on profiles update.
+  const cachedRole =
+    (user.app_metadata?.role as string | undefined) ||
+    (user.user_metadata?.role as string | undefined);
+
+  let role = cachedRole || null;
+
+  if (!role) {
+    // Fallback: query profiles table (slower path, only for users without JWT claim)
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
@@ -93,21 +112,19 @@ export async function middleware(request: NextRequest) {
     } catch (e) {
       console.error("[middleware] profile fetch threw:", e);
     }
+  }
 
-    // If we can't determine role (DB issue), let user through — don't lock them out
-    if (!role) return response;
+  // If we can't determine role (DB issue), let user through — don't lock them out
+  if (!role) return response;
 
-    // Admin-only routes — admin can access everything
-    if (pathname.startsWith("/admin") && role !== "admin") {
-      return NextResponse.redirect(new URL("/recruiter", request.url));
-    }
+  // Admin-only routes
+  if (pathname.startsWith("/admin") && role !== "admin") {
+    return NextResponse.redirect(new URL("/recruiter", request.url));
+  }
 
-    // Recruiter routes: recruiter OR admin allowed
-    if (pathname.startsWith("/recruiter") && role !== "recruiter" && role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    // Don't force-redirect from /dashboard — admins/recruiters can browse client view too
+  // Recruiter routes: recruiter OR admin allowed
+  if (pathname.startsWith("/recruiter") && role !== "recruiter" && role !== "admin") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;

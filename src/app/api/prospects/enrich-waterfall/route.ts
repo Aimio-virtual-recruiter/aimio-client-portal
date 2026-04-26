@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
+
+export const maxDuration = 60;
 
 /**
  * WATERFALL ENRICHMENT
@@ -264,6 +267,12 @@ async function enrichHunter(params: {
 // ─────────────────────────────────────────────────────────
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: EnrichRequest = await request.json();
 
     if (!body.prospect_id) {
