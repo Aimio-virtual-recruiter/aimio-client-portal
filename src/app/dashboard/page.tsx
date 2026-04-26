@@ -223,36 +223,36 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* HERO METRICS — ROI focus */}
+      {/* HERO METRICS — Client-focused */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <MetricCard
-          icon={<DollarSign size={16} />}
-          label="Estimated savings"
-          value={`$${(stats?.estimatedSavings || 0).toLocaleString()}`}
-          sub="vs internal recruiter"
-          color="emerald"
-          highlight
-        />
         <MetricCard
           icon={<Users size={16} />}
           label="Candidates delivered"
           value={String(stats?.candidatesDelivered || 0)}
           sub={`${stats?.candidatesInterested || 0} interested`}
           color="blue"
+          highlight
+        />
+        <MetricCard
+          icon={<Sparkles size={16} />}
+          label="In active pipeline"
+          value={String(stats?.candidatesInPipeline || 0)}
+          sub="being qualified"
+          color="purple"
         />
         <MetricCard
           icon={<Clock size={16} />}
           label="Avg time-to-hire"
           value={`${stats?.avgTimeToHire || "—"}d`}
           sub="vs industry 47d"
-          color="purple"
+          color="amber"
         />
         <MetricCard
           icon={<Award size={16} />}
           label="Hires confirmed"
           value={String(stats?.hires || 0)}
           sub="this period"
-          color="amber"
+          color="emerald"
         />
       </div>
 
