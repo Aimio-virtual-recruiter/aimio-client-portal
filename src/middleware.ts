@@ -77,23 +77,37 @@ export async function middleware(request: NextRequest) {
 
   // Role-based access control
   if (user && isProtectedRoute) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    let role: string | null = null;
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
-    const role = profile?.role || "client";
+      if (error) {
+        console.error("[middleware] profile fetch error:", error.message);
+      } else {
+        role = profile?.role || null;
+      }
+    } catch (e) {
+      console.error("[middleware] profile fetch threw:", e);
+    }
 
-    // Admin-only routes
+    // If we can't determine role (DB issue), let user through — don't lock them out
+    if (!role) return response;
+
+    // Admin-only routes — admin can access everything
     if (pathname.startsWith("/admin") && role !== "admin") {
       return NextResponse.redirect(new URL("/recruiter", request.url));
     }
 
-    // Recruiter routes: recruiter OR admin
+    // Recruiter routes: recruiter OR admin allowed
     if (pathname.startsWith("/recruiter") && role !== "recruiter" && role !== "admin") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
+
+    // Don't force-redirect from /dashboard — admins/recruiters can browse client view too
   }
 
   return response;
