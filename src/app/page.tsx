@@ -4,21 +4,11 @@ import Image from "next/image";
 import { ArrowRight, Check, X, Search, MessageSquare, UserCheck, BarChart3, Shield, Zap, Globe, Clock, Users, ChevronRight, Sparkles, Play, Loader2, CheckCircle2, AlertCircle, FileText } from "lucide-react";
 
 export default function LandingPage() {
-  const [lang, setLang] = useState<"en" | "fr">("en");
+  // hireaimio.com targets US/UK/AU only — English only, no auto-detect
+  const lang = "en" as const;
   const [activeDemo, setActiveDemo] = useState(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const t = lang === "en" ? en : fr;
-
-  // Auto-detect browser language + URL param support
-  useEffect(() => {
-    const urlParam = new URLSearchParams(window.location.search).get("lang");
-    if (urlParam === "fr" || urlParam === "en") {
-      setLang(urlParam);
-      return;
-    }
-    const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith("fr")) setLang("fr");
-  }, []);
+  const t = en;
 
   // Scroll reveal animation
   useEffect(() => {
@@ -101,9 +91,6 @@ export default function LandingPage() {
             <a href="#how" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">{t.nav.how}</a>
             <a href="#platform" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">{t.nav.platform}</a>
             <a href="#pricing" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">{t.nav.pricing}</a>
-            <button onClick={() => setLang(lang === "en" ? "fr" : "en")} className="text-[11px] text-zinc-400 hover:text-zinc-600 border border-zinc-200 rounded-full px-2.5 py-1 transition-all duration-200">
-              {lang === "en" ? "FR" : "EN"}
-            </button>
             <a href="/login" className="text-[13px] text-zinc-500 hover:text-zinc-900 transition-all duration-200">
               {lang === "en" ? "Login" : "Connexion"}
             </a>
@@ -112,9 +99,6 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="flex md:hidden items-center gap-3">
-            <button onClick={() => setLang(lang === "en" ? "fr" : "en")} className="text-[11px] text-zinc-400 border border-zinc-200 rounded-full px-2.5 py-1">
-              {lang === "en" ? "FR" : "EN"}
-            </button>
             <a href="/login" className="text-[12px] text-zinc-500 hover:text-zinc-900">
               {lang === "en" ? "Login" : "Connexion"}
             </a>
