@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[12px] font-semibold text-zinc-600 tabular-nums">{c.score}/10</span>
+                <span className="text-[12px] font-semibold text-zinc-600 tabular-nums">{c.score >= 0 && c.score <= 10 ? `${c.score}/10` : `${Math.round(c.score)}/100`}</span>
                 <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${
                   c.internal_status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
                   c.internal_status === 'draft' ? 'bg-[#6C2BD9]/10 text-[#6C2BD9]' :

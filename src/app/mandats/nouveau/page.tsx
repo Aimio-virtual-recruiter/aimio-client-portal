@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, getCurrentClientId } from "@/lib/supabase";
 import {
   ArrowLeft,
   Briefcase,
@@ -15,8 +15,6 @@ import {
   Loader2,
   Send,
 } from "lucide-react";
-
-const DEMO_COMPANY_ID = "11111111-1111-1111-1111-111111111111";
 
 export default function NewMandatPage() {
   const router = useRouter();
@@ -48,6 +46,16 @@ export default function NewMandatPage() {
     setResult(null);
 
     try {
+      const clientId = await getCurrentClientId();
+      if (!clientId) {
+        setResult({
+          success: false,
+          message: "Vous devez être connecté pour créer un mandat.",
+        });
+        setSubmitting(false);
+        return;
+      }
+
       // Convert must_haves and nice_to_haves to scoring_criteria array
       const mustHavesArr = form.must_haves
         .split("\n")
@@ -75,7 +83,7 @@ export default function NewMandatPage() {
       const { data, error } = await supabase
         .from("mandates")
         .insert({
-          company_id: DEMO_COMPANY_ID,
+          company_id: clientId,
           title: form.title,
           department: form.department || null,
           description,
@@ -100,7 +108,7 @@ export default function NewMandatPage() {
           body: JSON.stringify({
             mandate_id: data.id,
             title: form.title,
-            company_id: DEMO_COMPANY_ID,
+            company_id: clientId,
             urgency: form.urgency,
             salary_max: form.salary_max,
           }),

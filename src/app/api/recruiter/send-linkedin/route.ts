@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
+
+export const maxDuration = 120;
 
 /**
  * POST /api/recruiter/send-linkedin
@@ -63,6 +66,12 @@ async function launchPhantom(phantomId: string, input: PhantomInput): Promise<{
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const body: SendLinkedInRequest = await request.json();
     if (!body.message_ids || body.message_ids.length === 0) {
       return NextResponse.json({ error: "message_ids required" }, { status: 400 });

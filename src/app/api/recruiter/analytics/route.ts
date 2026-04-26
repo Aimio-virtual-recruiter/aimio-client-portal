@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 /**
  * GET /api/recruiter/analytics
@@ -12,6 +13,12 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !supabaseKey) {

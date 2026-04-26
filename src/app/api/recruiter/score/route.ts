@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
+
+export const maxDuration = 300;
 
 /**
  * POST /api/recruiter/score
@@ -128,6 +131,12 @@ Be strict. Most candidates should score 50-70, only exceptional fits get 85+.`;
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const body: RequestBody = await request.json();
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

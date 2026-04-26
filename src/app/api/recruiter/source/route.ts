@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
+
+// Sourcing runs can take 2-5 min. Vercel Pro = max 300s.
+export const maxDuration = 300;
 
 /**
  * POST /api/recruiter/source
@@ -441,6 +445,13 @@ function dedupe(candidates: NormalizedCandidate[]): NormalizedCandidate[] {
 
 export async function POST(request: Request) {
   try {
+    // AUTH: only recruiters and admins
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const body = (await request.json()) as GenerateBriefRequest | RunSourcingRequest;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

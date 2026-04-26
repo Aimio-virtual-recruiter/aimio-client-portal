@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { createSupabaseAdminClient, getCurrentUser } from "@/lib/supabase/server";
 
 interface OnboardRequest {
   company_name: string;
@@ -25,19 +25,17 @@ const PLAN_DETAILS = {
   enterprise: { name: "Enterprise", candidates: "30-40", positions: "10+" },
 };
 
-// Generate a secure temporary password
-function generatePassword(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  const symbols = "!@#$%";
-  let password = "";
-  for (let i = 0; i < 10; i++) password += chars.charAt(Math.floor(Math.random() * chars.length));
-  password += symbols.charAt(Math.floor(Math.random() * symbols.length));
-  password += Math.floor(Math.random() * 100);
-  return password;
-}
-
 export async function POST(request: Request) {
   try {
+    // AUTH: only admin can onboard new clients
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+    if (user.role !== "admin") {
+      return NextResponse.json({ error: "Accès admin requis" }, { status: 403 });
+    }
+
     const body: OnboardRequest = await request.json();
 
     // Validate required fields
@@ -45,22 +43,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.contact_email)) {
+      return NextResponse.json({ error: "Format email invalide" }, { status: 400 });
     }
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const password = generatePassword();
+    let supabase;
+    try {
+      supabase = createSupabaseAdminClient();
+    } catch {
+      return NextResponse.json(
+        { error: "SUPABASE_SERVICE_ROLE_KEY not configured — admin operations disabled" },
+        { status: 500 }
+      );
+    }
+
     const portalUrl = "https://hireaimio.com/login";
+    const email = body.contact_email.toLowerCase();
 
-    // Save client record (best effort — table may not exist yet)
+    // 1. Create the client tenant record
     const clientData = {
       company_name: body.company_name,
       contact_first_name: body.contact_first_name,
       contact_last_name: body.contact_last_name,
-      contact_email: body.contact_email.toLowerCase(),
+      contact_email: email,
       contact_phone: body.contact_phone || null,
       contact_role: body.contact_role || null,
       country: body.country,
@@ -72,17 +79,59 @@ export async function POST(request: Request) {
       recruteur_lead: body.recruteur_lead || null,
       notes: body.notes || null,
       status: "onboarding",
-      portal_password_temp: password,
       created_at: new Date().toISOString(),
       source: "admin_onboard",
     };
 
-    const { error: insertError } = await supabase.from("clients").insert(clientData);
-    if (insertError) {
-      console.warn("[onboard] Client insert warning (table may need migration):", insertError.message);
+    const { data: clientRow, error: insertError } = await supabase
+      .from("clients")
+      .insert(clientData)
+      .select("id")
+      .single();
+
+    if (insertError || !clientRow) {
+      return NextResponse.json(
+        { error: `Échec création client: ${insertError?.message || "unknown"}` },
+        { status: 500 }
+      );
     }
 
-    // Send welcome email via Resend
+    // 2. Invite user via Supabase Auth — they set their own password through the email link
+    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://hireaimio.com"}/login`;
+    const { data: invited, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+      email,
+      {
+        redirectTo: redirectUrl,
+        data: {
+          first_name: body.contact_first_name,
+          last_name: body.contact_last_name,
+          role: "client",
+          client_company_id: clientRow.id,
+        },
+      }
+    );
+
+    if (inviteError) {
+      // Roll back client creation if user invite fails
+      await supabase.from("clients").delete().eq("id", clientRow.id);
+      return NextResponse.json(
+        { error: `Échec invitation utilisateur: ${inviteError.message}` },
+        { status: 500 }
+      );
+    }
+
+    // 3. Upsert profile linking auth user → client tenant (in case the trigger doesn't catch it)
+    if (invited?.user) {
+      await supabase.from("profiles").upsert({
+        id: invited.user.id,
+        first_name: body.contact_first_name,
+        last_name: body.contact_last_name,
+        role: "client",
+        client_company_id: clientRow.id,
+      });
+    }
+
+    // 4. Send welcome email via Resend (separate from Supabase invite — adds branding/context)
     const resendKey = process.env.RESEND_API_KEY;
     let emailSent = false;
     if (resendKey) {
@@ -92,7 +141,7 @@ export async function POST(request: Request) {
 
         await resend.emails.send({
           from: "Marc-Antoine Côté <marc@send.aimiorecrutement.com>",
-          to: [body.contact_email],
+          to: [email],
           replyTo: "marc@aimiorecrutement.com",
           subject: `Bienvenue chez Aimio — démarrons votre recrutement 🚀`,
           html: `
@@ -106,7 +155,7 @@ export async function POST(request: Request) {
 
               <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
                 Bienvenue dans l'équipe Aimio Recruteur Virtuel. Je suis Marc-Antoine Côté, fondateur d'Aimio.
-                Je voulais personnellement vous souhaiter la bienvenue et vous donner les prochaines étapes.
+                Vous allez recevoir un second courriel de Supabase pour activer votre compte et créer votre mot de passe.
               </p>
 
               <div style="background: #f5f5f5; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
@@ -118,14 +167,6 @@ export async function POST(request: Request) {
                   <li>Garantie 30 jours sur les candidats qualifiés</li>
                 </ul>
               </div>
-
-              <h2 style="font-size: 16px; font-weight: 700; margin: 32px 0 12px 0;">Vos credentials portail</h2>
-              <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 8px; padding: 16px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 13px;">
-                <p style="margin: 0 0 8px 0; color: #6b6b6b;">URL : <a href="${portalUrl}" style="color: #2445EB;">${portalUrl}</a></p>
-                <p style="margin: 0 0 8px 0; color: #6b6b6b;">Email : <strong style="color: #18181b;">${body.contact_email}</strong></p>
-                <p style="margin: 0; color: #6b6b6b;">Mot de passe temporaire : <strong style="color: #18181b;">${password}</strong></p>
-              </div>
-              <p style="font-size: 12px; color: #6b6b6b; margin-top: 8px;">⚠️ Changez votre mot de passe lors de votre première connexion.</p>
 
               <h2 style="font-size: 16px; font-weight: 700; margin: 32px 0 12px 0;">📅 Prochaine étape — Kickoff call</h2>
               <p style="font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
@@ -144,8 +185,12 @@ export async function POST(request: Request) {
                 <li><strong>Mois 1</strong> : ${plan.candidates} candidats qualifiés au total</li>
               </ul>
 
+              <p style="font-size: 14px; color: #6b6b6b; margin-top: 24px;">
+                Portail : <a href="${portalUrl}" style="color: #2445EB;">${portalUrl}</a>
+              </p>
+
               <p style="font-size: 15px; line-height: 1.6; margin-top: 32px;">
-                Questions? Répondez directement à ce courriel. Je lis chaque message.
+                Questions ? Répondez directement à ce courriel. Je lis chaque message.
               </p>
 
               <p style="font-size: 15px; line-height: 1.6; margin-top: 24px; margin-bottom: 8px;">
@@ -169,12 +214,13 @@ export async function POST(request: Request) {
       }
     }
 
-    // Notify internal team
+    // 5. Notify internal team
     try {
       await supabase.from("sales_activities").insert({
+        client_id: clientRow.id,
         activity_type: "note",
         direction: "outbound",
-        notes: `🎉 NEW CLIENT ONBOARDED: ${body.company_name} (${body.plan.toUpperCase()} — $${body.mrr_usd}/mo)\n\nContact: ${body.contact_first_name} ${body.contact_last_name} (${body.contact_email})\nCountry: ${body.country}\nRecruteur lead: ${body.recruteur_lead || "À assigner"}\nRoles: ${body.roles_hiring_for || "À définir au kickoff"}\n\nPortal credentials generated and welcome email ${emailSent ? "sent ✅" : "PENDING (Resend not configured)"}.`,
+        notes: `🎉 NEW CLIENT ONBOARDED: ${body.company_name} (${body.plan.toUpperCase()} — $${body.mrr_usd}/mo)\n\nContact: ${body.contact_first_name} ${body.contact_last_name} (${email})\nCountry: ${body.country}\nRecruteur lead: ${body.recruteur_lead || "À assigner"}\nRoles: ${body.roles_hiring_for || "À définir au kickoff"}\n\nWelcome email ${emailSent ? "sent ✅" : "PENDING (Resend not configured)"}.`,
         outcome: "positive",
         occurred_at: new Date().toISOString(),
       });
@@ -184,8 +230,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${body.company_name} onboardé avec succès. ${emailSent ? "Welcome email envoyé." : "Email pas envoyé (configure RESEND_API_KEY)."}`,
-      credentials: { email: body.contact_email, password },
+      message: `${body.company_name} onboardé. ${emailSent ? "Email envoyé." : "Email pas envoyé (configure RESEND_API_KEY)."} L'utilisateur recevra l'invite Supabase pour créer son mot de passe.`,
+      client_id: clientRow.id,
       portal_url: portalUrl,
       email_sent: emailSent,
     });

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, getCurrentClientId } from "@/lib/supabase";
 import { Mail, Phone, Calendar, MessageCircle } from "lucide-react";
 
 interface Recruiter {
@@ -16,20 +16,21 @@ interface Recruiter {
   linkedin_url: string | null;
 }
 
-const DEMO_COMPANY_ID = "11111111-1111-1111-1111-111111111111";
-
 export function AimioTeamWidget({ compact = false }: { compact?: boolean }) {
   const [recruiters, setRecruiters] = useState<Recruiter[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      // Get the company's assigned recruiters
-      const { data: company } = await supabase
-        .from("companies")
-        .select("primary_recruiter_id, secondary_recruiter_id, account_manager_id")
-        .eq("id", DEMO_COMPANY_ID)
-        .single();
+      const clientId = await getCurrentClientId();
+      // Get the company's assigned recruiters (skip if not authed — fallback below)
+      const { data: company } = clientId
+        ? await supabase
+            .from("companies")
+            .select("primary_recruiter_id, secondary_recruiter_id, account_manager_id")
+            .eq("id", clientId)
+            .single()
+        : { data: null };
 
       if (company) {
         const ids = [

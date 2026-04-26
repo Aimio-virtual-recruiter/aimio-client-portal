@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
+
+export const maxDuration = 300;
 
 /**
  * POST /api/recruiter/enrich
@@ -154,6 +157,12 @@ async function enrichFromApifyProfile(linkedinUrl: string | null) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const body: EnrichRequest = await request.json();
     if (!body.candidate_ids || body.candidate_ids.length === 0) {
       return NextResponse.json({ error: "candidate_ids required" }, { status: 400 });

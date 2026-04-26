@@ -115,23 +115,41 @@ export async function POST(request: Request) {
         if (!clientId) {
           return NextResponse.json({ error: "Client has no company" }, { status: 400 });
         }
-        // Find their assigned recruiter
+        // Find their assigned recruiter — prefer recruiter_id (UUID) over recruteur_lead (slug/name)
         if (!recruiterId) {
           const { data: client } = await supabase
             .from("clients")
-            .select("recruteur_lead")
+            .select("recruiter_id, recruteur_lead")
             .eq("id", clientId)
             .single();
-          // Look up profile by name (later: store recruiter_id directly)
-          if (client?.recruteur_lead) {
-            const { data: recProfile } = await supabase
+
+          // 1. Direct UUID link (preferred — no ambiguity)
+          if (client?.recruiter_id) {
+            recruiterId = client.recruiter_id;
+          } else if (client?.recruteur_lead) {
+            // 2. Fallback: lookup by recruteur_lead which may be a slug like "anne-marie"
+            //    or a full name like "Anne-Marie Tremblay" — match against any recruiter
+            //    whose profile has a slugified name equal to the stored value.
+            const lead = client.recruteur_lead.trim().toLowerCase();
+            const { data: recruiters } = await supabase
               .from("profiles")
-              .select("id")
-              .eq("first_name", client.recruteur_lead.split(" ")[0])
+              .select("id, first_name, last_name")
               .eq("role", "recruiter")
-              .limit(1)
-              .single();
-            if (recProfile) recruiterId = recProfile.id;
+              .limit(50);
+
+            const slugify = (s: string) =>
+              s.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+
+            const match = (recruiters || []).find((r) => {
+              const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim().toLowerCase();
+              const slug = slugify(`${r.first_name || ""} ${r.last_name || ""}`);
+              return (
+                fullName === lead ||
+                slug === lead ||
+                slugify(r.first_name || "") === lead
+              );
+            });
+            if (match) recruiterId = match.id;
           }
         }
       } else if (user.role === "recruiter" || user.role === "admin") {

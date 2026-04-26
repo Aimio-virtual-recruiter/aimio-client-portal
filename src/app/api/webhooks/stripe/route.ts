@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 /**
  * Stripe webhook receiver — updates client billing status on payment events.
@@ -21,29 +21,40 @@ export async function POST(request: Request) {
     if (!stripeKey) {
       return NextResponse.json({ error: "STRIPE_SECRET_KEY not set" }, { status: 500 });
     }
+    if (!webhookSecret) {
+      // SECURITY: refuse to process unsigned webhooks. Otherwise anyone can POST a fake event.
+      console.error("[stripe webhook] STRIPE_WEBHOOK_SECRET not set — rejecting all events");
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+    }
 
     const stripe = new Stripe(stripeKey);
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
 
-    let event: Stripe.Event;
-    if (webhookSecret && signature) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err) {
-        console.error("[stripe webhook] Signature verification failed:", err);
-        return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
-      }
-    } else {
-      event = JSON.parse(body);
+    if (!signature) {
+      return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      console.error("[stripe webhook] Signature verification failed:", err);
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
+
+    let supabase;
+    try {
+      supabase = createSupabaseAdminClient();
+    } catch {
+      console.error("[stripe webhook] SUPABASE_SERVICE_ROLE_KEY not configured");
+      return NextResponse.json(
+        { error: "DB not configured" },
+        { status: 500 } // Stripe will retry — that's the desired behavior
+      );
+    }
 
     const findClientByCustomerId = async (customerId: string) => {
-      if (!supabase) return null;
       const { data } = await supabase
         .from("clients")
         .select("*")
@@ -52,11 +63,26 @@ export async function POST(request: Request) {
       return data;
     };
 
+    // Idempotency check — Stripe retries on 5xx, don't double-process
+    const { data: existingEvent } = await supabase
+      .from("stripe_webhook_events")
+      .select("id")
+      .eq("id", event.id)
+      .maybeSingle();
+    if (existingEvent) {
+      return NextResponse.json({ received: true, idempotent: true });
+    }
+    // Best-effort log of event before processing (table may not exist yet — non-fatal)
+    await supabase
+      .from("stripe_webhook_events")
+      .insert({ id: event.id, type: event.type, created_at: new Date().toISOString() })
+      .then(() => null, () => null);
+
     switch (event.type) {
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
-        if (!customerId || !supabase) break;
+        if (!customerId) break;
 
         const client = await findClientByCustomerId(customerId);
         if (client) {
@@ -82,7 +108,7 @@ export async function POST(request: Request) {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
-        if (!customerId || !supabase) break;
+        if (!customerId) break;
 
         const client = await findClientByCustomerId(customerId);
         if (client) {
@@ -111,7 +137,7 @@ export async function POST(request: Request) {
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
-        if (!customerId || !supabase) break;
+        if (!customerId) break;
 
         const client = await findClientByCustomerId(customerId);
         if (client) {
@@ -130,9 +156,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("[stripe webhook] Error:", error);
+    // Return 500 so Stripe RETRIES — silent 200 = lost payment events.
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown" },
-      { status: 200 } // Return 200 so Stripe doesn't retry forever
+      { status: 500 }
     );
   }
 }

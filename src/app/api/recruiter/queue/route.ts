@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 /**
  * GET /api/recruiter/queue
@@ -8,6 +9,12 @@ import { createClient } from "@supabase/supabase-js";
  */
 export async function GET(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const runId = searchParams.get("sourcing_run_id");
     const clientId = searchParams.get("client_id");

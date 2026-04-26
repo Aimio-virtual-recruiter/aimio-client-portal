@@ -63,10 +63,8 @@ function QueuePageContent() {
 
       const res = await fetch(`/api/recruiter/queue${query}`);
       if (!res.ok) {
-        // Fallback: query via Supabase directly
-        const fallbackRes = await fetch("/api/recruiter/queue-fallback" + query);
-        const data = await fallbackRes.json();
-        setCandidates(data.candidates || []);
+        console.error("[queue] fetch failed:", res.status);
+        setCandidates([]);
       } else {
         const data = await res.json();
         setCandidates(data.candidates || []);

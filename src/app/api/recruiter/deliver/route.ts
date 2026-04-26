@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { getCurrentUser } from "@/lib/supabase/server";
+
+export const maxDuration = 120;
 
 /**
  * POST /api/recruiter/deliver
@@ -112,6 +115,12 @@ Analyze this candidate's fit for the role. Return JSON only:
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "recruiter" && user.role !== "admin") {
+      return NextResponse.json({ error: "Accès recruteur/admin requis" }, { status: 403 });
+    }
+
     const body: RequestBody = await request.json();
 
     // ===== SCORE ACTION =====

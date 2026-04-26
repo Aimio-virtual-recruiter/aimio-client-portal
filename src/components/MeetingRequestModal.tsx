@@ -1,9 +1,7 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, getCurrentClientId } from "@/lib/supabase";
 import { X, Calendar, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-
-const DEMO_COMPANY_ID = "11111111-1111-1111-1111-111111111111";
 
 export function MeetingRequestModal({
   open,
@@ -31,8 +29,14 @@ export function MeetingRequestModal({
     setResult(null);
 
     try {
+      const clientId = await getCurrentClientId();
+      if (!clientId) {
+        setResult({ success: false, message: "Vous devez être connecté pour faire cette demande." });
+        setSubmitting(false);
+        return;
+      }
       const { error } = await supabase.from("meeting_requests").insert({
-        company_id: DEMO_COMPANY_ID,
+        company_id: clientId,
         requested_by_name: form.requested_by_name,
         requested_by_email: form.requested_by_email,
         topic: form.topic,

@@ -112,26 +112,54 @@ export interface Notification {
   created_at: string
 }
 
-// API Functions
-const DEMO_COMPANY_ID = '11111111-1111-1111-1111-111111111111'
+/**
+ * Resolves the current authenticated user's tenant client_id.
+ * - For client users: returns profiles.client_company_id
+ * - For admin users: returns the first client (or null — admins should pick one explicitly)
+ * - For recruiters: returns the first assigned_client_id
+ *
+ * Returns null if not authenticated or no tenant link.
+ * Throws never — callers should handle null gracefully.
+ */
+export async function getCurrentClientId(): Promise<string | null> {
+  const { data: { user }, error: authErr } = await supabase.auth.getUser()
+  if (authErr || !user) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, client_company_id, assigned_client_ids')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) return null
+
+  if (profile.role === 'client') return profile.client_company_id || null
+  if (profile.role === 'recruiter') return profile.assigned_client_ids?.[0] || null
+  // admin — fall through, no implicit tenant
+  return profile.client_company_id || null
+}
 
 export async function getCompany() {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return null
   const { data, error } = await supabase
-    .from('companies')
+    .from('clients')
     .select('*')
-    .eq('id', DEMO_COMPANY_ID)
+    .eq('id', clientId)
     .single()
-  if (error) throw error
+  if (error) return null
   return data as Company
 }
 
 export async function getMandates() {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return [] as Mandate[]
   const { data, error } = await supabase
     .from('mandates')
     .select('*')
-    .eq('company_id', DEMO_COMPANY_ID)
+    .eq('company_id', clientId)
     .order('created_at', { ascending: false })
-  if (error) throw error
+  if (error) return [] as Mandate[]
   return data as Mandate[]
 }
 
@@ -147,70 +175,79 @@ export async function getMandate(id: string) {
 
 export async function getCandidatesByMandate(mandateId: string) {
   const { data, error } = await supabase
-    .from('candidates')
+    .from('sourced_candidates')
     .select('*')
     .eq('mandate_id', mandateId)
-    .order('score', { ascending: false })
-  if (error) throw error
-  return data as Candidate[]
+    .order('ai_score', { ascending: false, nullsFirst: false })
+  if (error) return [] as unknown as Candidate[]
+  return (data || []) as unknown as Candidate[]
 }
 
 export async function getAllCandidates() {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return [] as unknown as Candidate[]
   const { data, error } = await supabase
-    .from('candidates')
+    .from('sourced_candidates')
     .select('*')
-    .eq('company_id', DEMO_COMPANY_ID)
-    .order('delivered_at', { ascending: false })
-  if (error) throw error
-  return data as Candidate[]
+    .eq('client_id', clientId)
+    .order('delivered_at', { ascending: false, nullsFirst: false })
+  if (error) return [] as unknown as Candidate[]
+  return (data || []) as unknown as Candidate[]
 }
 
 export async function getCandidate(id: string) {
   const { data, error } = await supabase
-    .from('candidates')
+    .from('sourced_candidates')
     .select('*')
     .eq('id', id)
     .single()
   if (error) throw error
-  return data as Candidate
+  return data as unknown as Candidate
 }
 
 export async function updateCandidateFeedback(id: string, status: string, reason?: string) {
   const { error } = await supabase
-    .from('candidates')
+    .from('sourced_candidates')
     .update({
       status,
-      feedback_reason: reason || null,
+      client_feedback_reason: reason || null,
+      client_feedback_at: new Date().toISOString(),
     })
     .eq('id', id)
   if (error) throw error
 }
 
 export async function getReports() {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return [] as Report[]
   const { data, error } = await supabase
     .from('reports')
     .select('*')
-    .eq('company_id', DEMO_COMPANY_ID)
+    .eq('company_id', clientId)
     .order('created_at', { ascending: false })
-  if (error) throw error
+  if (error) return [] as Report[]
   return data as Report[]
 }
 
 export async function getMessages() {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return [] as Message[]
   const { data, error } = await supabase
     .from('messages')
     .select('*')
-    .eq('company_id', DEMO_COMPANY_ID)
+    .eq('company_id', clientId)
     .order('created_at', { ascending: true })
-  if (error) throw error
+  if (error) return [] as Message[]
   return data as Message[]
 }
 
 export async function sendMessage(content: string, senderName: string) {
+  const clientId = await getCurrentClientId()
+  if (!clientId) throw new Error('Not authenticated')
   const { error } = await supabase
     .from('messages')
     .insert({
-      company_id: DEMO_COMPANY_ID,
+      company_id: clientId,
       sender_type: 'client',
       sender_name: senderName,
       content,
@@ -219,42 +256,48 @@ export async function sendMessage(content: string, senderName: string) {
 }
 
 export async function getNotifications() {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return [] as Notification[]
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
-    .eq('company_id', DEMO_COMPANY_ID)
+    .eq('company_id', clientId)
     .order('created_at', { ascending: false })
-  if (error) throw error
+  if (error) return [] as Notification[]
   return data as Notification[]
 }
 
-// Subscribe to real-time changes
-export function subscribeToNewCandidates(callback: (candidate: Candidate) => void) {
+// Subscribe to real-time changes — gated by auth-resolved client id
+export async function subscribeToNewCandidates(callback: (candidate: Candidate) => void) {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return null
   return supabase
-    .channel('new-candidates')
+    .channel(`new-candidates:${clientId}`)
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
-        table: 'candidates',
-        filter: `company_id=eq.${DEMO_COMPANY_ID}`,
+        table: 'sourced_candidates',
+        filter: `client_id=eq.${clientId}`,
       },
-      (payload) => callback(payload.new as Candidate)
+      (payload) => callback(payload.new as unknown as Candidate)
     )
     .subscribe()
 }
 
-export function subscribeToMessages(callback: (message: Message) => void) {
+export async function subscribeToMessages(callback: (message: Message) => void) {
+  const clientId = await getCurrentClientId()
+  if (!clientId) return null
   return supabase
-    .channel('new-messages')
+    .channel(`new-messages:${clientId}`)
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `company_id=eq.${DEMO_COMPANY_ID}`,
+        filter: `company_id=eq.${clientId}`,
       },
       (payload) => callback(payload.new as Message)
     )
