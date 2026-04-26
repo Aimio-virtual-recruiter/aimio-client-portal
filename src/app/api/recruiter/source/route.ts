@@ -14,6 +14,34 @@ const CLAUDE_MODEL = "claude-sonnet-4-5-20250929";
 const APIFY_BASE = "https://api.apify.com/v2";
 const APOLLO_API_URL = "https://api.apollo.io/v1/mixed_people/search";
 
+interface SearchCriteria {
+  jobTitlesCurrent?: string[];
+  jobTitlesPast?: string[];
+  excludeTitles?: string[];
+  yearsExperienceMin?: number;
+  yearsExperienceMax?: number;
+  seniorityLevels?: string[];
+  functions?: string[];
+  locations?: string[];
+  countries?: string[];
+  remoteOk?: boolean;
+  willingToRelocate?: boolean;
+  currentEmployers?: string[];
+  pastEmployers?: string[];
+  excludeEmployers?: string[];
+  industries?: string[];
+  companySizes?: string[];
+  skills?: string[];
+  certifications?: string[];
+  languages?: { name: string; proficiency: string }[];
+  schools?: string[];
+  degrees?: string[];
+  fieldsOfStudy?: string[];
+  openToWork?: boolean;
+  recentlyChangedJobs?: boolean;
+  yearsAtCurrentMin?: number;
+}
+
 interface GenerateBriefRequest {
   action: "generate_brief";
   client_id: string;
@@ -22,6 +50,8 @@ interface GenerateBriefRequest {
   location?: string;
   experience_min?: number;
   experience_max?: number;
+  search_criteria?: SearchCriteria;
+  internal_notes?: string;
 }
 
 interface RunSourcingRequest {
@@ -30,8 +60,15 @@ interface RunSourcingRequest {
   sourcing_run_id?: string; // if resuming
   position_title: string;
   search_brief: SearchBrief;
+  search_criteria?: SearchCriteria;
   max_results_per_source?: number;
-  sources?: ("apify_linkedin" | "apify_sales_nav" | "apollo")[];
+  sources?: (
+    | "apify_linkedin"
+    | "apify_sales_nav"
+    | "apify_recruiter_lite"
+    | "apollo"
+    | "indeed_resume"
+  )[];
   recruiter_email?: string;
 }
 
@@ -66,38 +103,80 @@ interface NormalizedCandidate {
 
 // ============ BRIEF GENERATION ============
 
+function formatCriteria(c?: SearchCriteria): string {
+  if (!c) return "Aucun critère structuré fourni";
+  const lines: string[] = [];
+  if (c.jobTitlesCurrent?.length) lines.push(`Titres actuels: ${c.jobTitlesCurrent.join(", ")}`);
+  if (c.jobTitlesPast?.length) lines.push(`Titres passés: ${c.jobTitlesPast.join(", ")}`);
+  if (c.excludeTitles?.length) lines.push(`Exclure titres: ${c.excludeTitles.join(", ")}`);
+  if (c.yearsExperienceMin || c.yearsExperienceMax)
+    lines.push(`Expérience: ${c.yearsExperienceMin || 0}-${c.yearsExperienceMax || 30} ans`);
+  if (c.yearsAtCurrentMin) lines.push(`Min années dans poste actuel: ${c.yearsAtCurrentMin}`);
+  if (c.seniorityLevels?.length) lines.push(`Séniorité: ${c.seniorityLevels.join(", ")}`);
+  if (c.functions?.length) lines.push(`Fonction: ${c.functions.join(", ")}`);
+  if (c.locations?.length) lines.push(`Villes: ${c.locations.join(", ")}`);
+  if (c.countries?.length) lines.push(`Pays: ${c.countries.join(", ")}`);
+  if (c.remoteOk) lines.push("Télétravail OK");
+  if (c.willingToRelocate) lines.push("Prêt à se relocaliser");
+  if (c.currentEmployers?.length) lines.push(`Employeurs actuels cibles: ${c.currentEmployers.join(", ")}`);
+  if (c.pastEmployers?.length) lines.push(`Employeurs passés: ${c.pastEmployers.join(", ")}`);
+  if (c.excludeEmployers?.length) lines.push(`Exclure employeurs: ${c.excludeEmployers.join(", ")}`);
+  if (c.industries?.length) lines.push(`Industries: ${c.industries.join(", ")}`);
+  if (c.companySizes?.length) lines.push(`Taille entreprise: ${c.companySizes.join(", ")}`);
+  if (c.skills?.length) lines.push(`Compétences: ${c.skills.join(", ")}`);
+  if (c.certifications?.length) lines.push(`Certifications: ${c.certifications.join(", ")}`);
+  if (c.languages?.length)
+    lines.push(`Langues: ${c.languages.map((l) => `${l.name} (${l.proficiency})`).join(", ")}`);
+  if (c.schools?.length) lines.push(`Écoles: ${c.schools.join(", ")}`);
+  if (c.degrees?.length) lines.push(`Diplômes: ${c.degrees.join(", ")}`);
+  if (c.fieldsOfStudy?.length) lines.push(`Champs études: ${c.fieldsOfStudy.join(", ")}`);
+  if (c.openToWork) lines.push("Filtre Open to Work activé");
+  if (c.recentlyChangedJobs) lines.push("A récemment changé d'emploi");
+  return lines.join("\n");
+}
+
 async function generateSearchBrief(
   positionTitle: string,
   clientContext: string,
   rawQuery: string,
-  location: string
+  location: string,
+  criteria?: SearchCriteria,
+  internalNotes?: string
 ): Promise<SearchBrief> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
 
-  const prompt = `You are an expert technical recruiter. Generate an optimal LinkedIn sourcing search brief.
+  const criteriaBlock = formatCriteria(criteria);
+
+  const prompt = `You are an expert recruiter. Generate an optimal LinkedIn Recruiter Lite + Apollo sourcing search brief in French (Quebec recruiting context: comptables, ingénieurs, avocats, chargés de projet construction — NOT tech).
 
 POSITION: ${positionTitle}
 CLIENT CONTEXT: ${clientContext}
-RECRUITER'S RAW INPUT: ${rawQuery || "None — infer from position title"}
+RECRUITER'S RAW INPUT: ${rawQuery || "None — infer from criteria below"}
 LOCATION PREFERENCE: ${location || "Open"}
+
+STRUCTURED SEARCH CRITERIA (LinkedIn Recruiter Lite filters set by recruiter):
+${criteriaBlock}
+
+INTERNAL RECRUITER NOTES: ${internalNotes || "None"}
 
 Return ONLY valid JSON with this exact structure:
 {
-  "boolean_search": "a LinkedIn Boolean search string with AND/OR/NOT operators",
-  "primary_keywords": ["5-7 must-have keywords"],
-  "secondary_keywords": ["5-7 nice-to-have keywords"],
+  "boolean_search": "a LinkedIn Boolean search string with AND/OR/NOT operators (combines titles, skills, certifications, exclusions)",
+  "primary_keywords": ["5-7 must-have keywords - reflect skills + certifications + key job titles"],
+  "secondary_keywords": ["5-7 nice-to-have keywords - past employers, schools, languages"],
   "location_filters": ["2-4 locations in LinkedIn format"],
-  "experience_range": "X-Y years",
-  "target_companies": ["8-12 companies where ideal candidates work"],
-  "exclude_companies": ["companies to avoid - competitors, current employer"],
-  "seniority_titles": ["3-5 likely titles for this level"]
+  "experience_range": "X-Y years (reflect yearsExperienceMin/Max)",
+  "target_companies": ["8-12 companies where ideal candidates work - prioritize criteria.currentEmployers + competitors of client + top talent pools in industry"],
+  "exclude_companies": ["respect criteria.excludeEmployers + add competitors of client to avoid awkward outreach"],
+  "seniority_titles": ["3-5 likely current titles given seniorityLevels + functions criteria"]
 }
 
 IMPORTANT:
 - Boolean search must be under 200 chars, LinkedIn-compatible
-- Target companies: competitors + adjacent industries + top talent pools
-- Seniority titles should reflect the actual level requested`;
+- Use criteria provided — don't invent skills/companies the recruiter didn't mention unless inferring from job title
+- For Quebec non-tech roles, prefer francophone companies (Cogeco, Banque Nationale, Hydro-Québec, Desjardins, BRP, CGI, etc.) when relevant
+- Seniority titles should mix English + French (Quebec market often uses both)`;
 
   const response = await fetch(CLAUDE_API_URL, {
     method: "POST",
@@ -387,7 +466,9 @@ export async function POST(request: Request) {
         body.position_title,
         clientContext,
         body.raw_query || "",
-        body.location || ""
+        body.location || "",
+        body.search_criteria,
+        body.internal_notes
       );
 
       return NextResponse.json({ brief });

@@ -14,6 +14,14 @@ import {
   Briefcase,
   Plus,
   X,
+  GraduationCap,
+  Languages,
+  Award,
+  Building2,
+  Globe2,
+  UserCheck,
+  Filter,
+  Info,
 } from "lucide-react";
 
 interface Client {
@@ -21,6 +29,48 @@ interface Client {
   company_name: string;
   roles_hiring_for: string | null;
   country: string;
+}
+
+interface SearchCriteria {
+  // Position
+  jobTitlesCurrent: string[];
+  jobTitlesPast: string[];
+  excludeTitles: string[];
+
+  // Experience
+  yearsExperienceMin: number;
+  yearsExperienceMax: number;
+  seniorityLevels: string[];
+  functions: string[];
+
+  // Geography
+  locations: string[];
+  countries: string[];
+  remoteOk: boolean;
+  willingToRelocate: boolean;
+
+  // Companies
+  currentEmployers: string[];
+  pastEmployers: string[];
+  excludeEmployers: string[];
+  industries: string[];
+  companySizes: string[];
+
+  // Skills + education
+  skills: string[];
+  certifications: string[];
+  languages: { name: string; proficiency: string }[];
+  schools: string[];
+  degrees: string[];
+  fieldsOfStudy: string[];
+
+  // Signals
+  openToWork: boolean;
+  recentlyChangedJobs: boolean;
+  yearsAtCurrentMin: number;
+
+  // Diversity (optional)
+  diversityFilters: string[];
 }
 
 interface SearchBrief {
@@ -42,6 +92,119 @@ interface SourcingResult {
   sources_used: string[];
 }
 
+const SENIORITY_LEVELS = [
+  "Stagiaire",
+  "Junior (0-2 ans)",
+  "Intermédiaire (3-5 ans)",
+  "Sénior (6-10 ans)",
+  "Lead / Manager",
+  "Directeur",
+  "VP / Vice-Président",
+  "C-Suite (CEO/CFO/COO)",
+];
+
+const FUNCTIONS = [
+  "Comptabilité / Finance",
+  "Construction / Génie civil",
+  "Génie mécanique",
+  "Génie électrique",
+  "Droit / Juridique",
+  "Ressources humaines",
+  "Ventes / Développement",
+  "Marketing",
+  "Opérations",
+  "Logistique / Chaîne d'approvisionnement",
+  "Gestion de projet",
+  "Administration",
+  "Production / Manufacturier",
+  "Service à la clientèle",
+  "Santé / Médical",
+  "Éducation",
+  "Immobilier",
+  "Restauration / Hôtellerie",
+];
+
+const INDUSTRIES = [
+  "Construction",
+  "Manufacturier",
+  "Services financiers",
+  "Cabinets d'avocats",
+  "Cabinets comptables",
+  "Immobilier",
+  "Énergie / Mines",
+  "Transport / Logistique",
+  "Détail / Commerce",
+  "Hôtellerie / Restauration",
+  "Santé",
+  "Éducation",
+  "Gouvernement / Public",
+  "OBNL",
+  "Agriculture / Agroalimentaire",
+];
+
+const COMPANY_SIZES = [
+  "1-10 employés",
+  "11-50 employés",
+  "51-200 employés",
+  "201-500 employés",
+  "501-1000 employés",
+  "1001-5000 employés",
+  "5000+ employés",
+];
+
+const LANGUAGE_PROFICIENCY = ["Notions", "Conversationnel", "Courant", "Bilingue / Natif"];
+
+const COMMON_LANGUAGES = [
+  "Français",
+  "Anglais",
+  "Espagnol",
+  "Mandarin",
+  "Arabe",
+  "Portugais",
+  "Italien",
+  "Allemand",
+];
+
+const DEGREE_LEVELS = [
+  "DEP / DEC",
+  "Certificat",
+  "Baccalauréat",
+  "Maîtrise",
+  "MBA",
+  "Doctorat (Ph.D.)",
+];
+
+function emptyCriteria(): SearchCriteria {
+  return {
+    jobTitlesCurrent: [],
+    jobTitlesPast: [],
+    excludeTitles: [],
+    yearsExperienceMin: 0,
+    yearsExperienceMax: 30,
+    seniorityLevels: [],
+    functions: [],
+    locations: [],
+    countries: [],
+    remoteOk: false,
+    willingToRelocate: false,
+    currentEmployers: [],
+    pastEmployers: [],
+    excludeEmployers: [],
+    industries: [],
+    companySizes: [],
+    skills: [],
+    certifications: [],
+    languages: [],
+    schools: [],
+    degrees: [],
+    fieldsOfStudy: [],
+    openToWork: false,
+    recentlyChangedJobs: false,
+    yearsAtCurrentMin: 0,
+    diversityFilters: [],
+  };
+}
+
 function SourcePageContent() {
   const searchParams = useSearchParams();
   const preselectedClientId = searchParams.get("client") || "";
@@ -49,13 +212,15 @@ function SourcePageContent() {
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState(preselectedClientId);
   const [positionTitle, setPositionTitle] = useState("");
-  const [rawQuery, setRawQuery] = useState("");
-  const [location, setLocation] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
   const [maxResults, setMaxResults] = useState(50);
+  const [criteria, setCriteria] = useState<SearchCriteria>(emptyCriteria());
   const [selectedSources, setSelectedSources] = useState({
     apify_linkedin: true,
     apify_sales_nav: false,
+    apify_recruiter_lite: false,
     apollo: true,
+    indeed_resume: false,
   });
 
   const [brief, setBrief] = useState<SearchBrief | null>(null);
@@ -80,6 +245,8 @@ function SourcePageContent() {
     setGeneratingBrief(true);
     setError(null);
     try {
+      const rawQuery = buildRawQuery(criteria);
+      const location = criteria.locations.join(", ") || criteria.countries.join(", ");
       const res = await fetch("/api/recruiter/source", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,6 +256,8 @@ function SourcePageContent() {
           position_title: positionTitle,
           raw_query: rawQuery,
           location,
+          search_criteria: criteria,
+          internal_notes: internalNotes,
         }),
       });
       const data = await res.json();
@@ -118,6 +287,7 @@ function SourcePageContent() {
           client_id: clientId,
           position_title: positionTitle,
           search_brief: brief,
+          search_criteria: criteria,
           max_results_per_source: maxResults,
           sources,
         }),
@@ -126,7 +296,6 @@ function SourcePageContent() {
       if (!res.ok) throw new Error(data.error);
       setResult(data);
 
-      // Auto-trigger scoring in background
       fetch("/api/recruiter/score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,7 +329,6 @@ function SourcePageContent() {
     setBrief({ ...brief, [key]: newArr });
   };
 
-  // Success screen
   if (result) {
     return (
       <div className="min-h-screen bg-zinc-50 py-10 px-6">
@@ -169,7 +337,7 @@ function SourcePageContent() {
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 size={28} className="text-emerald-600" />
             </div>
-            <h1 className="text-[24px] font-bold text-zinc-900 mb-3">Sourcing complété 🎯</h1>
+            <h1 className="text-[24px] font-bold text-zinc-900 mb-3">Sourcing complété</h1>
             <p className="text-[14px] text-zinc-600 mb-6">
               <strong>{result.candidates_inserted}</strong> candidats uniques ajoutés à la queue.
               <br />
@@ -199,6 +367,7 @@ function SourcePageContent() {
                 onClick={() => {
                   setResult(null);
                   setBrief(null);
+                  setCriteria(emptyCriteria());
                 }}
                 className="flex-1 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-semibold hover:bg-zinc-50 transition"
               >
@@ -213,33 +382,41 @@ function SourcePageContent() {
 
   return (
     <div className="min-h-screen bg-zinc-50 py-10 px-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <Link
           href="/recruiter"
           className="inline-flex items-center gap-2 text-[13px] text-zinc-500 hover:text-zinc-900 mb-4"
         >
           <ArrowLeft size={14} /> Retour dashboard
         </Link>
-        <h1 className="text-[32px] font-bold text-zinc-900 tracking-tight">Sourcing auto</h1>
-        <p className="text-[14px] text-zinc-500 mt-2 mb-8">
-          Claude génère un search brief → on source sur LinkedIn + Apollo → candidats scorés
-          automatiquement dans ta queue.
-        </p>
 
-        {/* Step 1 — Setup */}
-        <div className="bg-white rounded-2xl border border-zinc-200 p-6 mb-4">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-full bg-[#2445EB] text-white text-[11px] font-bold flex items-center justify-center">
-              1
+        {/* Hero */}
+        <div className="bg-gradient-to-br from-[#2445EB] to-[#4B5DF5] rounded-2xl p-6 mb-6 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-2">
+              <Filter size={14} className="opacity-80" />
+              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                Outil recruteur · LinkedIn Recruiter Lite équivalent
+              </p>
             </div>
-            <h2 className="text-[16px] font-bold text-zinc-900">Client + poste</h2>
+            <h1 className="text-[28px] font-bold tracking-tight mb-2">Sourcing intelligent</h1>
+            <p className="text-[14px] opacity-90 max-w-2xl">
+              Tu remplis les critères de recherche pour ton client (le client ne voit pas ce
+              formulaire). Claude génère un boolean search optimisé puis on source automatiquement
+              sur LinkedIn, Apollo et autres bases.
+            </p>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">
-                Client *
-              </label>
+        {/* Step 1 — Client + position */}
+        <Section
+          step={1}
+          title="Mandat client"
+          description="Pour quel client recrutes-tu et quel est le poste à combler ?"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Client *">
               <select
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
@@ -252,59 +429,352 @@ function SourcePageContent() {
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">
-                Titre du poste *
-              </label>
+            </Field>
+            <Field label="Titre du poste *">
               <input
                 type="text"
                 value={positionTitle}
                 onChange={(e) => setPositionTitle(e.target.value)}
-                placeholder="Senior Software Engineer"
+                placeholder="Comptable CPA · Chargé de projet construction · Avocat litige"
                 className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none"
               />
-            </div>
+            </Field>
             <div className="md:col-span-2">
-              <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">
-                Mots-clés techniques / critères spécifiques
-              </label>
-              <input
-                type="text"
-                value={rawQuery}
-                onChange={(e) => setRawQuery(e.target.value)}
-                placeholder="Go, microservices, backend, 8+ years"
-                className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none"
-              />
-              <p className="text-[11px] text-zinc-400 mt-1">
-                Optionnel — Claude peut déduire à partir du titre, mais plus tu donnes d&apos;info
-                meilleur sera le brief
-              </p>
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">
-                Localisation préférée
-              </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Toronto ou Remote Canada"
-                className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none"
-              />
+              <Field
+                label="Notes internes (visibles seulement par toi et l'équipe Aimio)"
+                hint="Contexte, instructions spéciales, préférences du client mentionnées en appel"
+              >
+                <textarea
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Le client veut éviter les candidats venant de Deloitte. Préférence forte pour profils avec expérience en construction commerciale..."
+                  className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[13px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none resize-none"
+                />
+              </Field>
             </div>
           </div>
 
           {selectedClient?.roles_hiring_for && (
-            <div className="bg-blue-50 rounded-lg p-3">
+            <div className="mt-4 bg-blue-50 rounded-lg p-3">
               <p className="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-1">
-                Postes du client (context pour Claude)
+                Postes du client (référence)
               </p>
               <p className="text-[13px] text-blue-800 whitespace-pre-line">
                 {selectedClient.roles_hiring_for}
               </p>
             </div>
           )}
+        </Section>
+
+        {/* Step 2 — Job titles */}
+        <Section
+          step={2}
+          title="Titres d'emploi"
+          icon={<Briefcase size={14} />}
+          description="Titres actuels recherchés et titres antérieurs (boost pour candidats avec parcours pertinent)"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TagInput
+              label="Titres actuels"
+              hint="Le candidat doit avoir un de ces titres maintenant"
+              placeholder="ex: Senior Accountant"
+              items={criteria.jobTitlesCurrent}
+              onChange={(v) => setCriteria({ ...criteria, jobTitlesCurrent: v })}
+              color="blue"
+            />
+            <TagInput
+              label="Titres passés"
+              hint="A occupé un de ces postes par le passé"
+              placeholder="ex: Junior Auditor"
+              items={criteria.jobTitlesPast}
+              onChange={(v) => setCriteria({ ...criteria, jobTitlesPast: v })}
+              color="purple"
+            />
+            <div className="md:col-span-2">
+              <TagInput
+                label="Titres à exclure"
+                hint="Aucun candidat avec ces titres"
+                placeholder="ex: Stagiaire, Étudiant"
+                items={criteria.excludeTitles}
+                onChange={(v) => setCriteria({ ...criteria, excludeTitles: v })}
+                color="red"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* Step 3 — Experience + seniority */}
+        <Section
+          step={3}
+          title="Expérience et niveau"
+          icon={<Award size={14} />}
+          description="Années d'expérience, niveau de séniorité et fonction"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Field label={`Années d'expérience : ${criteria.yearsExperienceMin} - ${criteria.yearsExperienceMax} ans`}>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="0"
+                  max="40"
+                  value={criteria.yearsExperienceMin}
+                  onChange={(e) =>
+                    setCriteria({ ...criteria, yearsExperienceMin: parseInt(e.target.value) || 0 })
+                  }
+                  className="w-20 px-3 py-2 rounded-lg border border-zinc-200 text-[13px]"
+                />
+                <span className="text-zinc-400">à</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="40"
+                  value={criteria.yearsExperienceMax}
+                  onChange={(e) =>
+                    setCriteria({ ...criteria, yearsExperienceMax: parseInt(e.target.value) || 30 })
+                  }
+                  className="w-20 px-3 py-2 rounded-lg border border-zinc-200 text-[13px]"
+                />
+                <span className="text-[13px] text-zinc-500">ans</span>
+              </div>
+            </Field>
+            <Field label="Années dans le poste actuel (min)">
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={criteria.yearsAtCurrentMin}
+                onChange={(e) =>
+                  setCriteria({ ...criteria, yearsAtCurrentMin: parseInt(e.target.value) || 0 })
+                }
+                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-[13px]"
+              />
+            </Field>
+          </div>
+
+          <Field label="Niveau de séniorité">
+            <ChipMultiSelect
+              options={SENIORITY_LEVELS}
+              selected={criteria.seniorityLevels}
+              onChange={(v) => setCriteria({ ...criteria, seniorityLevels: v })}
+            />
+          </Field>
+
+          <Field label="Fonction / département">
+            <ChipMultiSelect
+              options={FUNCTIONS}
+              selected={criteria.functions}
+              onChange={(v) => setCriteria({ ...criteria, functions: v })}
+            />
+          </Field>
+        </Section>
+
+        {/* Step 4 — Geography */}
+        <Section
+          step={4}
+          title="Géographie"
+          icon={<Globe2 size={14} />}
+          description="Où le candidat doit être localisé"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <TagInput
+              label="Villes / régions"
+              hint="ex: Montréal, Québec, Laval, Rive-Sud"
+              placeholder="Ajouter une ville"
+              items={criteria.locations}
+              onChange={(v) => setCriteria({ ...criteria, locations: v })}
+              color="zinc"
+            />
+            <TagInput
+              label="Pays"
+              hint="ex: Canada, États-Unis, France"
+              placeholder="Ajouter un pays"
+              items={criteria.countries}
+              onChange={(v) => setCriteria({ ...criteria, countries: v })}
+              color="zinc"
+            />
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <ToggleChip
+              label="Ouvert au télétravail"
+              checked={criteria.remoteOk}
+              onChange={(v) => setCriteria({ ...criteria, remoteOk: v })}
+            />
+            <ToggleChip
+              label="Prêt à se relocaliser"
+              checked={criteria.willingToRelocate}
+              onChange={(v) => setCriteria({ ...criteria, willingToRelocate: v })}
+            />
+          </div>
+        </Section>
+
+        {/* Step 5 — Companies + industry */}
+        <Section
+          step={5}
+          title="Entreprises et industrie"
+          icon={<Building2 size={14} />}
+          description="Employeurs cibles, à éviter, taille d'entreprise et secteur"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <TagInput
+              label="Employeurs actuels (cibles)"
+              hint="Travaille présentement chez"
+              placeholder="ex: KPMG, Deloitte, EY"
+              items={criteria.currentEmployers}
+              onChange={(v) => setCriteria({ ...criteria, currentEmployers: v })}
+              color="emerald"
+            />
+            <TagInput
+              label="Employeurs passés"
+              hint="A déjà travaillé chez"
+              placeholder="ex: Pomerleau, EBC"
+              items={criteria.pastEmployers}
+              onChange={(v) => setCriteria({ ...criteria, pastEmployers: v })}
+              color="purple"
+            />
+            <div className="md:col-span-2">
+              <TagInput
+                label="Employeurs à exclure"
+                hint="Ne pas approcher candidats venant de"
+                placeholder="ex: concurrent direct du client"
+                items={criteria.excludeEmployers}
+                onChange={(v) => setCriteria({ ...criteria, excludeEmployers: v })}
+                color="red"
+              />
+            </div>
+          </div>
+
+          <Field label="Industrie">
+            <ChipMultiSelect
+              options={INDUSTRIES}
+              selected={criteria.industries}
+              onChange={(v) => setCriteria({ ...criteria, industries: v })}
+            />
+          </Field>
+
+          <Field label="Taille de l'entreprise">
+            <ChipMultiSelect
+              options={COMPANY_SIZES}
+              selected={criteria.companySizes}
+              onChange={(v) => setCriteria({ ...criteria, companySizes: v })}
+            />
+          </Field>
+        </Section>
+
+        {/* Step 6 — Skills + certifications */}
+        <Section
+          step={6}
+          title="Compétences et certifications"
+          icon={<Target size={14} />}
+          description="Skills techniques, soft skills, certifications professionnelles"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TagInput
+              label="Compétences"
+              hint="ex: Excel avancé, SAP, Revit, AutoCAD, gestion d'équipe"
+              placeholder="Ajouter une compétence"
+              items={criteria.skills}
+              onChange={(v) => setCriteria({ ...criteria, skills: v })}
+              color="blue"
+            />
+            <TagInput
+              label="Certifications"
+              hint="ex: CPA, PMP, ing., LL.B., CFA"
+              placeholder="Ajouter une certification"
+              items={criteria.certifications}
+              onChange={(v) => setCriteria({ ...criteria, certifications: v })}
+              color="emerald"
+            />
+          </div>
+        </Section>
+
+        {/* Step 7 — Languages */}
+        <Section
+          step={7}
+          title="Langues parlées"
+          icon={<Languages size={14} />}
+          description="Langues requises et niveau de maîtrise"
+        >
+          <LanguagesField
+            languages={criteria.languages}
+            onChange={(v) => setCriteria({ ...criteria, languages: v })}
+          />
+        </Section>
+
+        {/* Step 8 — Education */}
+        <Section
+          step={8}
+          title="Formation académique"
+          icon={<GraduationCap size={14} />}
+          description="Universités, niveaux de diplôme et champs d'études"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <TagInput
+              label="Universités / écoles"
+              hint="ex: HEC Montréal, McGill, Laval"
+              placeholder="Ajouter une école"
+              items={criteria.schools}
+              onChange={(v) => setCriteria({ ...criteria, schools: v })}
+              color="purple"
+            />
+            <div>
+              <Field label="Niveau de diplôme">
+                <ChipMultiSelect
+                  options={DEGREE_LEVELS}
+                  selected={criteria.degrees}
+                  onChange={(v) => setCriteria({ ...criteria, degrees: v })}
+                />
+              </Field>
+            </div>
+            <TagInput
+              label="Champ d'études"
+              hint="ex: Comptabilité, Génie civil, Droit"
+              placeholder="Ajouter un champ"
+              items={criteria.fieldsOfStudy}
+              onChange={(v) => setCriteria({ ...criteria, fieldsOfStudy: v })}
+              color="blue"
+            />
+          </div>
+        </Section>
+
+        {/* Step 9 — Signals */}
+        <Section
+          step={9}
+          title="Signaux d'ouverture"
+          icon={<UserCheck size={14} />}
+          description="Filtrer pour candidats plus réceptifs à un changement"
+        >
+          <div className="space-y-2">
+            <ToggleRow
+              label="Open to Work"
+              desc="Candidats qui ont activé le badge LinkedIn « Ouvert aux opportunités »"
+              checked={criteria.openToWork}
+              onChange={(v) => setCriteria({ ...criteria, openToWork: v })}
+            />
+            <ToggleRow
+              label="A récemment changé d'emploi (6 derniers mois)"
+              desc="Plus difficile à approcher mais bon signal d'ambition"
+              checked={criteria.recentlyChangedJobs}
+              onChange={(v) => setCriteria({ ...criteria, recentlyChangedJobs: v })}
+            />
+          </div>
+        </Section>
+
+        {/* Step 10 — Generate brief */}
+        <div className="bg-white rounded-2xl border border-zinc-200 p-6 mb-4">
+          <div className="flex items-start gap-3 mb-4">
+            <Sparkles size={20} className="text-[#2445EB] mt-0.5" />
+            <div>
+              <h2 className="text-[16px] font-bold text-zinc-900">
+                Générer le brief de recherche
+              </h2>
+              <p className="text-[13px] text-zinc-500 mt-1">
+                Claude transforme tes critères en boolean search optimisé pour LinkedIn et Apollo.
+              </p>
+            </div>
+          </div>
+
+          <CriteriaSummary criteria={criteria} />
 
           <button
             onClick={handleGenerateBrief}
@@ -317,20 +787,18 @@ function SourcePageContent() {
               </>
             ) : (
               <>
-                <Sparkles size={14} /> Générer le search brief avec Claude
+                <Sparkles size={14} /> Générer le boolean search avec Claude
               </>
             )}
           </button>
         </div>
 
-        {/* Step 2 — Brief review */}
+        {/* Brief review */}
         {brief && (
           <div className="bg-white rounded-2xl border border-zinc-200 p-6 mb-4">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 rounded-full bg-[#2445EB] text-white text-[11px] font-bold flex items-center justify-center">
-                2
-              </div>
-              <h2 className="text-[16px] font-bold text-zinc-900">Search brief — à valider</h2>
+              <CheckCircle2 size={16} className="text-emerald-600" />
+              <h2 className="text-[16px] font-bold text-zinc-900">Brief généré — à valider</h2>
             </div>
 
             <div className="space-y-4">
@@ -341,7 +809,7 @@ function SourcePageContent() {
                 <textarea
                   value={brief.boolean_search}
                   onChange={(e) => setBrief({ ...brief, boolean_search: e.target.value })}
-                  rows={2}
+                  rows={3}
                   className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-[12px] font-mono focus:border-[#2445EB] outline-none"
                 />
               </div>
@@ -406,14 +874,12 @@ function SourcePageContent() {
           </div>
         )}
 
-        {/* Step 3 — Source selection + launch */}
+        {/* Sources + launch */}
         {brief && (
           <div className="bg-white rounded-2xl border border-zinc-200 p-6 mb-4">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 rounded-full bg-[#2445EB] text-white text-[11px] font-bold flex items-center justify-center">
-                3
-              </div>
-              <h2 className="text-[16px] font-bold text-zinc-900">Sources + volume</h2>
+              <Rocket size={16} className="text-[#2445EB]" />
+              <h2 className="text-[16px] font-bold text-zinc-900">Sources et volume</h2>
             </div>
 
             <div className="space-y-3 mb-4">
@@ -432,15 +898,33 @@ function SourcePageContent() {
                   setSelectedSources({ ...selectedSources, apify_sales_nav: v })
                 }
                 label="LinkedIn Sales Navigator (Apify)"
-                desc="Résultats premium — cookie Sales Nav requis"
+                desc="Filtres avancés — cookie Sales Nav requis"
                 cost="$2.00 / 50 profils"
+              />
+              <SourceCheckbox
+                checked={selectedSources.apify_recruiter_lite}
+                onChange={(v) =>
+                  setSelectedSources({ ...selectedSources, apify_recruiter_lite: v })
+                }
+                label="LinkedIn Recruiter Lite (Apify)"
+                desc="Tous les filtres avancés (langues, écoles, employeurs passés)"
+                cost="$3.00 / 50 profils"
               />
               <SourceCheckbox
                 checked={selectedSources.apollo}
                 onChange={(v) => setSelectedSources({ ...selectedSources, apollo: v })}
                 label="Apollo.io"
-                desc="275M contacts avec emails vérifiés"
+                desc="275M contacts avec emails vérifiés (faible au QC francophone)"
                 cost="Inclus dans plan Apollo"
+              />
+              <SourceCheckbox
+                checked={selectedSources.indeed_resume}
+                onChange={(v) =>
+                  setSelectedSources({ ...selectedSources, indeed_resume: v })
+                }
+                label="Indeed Resume Canada"
+                desc="CV publics canadiens — fort au Québec, non-tech"
+                cost="Inclus dans plan Indeed"
               />
             </div>
 
@@ -479,9 +963,11 @@ function SourcePageContent() {
               )}
             </button>
             <p className="text-[11px] text-zinc-400 text-center mt-2">
-              Coût estimé : ~${(
+              Coût estimé : ~$
+              {(
                 (selectedSources.apify_linkedin ? 0.5 : 0) +
                 (selectedSources.apify_sales_nav ? 2 : 0) +
+                (selectedSources.apify_recruiter_lite ? 3 : 0) +
                 (selectedSources.apollo ? 0.3 : 0)
               ).toFixed(2)}
             </p>
@@ -494,6 +980,339 @@ function SourcePageContent() {
             <p className="text-[13px] text-red-700">{error}</p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function buildRawQuery(c: SearchCriteria): string {
+  const parts: string[] = [];
+  if (c.skills.length) parts.push(`Skills: ${c.skills.join(", ")}`);
+  if (c.certifications.length) parts.push(`Certifications: ${c.certifications.join(", ")}`);
+  if (c.yearsExperienceMin > 0)
+    parts.push(`${c.yearsExperienceMin}-${c.yearsExperienceMax} ans expérience`);
+  if (c.functions.length) parts.push(`Fonctions: ${c.functions.join(", ")}`);
+  if (c.industries.length) parts.push(`Industries: ${c.industries.join(", ")}`);
+  if (c.languages.length)
+    parts.push(`Langues: ${c.languages.map((l) => `${l.name} (${l.proficiency})`).join(", ")}`);
+  if (c.schools.length) parts.push(`Écoles: ${c.schools.join(", ")}`);
+  if (c.fieldsOfStudy.length) parts.push(`Champs études: ${c.fieldsOfStudy.join(", ")}`);
+  if (c.openToWork) parts.push("Open to Work signal");
+  if (c.remoteOk) parts.push("Télétravail OK");
+  return parts.join(" | ");
+}
+
+function Section({
+  step,
+  title,
+  description,
+  icon,
+  children,
+}: {
+  step: number;
+  title: string;
+  description: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-200 p-6 mb-4">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-7 h-7 rounded-full bg-[#2445EB]/10 text-[#2445EB] text-[12px] font-bold flex items-center justify-center shrink-0">
+          {step}
+        </div>
+        <div>
+          <h2 className="text-[15px] font-bold text-zinc-900 flex items-center gap-1.5">
+            {icon}
+            {title}
+          </h2>
+          <p className="text-[12px] text-zinc-500 mt-0.5">{description}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-3">
+      <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-1.5 block">
+        {label}
+      </label>
+      {children}
+      {hint && <p className="text-[11px] text-zinc-400 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function TagInput({
+  label,
+  hint,
+  placeholder,
+  items,
+  onChange,
+  color,
+}: {
+  label: string;
+  hint?: string;
+  placeholder: string;
+  items: string[];
+  onChange: (v: string[]) => void;
+  color: "emerald" | "blue" | "zinc" | "purple" | "red";
+}) {
+  const [input, setInput] = useState("");
+  const colorClasses: Record<typeof color, string> = {
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    blue: "bg-blue-50 text-blue-700 border-blue-200",
+    zinc: "bg-zinc-100 text-zinc-700 border-zinc-200",
+    purple: "bg-purple-50 text-purple-700 border-purple-200",
+    red: "bg-red-50 text-red-700 border-red-200",
+  };
+
+  const add = () => {
+    const v = input.trim();
+    if (v && !items.includes(v)) {
+      onChange([...items, v]);
+      setInput("");
+    }
+  };
+
+  return (
+    <Field label={label} hint={hint}>
+      <div className="border border-zinc-200 rounded-lg px-2 py-1.5 focus-within:border-[#2445EB] focus-within:ring-2 focus-within:ring-[#2445EB]/10">
+        <div className="flex flex-wrap gap-1.5">
+          {items.map((item, i) => (
+            <span
+              key={i}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-[12px] ${colorClasses[color]}`}
+            >
+              {item}
+              <button
+                onClick={() => onChange(items.filter((_, idx) => idx !== i))}
+                className="hover:bg-white/50 rounded p-0.5"
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                add();
+              } else if (e.key === "Backspace" && !input && items.length) {
+                onChange(items.slice(0, -1));
+              }
+            }}
+            onBlur={add}
+            placeholder={items.length ? "" : placeholder}
+            className="flex-1 min-w-[120px] px-1 py-1 text-[13px] outline-none bg-transparent"
+          />
+        </div>
+      </div>
+    </Field>
+  );
+}
+
+function ChipMultiSelect({
+  options,
+  selected,
+  onChange,
+}: {
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((opt) => {
+        const active = selected.includes(opt);
+        return (
+          <button
+            key={opt}
+            onClick={() =>
+              onChange(active ? selected.filter((s) => s !== opt) : [...selected, opt])
+            }
+            className={`px-2.5 py-1.5 rounded-md border text-[12px] transition ${
+              active
+                ? "bg-[#2445EB] border-[#2445EB] text-white"
+                : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300"
+            }`}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ToggleChip({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      onClick={() => onChange(!checked)}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-[12px] font-semibold transition ${
+        checked
+          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+          : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300"
+      }`}
+    >
+      <span
+        className={`w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center ${
+          checked ? "bg-emerald-500 border-emerald-500" : "border-zinc-300"
+        }`}
+      >
+        {checked && <CheckCircle2 size={10} className="text-white" />}
+      </span>
+      {label}
+    </button>
+  );
+}
+
+function ToggleRow({
+  label,
+  desc,
+  checked,
+  onChange,
+}: {
+  label: string;
+  desc: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-start gap-3 p-3 rounded-lg border border-zinc-200 hover:border-zinc-300 cursor-pointer transition">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 accent-[#2445EB]"
+      />
+      <div className="flex-1">
+        <p className="text-[13px] font-semibold text-zinc-900">{label}</p>
+        <p className="text-[12px] text-zinc-500 mt-0.5">{desc}</p>
+      </div>
+    </label>
+  );
+}
+
+function LanguagesField({
+  languages,
+  onChange,
+}: {
+  languages: { name: string; proficiency: string }[];
+  onChange: (v: { name: string; proficiency: string }[]) => void;
+}) {
+  const addLang = (name: string) => {
+    if (!languages.find((l) => l.name === name)) {
+      onChange([...languages, { name, proficiency: "Courant" }]);
+    }
+  };
+
+  return (
+    <div>
+      <div className="space-y-2 mb-3">
+        {languages.map((lang, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-2 p-2 rounded-lg border border-zinc-200 bg-zinc-50"
+          >
+            <span className="text-[13px] font-semibold text-zinc-900 flex-1">{lang.name}</span>
+            <select
+              value={lang.proficiency}
+              onChange={(e) => {
+                const newLangs = [...languages];
+                newLangs[i] = { ...lang, proficiency: e.target.value };
+                onChange(newLangs);
+              }}
+              className="px-2 py-1 rounded border border-zinc-200 text-[12px] bg-white"
+            >
+              {LANGUAGE_PROFICIENCY.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => onChange(languages.filter((_, idx) => idx !== i))}
+              className="p-1 hover:bg-zinc-200 rounded"
+            >
+              <X size={12} className="text-zinc-500" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <span className="text-[11px] text-zinc-400 self-center mr-1">Ajouter :</span>
+        {COMMON_LANGUAGES.filter((l) => !languages.find((x) => x.name === l)).map((l) => (
+          <button
+            key={l}
+            onClick={() => addLang(l)}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-dashed border-zinc-300 text-[12px] text-zinc-600 hover:border-[#2445EB] hover:text-[#2445EB]"
+          >
+            <Plus size={10} /> {l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CriteriaSummary({ criteria }: { criteria: SearchCriteria }) {
+  const count = (k: keyof SearchCriteria) => {
+    const v = criteria[k];
+    return Array.isArray(v) ? v.length : 0;
+  };
+  const total =
+    count("jobTitlesCurrent") +
+    count("jobTitlesPast") +
+    count("excludeTitles") +
+    count("seniorityLevels") +
+    count("functions") +
+    count("locations") +
+    count("countries") +
+    count("currentEmployers") +
+    count("pastEmployers") +
+    count("excludeEmployers") +
+    count("industries") +
+    count("companySizes") +
+    count("skills") +
+    count("certifications") +
+    count("languages") +
+    count("schools") +
+    count("degrees") +
+    count("fieldsOfStudy");
+
+  return (
+    <div className="bg-zinc-50 rounded-lg p-4 flex items-start gap-3">
+      <Info size={14} className="text-zinc-400 mt-0.5 shrink-0" />
+      <div className="flex-1">
+        <p className="text-[12px] font-semibold text-zinc-900 mb-1">
+          {total} critère{total > 1 ? "s" : ""} configuré{total > 1 ? "s" : ""}
+        </p>
+        <p className="text-[11px] text-zinc-500">
+          Plus tu donnes de critères, plus le boolean search est précis. Minimum recommandé : titre +
+          fonction + localisation + 3 compétences.
+        </p>
       </div>
     </div>
   );
