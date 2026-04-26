@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Send,
   Loader2,
@@ -7,16 +7,29 @@ import {
   CheckCircle2,
   Calendar,
   MessageCircle,
+  Users,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface Message {
   id: string;
-  sender_type: "client" | "aimio" | "ai";
+  thread_id: string;
+  sender_id: string | null;
+  sender_type: "client" | "recruiter" | "admin" | "ai_system";
   sender_name: string;
   content: string;
+  ai_event_type: string | null;
+  ai_event_data: Record<string, unknown> | null;
+  read_at: string | null;
   created_at: string;
-  read_at?: string | null;
+}
+
+interface ThreadSummary {
+  thread_id: string;
+  recruiter_first_name: string | null;
+  recruiter_last_name: string | null;
+  recruiter_email: string | null;
+  client_company_name: string | null;
 }
 
 interface QuickAction {
@@ -44,6 +57,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 export default function MessagesPage() {
+  const [thread, setThread] = useState<ThreadSummary | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -52,72 +66,89 @@ export default function MessagesPage() {
   const [userName, setUserName] = useState("there");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const supabase = createSupabaseBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
+  const loadThreadAndMessages = useCallback(async () => {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("first_name, client_company_id")
-            .eq("id", user.id)
-            .single();
+      // Fetch user profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, client_company_id")
+        .eq("id", user.id)
+        .single();
+      setUserName(profile?.first_name || "there");
 
-          setUserName(profile?.first_name || "there");
-
-          if (profile?.client_company_id) {
-            const { data: client } = await supabase
-              .from("clients")
-              .select("recruteur_lead")
-              .eq("id", profile.client_company_id)
-              .single();
-
-            if (client?.recruteur_lead) {
-              setRecruiterName(client.recruteur_lead);
-            }
-          }
-        }
-
-        // Demo seed messages (in production: load real messages from DB)
-        setMessages([
-          {
-            id: "1",
-            sender_type: "aimio",
-            sender_name: "Marc-Antoine",
-            content:
-              "Welcome aboard! Excited to start sourcing for your Senior SWE role. I'll have your first batch of qualified candidates by Friday.",
-            created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
-            read_at: new Date().toISOString(),
-          },
-          {
-            id: "2",
-            sender_type: "ai",
-            sender_name: "Aimio AI",
-            content:
-              "📊 Quick update: I've sourced 200 candidates from LinkedIn + Apollo, scored them all, and identified 38 strong matches. Marc-Antoine is qualifying the top 8 today.",
-            created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-          },
-          {
-            id: "3",
-            sender_type: "aimio",
-            sender_name: "Marc-Antoine",
-            content:
-              "First batch delivered! Sarah Tremblay (Score 87) is particularly strong — ex-Shopify, exact match for your tech stack. She's available for interviews next week.",
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            read_at: null,
-          },
-        ]);
-
+      // Fetch threads (clients have at most 1 thread with their recruiter)
+      const threadsRes = await fetch("/api/messages?list=threads");
+      if (!threadsRes.ok) {
         setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setLoading(false);
+        return;
       }
-    };
-    init();
+      const { threads } = await threadsRes.json();
+      const myThread: ThreadSummary | undefined = threads?.[0];
+
+      if (!myThread) {
+        // No thread yet — initialize empty
+        setLoading(false);
+        return;
+      }
+
+      setThread(myThread);
+      if (myThread.recruiter_first_name) {
+        setRecruiterName(
+          `${myThread.recruiter_first_name} ${myThread.recruiter_last_name || ""}`.trim()
+        );
+      }
+
+      // Fetch messages for the thread
+      const msgsRes = await fetch(`/api/messages?thread_id=${myThread.thread_id}`);
+      if (msgsRes.ok) {
+        const { messages: msgs } = await msgsRes.json();
+        setMessages(msgs || []);
+      }
+    } catch (err) {
+      console.error("Load messages error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadThreadAndMessages();
+  }, [loadThreadAndMessages]);
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!thread?.thread_id) return;
+
+    const supabase = createSupabaseBrowserClient();
+    const channel = supabase
+      .channel(`messages:${thread.thread_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `thread_id=eq.${thread.thread_id}`,
+        },
+        (payload) => {
+          const newMsg = payload.new as Message;
+          setMessages((prev) => {
+            // Avoid duplicates (we may have optimistically added it)
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [thread?.thread_id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -125,33 +156,56 @@ export default function MessagesPage() {
 
   const handleSend = async (content?: string) => {
     const message = content || newMessage;
-    if (!message.trim()) return;
+    if (!message.trim() || sending) return;
 
     setSending(true);
-    const newMsg: Message = {
+    setNewMessage("");
+
+    // Optimistic UI
+    const optimisticMsg: Message = {
       id: `temp-${Date.now()}`,
+      thread_id: thread?.thread_id || "pending",
+      sender_id: null,
       sender_type: "client",
       sender_name: userName,
       content: message,
+      ai_event_type: null,
+      ai_event_data: null,
+      read_at: null,
       created_at: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, newMsg]);
-    setNewMessage("");
+    setMessages((prev) => [...prev, optimisticMsg]);
 
-    // Simulate Marc reply (in production: real backend handles this)
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `temp-${Date.now() + 1}`,
-          sender_type: "aimio",
-          sender_name: recruiterName,
-          content: "Got it! I'll get back to you within a few hours.",
-          created_at: new Date().toISOString(),
-        },
-      ]);
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          thread_id: thread?.thread_id,
+          content: message,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Send failed");
+      const { message: realMsg, thread_id } = await res.json();
+
+      // Replace optimistic with real
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimisticMsg.id ? realMsg : m))
+      );
+
+      // If thread was just created, load it
+      if (!thread && thread_id) {
+        loadThreadAndMessages();
+      }
+    } catch (err) {
+      console.error("Send error:", err);
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      alert("Failed to send. Please try again.");
+    } finally {
       setSending(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -163,7 +217,6 @@ export default function MessagesPage() {
         </p>
       </div>
 
-      {/* Conversation */}
       <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden">
         {/* Recruiter header */}
         <div className="px-5 py-4 border-b border-zinc-100 bg-gradient-to-r from-[#2445EB]/5 to-[#4B5DF5]/5 flex items-center gap-3">
@@ -188,6 +241,17 @@ export default function MessagesPage() {
             <div className="flex items-center justify-center h-full">
               <Loader2 size={20} className="animate-spin text-zinc-300" />
             </div>
+          ) : messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center px-8">
+              <MessageCircle size={32} className="text-zinc-300 mb-3" />
+              <p className="text-[14px] font-semibold text-zinc-900 mb-1">
+                Start the conversation
+              </p>
+              <p className="text-[12px] text-zinc-500 max-w-xs">
+                Ask about candidates, schedule a call, or update your role profile.
+                {recruiterName} will respond within 4 hours.
+              </p>
+            </div>
           ) : (
             <>
               {messages.map((msg) => (
@@ -208,7 +272,8 @@ export default function MessagesPage() {
               <button
                 key={action.label}
                 onClick={() => handleSend(action.prompt)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition"
+                disabled={sending}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 transition"
               >
                 {action.icon}
                 {action.label}
@@ -216,7 +281,6 @@ export default function MessagesPage() {
             ))}
           </div>
 
-          {/* Input */}
           <div className="flex items-end gap-2">
             <textarea
               value={newMessage}
@@ -253,8 +317,7 @@ export default function MessagesPage() {
 
 function MessageBubble({ message, userName }: { message: Message; userName: string }) {
   const isClient = message.sender_type === "client";
-  const isAI = message.sender_type === "ai";
-  const isAimio = message.sender_type === "aimio";
+  const isAI = message.sender_type === "ai_system";
 
   const time = new Date(message.created_at).toLocaleTimeString([], {
     hour: "2-digit",
