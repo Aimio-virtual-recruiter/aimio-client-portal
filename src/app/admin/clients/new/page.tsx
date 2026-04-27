@@ -359,16 +359,29 @@ export default function OnboardNewClientPage() {
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <Link href="/admin/clients" className="flex-1 py-3 bg-zinc-900 text-white rounded-lg text-[13px] font-semibold text-center hover:bg-zinc-800 transition">
-                Voir tous les clients
-              </Link>
-              <button
-                onClick={() => { setResult(null); setForm({ ...form, company_name: "", contact_first_name: "", contact_last_name: "", contact_email: "", contact_phone: "" }); }}
-                className="flex-1 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-semibold hover:bg-zinc-50 transition"
-              >
-                Onboarder un autre client
-              </button>
+            <div className="flex flex-col gap-3">
+              {result.client_id && (
+                <Link
+                  href={`/recruiter/source?client=${result.client_id}`}
+                  className="w-full py-3 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] text-white rounded-lg text-[14px] font-bold text-center hover:opacity-90 transition flex items-center justify-center gap-2 shadow-lg shadow-[#2445EB]/20"
+                >
+                  🚀 Commencer une recherche pour ce client
+                </Link>
+              )}
+              <div className="flex gap-3">
+                <Link href={`/recruiter/clients/${result.client_id}`} className="flex-1 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-semibold text-center hover:bg-zinc-50 transition">
+                  Voir la fiche du client
+                </Link>
+                <Link href="/admin/clients" className="flex-1 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-semibold text-center hover:bg-zinc-50 transition">
+                  Tous les clients
+                </Link>
+                <button
+                  onClick={() => { setResult(null); setForm({ ...form, company_name: "", contact_first_name: "", contact_last_name: "", contact_email: "", contact_phone: "" }); }}
+                  className="flex-1 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-semibold hover:bg-zinc-50 transition"
+                >
+                  Onboarder un autre client
+                </button>
+              </div>
             </div>
           </div>
         </div>
