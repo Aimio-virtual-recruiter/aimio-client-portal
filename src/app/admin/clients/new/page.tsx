@@ -257,6 +257,8 @@ export default function OnboardNewClientPage() {
     client_id?: string;
     portal_url?: string;
     email_sent?: boolean;
+    email_error?: string | null;
+    invite_link?: string | null;
     contact_email?: string;
   } | null>(null);
 
@@ -278,6 +280,8 @@ export default function OnboardNewClientPage() {
         client_id: data.client_id,
         portal_url: data.portal_url,
         email_sent: data.email_sent,
+        email_error: data.email_error,
+        invite_link: data.invite_link,
         contact_email: form.contact_email,
       });
     } catch (err) {
@@ -348,16 +352,33 @@ export default function OnboardNewClientPage() {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-              <p className="text-[13px] font-bold text-blue-900 mb-2">📧 2 emails envoyés au client</p>
-              <ul className="text-[13px] text-blue-800 space-y-1.5 list-disc list-inside">
-                <li><strong>Invitation Supabase</strong> — le client clique le lien et choisit lui-même son mot de passe (sécurisé, conforme Loi 25)</li>
-                <li><strong>{result.email_sent ? "Welcome Aimio envoyé ✅" : "Welcome Aimio en attente ⚠️ (RESEND_API_KEY manquante)"}</strong> — présentation + lien Calendly pour kickoff call</li>
-              </ul>
-              <p className="text-[12px] text-blue-700 mt-3 italic">
-                Si le client ne reçoit pas l&apos;email Supabase dans 5 min, vérifie qu&apos;il regarde son spam ou utilise &laquo; Mot de passe oublié &raquo; sur la page de login.
-              </p>
-            </div>
+            {result.email_sent ? (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                <p className="text-[13px] font-bold text-emerald-900 mb-2">✅ Email Aimio envoyé à {result.contact_email}</p>
+                <p className="text-[13px] text-emerald-800">
+                  Le client recevra UN seul email Aimio-brandé avec : bouton &laquo; Créer mon portail &raquo;, présentation du plan, lien Calendly pour le kickoff call, et roadmap mois 1.
+                </p>
+                <p className="text-[12px] text-emerald-700 mt-2 italic">
+                  Lien d&apos;invite valide 24h. Si le client ne le reçoit pas, dis-lui de vérifier son spam — ou re-onboarde avec un autre email.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
+                <p className="text-[13px] font-bold text-amber-900 mb-2">⚠️ Email pas envoyé — donne le lien manuellement</p>
+                <p className="text-[12px] text-amber-800 mb-3">Raison : <strong>{result.email_error || "Resend pas configuré"}</strong></p>
+                {result.invite_link && (
+                  <>
+                    <p className="text-[12px] text-amber-800 mb-2">Copie ce lien et envoie-le au client par email/Slack — il pourra créer son portail :</p>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-white border border-amber-300 rounded px-3 py-2 flex-1 text-[11px] break-all">{result.invite_link}</code>
+                      <button onClick={() => copyToClipboard(result.invite_link || "")} className="p-2 hover:bg-amber-100 rounded shrink-0" title="Copier">
+                        <Copy size={14} className="text-amber-700" />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col gap-3">
               {result.client_id && (

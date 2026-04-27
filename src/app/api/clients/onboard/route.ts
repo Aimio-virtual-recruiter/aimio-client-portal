@@ -98,11 +98,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Invite user via Supabase Auth — they set their own password through the email link
-    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://hireaimio.com"}/login`;
-    const { data: invited, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+    // 2. Generate the invite link WITHOUT sending Supabase's default email.
+    //    We embed this link in our own Aimio-branded Resend email below.
+    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://hireaimio.com"}/login/reset`;
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: "invite",
       email,
-      {
+      options: {
         redirectTo: redirectUrl,
         data: {
           first_name: body.contact_first_name,
@@ -110,22 +112,24 @@ export async function POST(request: Request) {
           role: "client",
           client_company_id: clientRow.id,
         },
-      }
-    );
+      },
+    });
 
-    if (inviteError) {
-      // Roll back client creation if user invite fails
+    if (linkError || !linkData?.properties?.action_link) {
       await supabase.from("clients").delete().eq("id", clientRow.id);
       return NextResponse.json(
-        { error: `Échec invitation utilisateur: ${inviteError.message}` },
+        { error: `Échec création utilisateur: ${linkError?.message || "no link returned"}` },
         { status: 500 }
       );
     }
 
-    // 3. Upsert profile linking auth user → client tenant (in case the trigger doesn't catch it)
-    if (invited?.user) {
+    const inviteLink = linkData.properties.action_link;
+    const newUserId = linkData.user?.id;
+
+    // 3. Upsert profile linking auth user → client tenant
+    if (newUserId) {
       await supabase.from("profiles").upsert({
-        id: invited.user.id,
+        id: newUserId,
         first_name: body.contact_first_name,
         last_name: body.contact_last_name,
         role: "client",
@@ -133,87 +137,113 @@ export async function POST(request: Request) {
       });
     }
 
-    // 4. Send welcome email via Resend (separate from Supabase invite — adds branding/context)
+    // 4. Send ONE Aimio-branded email (replaces Supabase invite + welcome)
     const resendKey = process.env.RESEND_API_KEY;
     let emailSent = false;
+    let emailError: string | null = null;
     if (resendKey) {
       try {
         const resend = new Resend(resendKey);
         const plan = PLAN_DETAILS[body.plan];
 
-        await resend.emails.send({
+        const { error: sendErr } = await resend.emails.send({
           from: "Marc-Antoine Côté <marc@send.aimiorecrutement.com>",
           to: [email],
           replyTo: "marc@aimiorecrutement.com",
-          subject: `Bienvenue chez Aimio — démarrons votre recrutement 🚀`,
+          subject: `Créez votre portail Aimio — ${body.company_name}`,
           html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #18181b;">
-              <div style="text-align: center; margin-bottom: 32px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #2445EB; margin: 0;">Aimio</h1>
-                <p style="font-size: 13px; color: #6b6b6b; margin-top: 4px;">Recruteur Virtuel IA</p>
-              </div>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #18181b; background: #ffffff;">
 
-              <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Bonjour ${body.contact_first_name},</p>
+  <!-- Logo / Header -->
+  <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e4e4e7;">
+    <h1 style="font-size: 28px; font-weight: 700; color: #2445EB; margin: 0; letter-spacing: -0.5px;">Aimio</h1>
+    <p style="font-size: 11px; color: #71717a; margin: 4px 0 0; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Virtual Recruiter</p>
+  </div>
 
-              <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-                Bienvenue dans l'équipe Aimio Recruteur Virtuel. Je suis Marc-Antoine Côté, fondateur d'Aimio.
-                Vous allez recevoir un second courriel de Supabase pour activer votre compte et créer votre mot de passe.
-              </p>
+  <!-- Title -->
+  <h2 style="font-size: 22px; font-weight: 600; margin: 0 0 16px;">Bonjour ${body.contact_first_name} 👋</h2>
 
-              <div style="background: #f5f5f5; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-                <h2 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #2445EB; margin: 0 0 16px 0;">Votre plan : ${plan.name}</h2>
-                <ul style="padding-left: 20px; margin: 0; font-size: 14px; line-height: 1.8; color: #3f3f46;">
-                  <li>Jusqu'à ${plan.positions} postes actifs</li>
-                  <li>${plan.candidates} candidats qualifiés / mois</li>
-                  <li>Première shortlist en 5-7 jours</li>
-                  <li>Garantie 30 jours sur les candidats qualifiés</li>
-                </ul>
-              </div>
+  <p style="font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+    Bienvenue chez <strong>Aimio</strong>. Votre portail <strong>${body.company_name}</strong> est prêt.
+    Cliquez sur le bouton ci-dessous pour créer votre mot de passe et accéder à votre tableau de bord.
+  </p>
 
-              <h2 style="font-size: 16px; font-weight: 700; margin: 32px 0 12px 0;">📅 Prochaine étape — Kickoff call</h2>
-              <p style="font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
-                On doit faire un call de 60 minutes pour calibrer votre recherche et livrer parfaitement.
-                Réservez un créneau cette semaine :
-              </p>
-              <a href="https://calendly.com/aimio-rv/kickoff" style="display: inline-block; background: #2445EB; color: #ffffff; padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-size: 14px; font-weight: 600;">
-                Réserver le kickoff call →
-              </a>
+  <!-- CTA Button -->
+  <div style="text-align: center; margin: 36px 0;">
+    <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(135deg, #2445EB 0%, #4B5DF5 100%); color: #ffffff; padding: 16px 40px; border-radius: 9999px; text-decoration: none; font-size: 15px; font-weight: 600; box-shadow: 0 4px 12px rgba(36, 69, 235, 0.25);">
+      🚀 Créer mon portail Aimio
+    </a>
+  </div>
 
-              <h2 style="font-size: 16px; font-weight: 700; margin: 32px 0 12px 0;">🎯 Ce qui va se passer</h2>
-              <ul style="padding-left: 20px; font-size: 14px; line-height: 1.8; color: #3f3f46;">
-                <li><strong>Jour 1-3</strong> : Notre IA source 300-500 candidats sur 10+ plateformes</li>
-                <li><strong>Jour 3-5</strong> : Nos recruteurs séniors contactent et qualifient les meilleurs</li>
-                <li><strong>Jour 5-7</strong> : Premier shortlist de 5-7 candidats livré dans votre portail</li>
-                <li><strong>Mois 1</strong> : ${plan.candidates} candidats qualifiés au total</li>
-              </ul>
+  <p style="font-size: 12px; color: #71717a; text-align: center; margin: 0 0 32px;">
+    Ce lien expire dans 24 heures.
+  </p>
 
-              <p style="font-size: 14px; color: #6b6b6b; margin-top: 24px;">
-                Portail : <a href="${portalUrl}" style="color: #2445EB;">${portalUrl}</a>
-              </p>
+  <!-- Plan summary -->
+  <div style="background: linear-gradient(135deg, #f4f4f5 0%, #fafafa 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+    <h2 style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #2445EB; margin: 0 0 14px;">Votre plan ${plan.name}</h2>
+    <ul style="padding-left: 20px; margin: 0; font-size: 14px; line-height: 1.9; color: #3f3f46;">
+      <li>${plan.positions} actifs</li>
+      <li>${plan.candidates} candidats qualifiés / mois</li>
+      <li>Premier shortlist en <strong>5-7 jours</strong></li>
+      <li>Garantie remboursement <strong>30 jours</strong></li>
+    </ul>
+  </div>
 
-              <p style="font-size: 15px; line-height: 1.6; margin-top: 32px;">
-                Questions ? Répondez directement à ce courriel. Je lis chaque message.
-              </p>
+  <!-- Kickoff call -->
+  <h2 style="font-size: 16px; font-weight: 700; margin: 32px 0 12px;">📅 Prochaine étape — Kickoff call</h2>
+  <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px; color: #3f3f46;">
+    Réservez un appel de 60 min pour qu'on calibre votre recherche et qu'on livre parfaitement dès la première semaine.
+  </p>
+  <div style="text-align: center; margin: 16px 0 32px;">
+    <a href="https://calendly.com/aimio-rv/kickoff" style="display: inline-block; background: #ffffff; color: #2445EB; border: 2px solid #2445EB; padding: 12px 28px; border-radius: 9999px; text-decoration: none; font-size: 13px; font-weight: 600;">
+      Réserver le kickoff call →
+    </a>
+  </div>
 
-              <p style="font-size: 15px; line-height: 1.6; margin-top: 24px; margin-bottom: 8px;">
-                Au plaisir de faire grandir votre équipe,
-              </p>
+  <!-- Roadmap -->
+  <h2 style="font-size: 16px; font-weight: 700; margin: 32px 0 12px;">🎯 Roadmap mois 1</h2>
+  <ul style="padding-left: 20px; font-size: 13px; line-height: 1.8; color: #3f3f46; margin: 0;">
+    <li><strong>Jour 1-3</strong> · Notre IA source 300-500 candidats sur 10+ plateformes</li>
+    <li><strong>Jour 3-5</strong> · Nos recruteurs séniors qualifient les meilleurs</li>
+    <li><strong>Jour 5-7</strong> · Premier shortlist livré dans votre portail</li>
+    <li><strong>Mois 1</strong> · ${plan.candidates} qualifiés au total</li>
+  </ul>
 
-              <div style="border-top: 1px solid #e4e4e7; padding-top: 16px; margin-top: 24px;">
-                <p style="font-size: 14px; font-weight: 600; margin: 0;">Marc-Antoine Côté</p>
-                <p style="font-size: 13px; color: #6b6b6b; margin: 2px 0 0 0;">Fondateur, Aimio Recrutement</p>
-                <p style="font-size: 13px; color: #6b6b6b; margin: 2px 0 0 0;">
-                  <a href="mailto:marc@aimiorecrutement.com" style="color: #2445EB; text-decoration: none;">marc@aimiorecrutement.com</a> ·
-                  <a href="https://hireaimio.com" style="color: #2445EB; text-decoration: none;">hireaimio.com</a>
-                </p>
-              </div>
-            </div>
-          `,
+  <!-- Support -->
+  <div style="border-top: 1px solid #e4e4e7; padding-top: 20px; margin-top: 36px;">
+    <p style="font-size: 14px; line-height: 1.6; margin: 0 0 12px; color: #18181b;">
+      Une question ? Répondez directement à ce courriel — je lis chaque message.
+    </p>
+    <p style="font-size: 13px; color: #18181b; margin: 16px 0 4px; font-weight: 600;">Marc-Antoine Côté</p>
+    <p style="font-size: 12px; color: #71717a; margin: 0;">Fondateur · Aimio Recrutement</p>
+    <p style="font-size: 12px; color: #71717a; margin: 8px 0 0;">
+      <a href="mailto:marc@aimiorecrutement.com" style="color: #2445EB; text-decoration: none;">marc@aimiorecrutement.com</a> ·
+      <a href="https://hireaimio.com" style="color: #2445EB; text-decoration: none;">hireaimio.com</a>
+    </p>
+  </div>
+
+  <!-- Fallback link -->
+  <p style="font-size: 11px; color: #a1a1aa; margin-top: 24px; line-height: 1.5;">
+    Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+    <span style="color: #71717a; word-break: break-all;">${inviteLink}</span>
+  </p>
+
+</div>`,
         });
-        emailSent = true;
-      } catch (emailError) {
-        console.error("[onboard] Email send failed:", emailError);
+
+        if (sendErr) {
+          emailError = sendErr.message;
+          console.error("[onboard] Resend send error:", sendErr);
+        } else {
+          emailSent = true;
+        }
+      } catch (e) {
+        emailError = e instanceof Error ? e.message : String(e);
+        console.error("[onboard] Email send threw:", e);
       }
+    } else {
+      emailError = "RESEND_API_KEY not configured";
     }
 
     // 5. Notify internal team
@@ -232,10 +262,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${body.company_name} onboardé. ${emailSent ? "Email envoyé." : "Email pas envoyé (configure RESEND_API_KEY)."} L'utilisateur recevra l'invite Supabase pour créer son mot de passe.`,
+      message: emailSent
+        ? `${body.company_name} onboardé. Email Aimio envoyé à ${email}.`
+        : `${body.company_name} onboardé MAIS email pas envoyé : ${emailError || "raison inconnue"}. Tu peux donner manuellement le lien d'invite ci-dessous au client.`,
       client_id: clientRow.id,
       portal_url: portalUrl,
       email_sent: emailSent,
+      email_error: emailError,
+      // Surface the invite link so admin can copy/send manually if Resend failed
+      invite_link: emailSent ? null : inviteLink,
     });
   } catch (error) {
     console.error("[clients/onboard] Error:", error);
