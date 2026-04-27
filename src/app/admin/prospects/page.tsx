@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { toast } from "@/lib/toast";
 import {
   Loader2,
   Search,
@@ -83,14 +84,14 @@ export default function ProspectsPage() {
       if (data.success) {
         await fetchData();
       } else {
-        alert(
+        toast.warning(
           `Aucune donnée additionnelle trouvée. Sources tentées : ${data.attempts
             ?.map((a: { source: string }) => a.source)
             .join(", ")}`
         );
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     }
     setEnrichingId(null);
   };

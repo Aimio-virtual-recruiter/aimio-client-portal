@@ -45,42 +45,149 @@ export default function ScorecardPage() {
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("first_name, last_name, assigned_client_ids")
+          .select("first_name, last_name, assigned_client_ids, role")
           .eq("id", user.id)
           .single();
         setRecruiterName(profile?.first_name || "");
 
-        // For demo, use real-ish numbers (production: aggregate from real data)
-        const { count: candidatesDelivered30d } = await supabase
-          .from("sourced_candidates")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "delivered");
+        // Filter by recruiter's assigned clients (admin sees all)
+        const isAdmin = profile?.role === "admin";
+        const assignedIds: string[] = profile?.assigned_client_ids || [];
 
-        const { count: candidatesSourced30d } = await supabase
-          .from("sourced_candidates")
-          .select("*", { count: "exact", head: true });
+        // Date ranges
+        const now = new Date();
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const startQuarter = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1).toISOString();
+        const startYear = new Date(now.getFullYear(), 0, 1).toISOString();
+        const start30d = new Date(Date.now() - 30 * 86400000).toISOString();
 
-        const { count: hires } = await supabase
-          .from("sourced_candidates")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "hired");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const baseFilter = (q: any): any => {
+          if (isAdmin || assignedIds.length === 0) return q;
+          return q.in("client_id", assignedIds);
+        };
 
-        const { count: activeClients } = await supabase
-          .from("clients")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "active");
+        // Hires (status = hired) — month / quarter / year
+        const [hM, hQ, hY] = await Promise.all([
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "hired")
+              .gte("hired_at", startMonth)
+          ),
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "hired")
+              .gte("hired_at", startQuarter)
+          ),
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "hired")
+              .gte("hired_at", startYear)
+          ),
+        ]);
+
+        // Delivered + sourced (last 30 days)
+        const [dRes, sRes] = await Promise.all([
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "delivered")
+              .gte("delivered_at", start30d)
+          ),
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .gte("created_at", start30d)
+          ),
+        ]);
+
+        // Active clients
+        let activeClientsCount = 0;
+        if (isAdmin) {
+          const { count } = await supabase
+            .from("clients")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "active");
+          activeClientsCount = count || 0;
+        } else {
+          activeClientsCount = assignedIds.length;
+        }
+
+        // Real avg time-to-hire — only from candidates with both delivered_at + hired_at
+        let avgTimeToHire = 0;
+        const ttHQuery = baseFilter(
+          supabase
+            .from("sourced_candidates")
+            .select("delivered_at, hired_at")
+            .eq("status", "hired")
+            .not("delivered_at", "is", null)
+            .not("hired_at", "is", null)
+        );
+        const { data: ttHRows } = await ttHQuery;
+        if (ttHRows && ttHRows.length > 0) {
+          const totalDays = ttHRows.reduce((sum: number, r: { delivered_at: string; hired_at: string }) => {
+            const d1 = new Date(r.delivered_at).getTime();
+            const d2 = new Date(r.hired_at).getTime();
+            return sum + Math.max(0, (d2 - d1) / 86400000);
+          }, 0);
+          avgTimeToHire = Math.round(totalDays / ttHRows.length);
+        }
+
+        // Real response rate — replied / outreached × 100
+        const [outR, repR] = await Promise.all([
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .in("status", ["outreached", "replied_interested", "replied_not_interested", "qualifying", "qualified", "delivered", "hired"])
+              .gte("created_at", start30d)
+          ),
+          baseFilter(
+            supabase
+              .from("sourced_candidates")
+              .select("*", { count: "exact", head: true })
+              .in("status", ["replied_interested", "replied_not_interested", "qualifying", "qualified", "delivered", "hired"])
+              .gte("created_at", start30d)
+          ),
+        ]);
+        const responseRate = (outR.count || 0) > 0
+          ? Math.round(((repR.count || 0) / (outR.count || 1)) * 100)
+          : 0;
+
+        // Avg AI score on delivered candidates
+        let avgScore = 0;
+        const { data: scoreRows } = await baseFilter(
+          supabase
+            .from("sourced_candidates")
+            .select("ai_score")
+            .eq("status", "delivered")
+            .not("ai_score", "is", null)
+            .gte("delivered_at", start30d)
+        );
+        if (scoreRows && scoreRows.length > 0) {
+          const total = scoreRows.reduce((sum: number, r: { ai_score: number }) => sum + (r.ai_score || 0), 0);
+          avgScore = Math.round(total / scoreRows.length);
+        }
 
         setStats({
-          hiresMonth: hires || 0,
-          hiresQuarter: hires || 0,
-          hiresYear: hires || 0,
-          candidatesDelivered30d: candidatesDelivered30d || 0,
-          candidatesSourced30d: candidatesSourced30d || 0,
-          avgTimeToHire: 22,
-          responseRate: 28,
-          activeClients: activeClients || 0,
-          avgScore: 84,
-          rankingTeam: 1,
+          hiresMonth: hM.count || 0,
+          hiresQuarter: hQ.count || 0,
+          hiresYear: hY.count || 0,
+          candidatesDelivered30d: dRes.count || 0,
+          candidatesSourced30d: sRes.count || 0,
+          avgTimeToHire,
+          responseRate,
+          activeClients: activeClientsCount,
+          avgScore,
+          rankingTeam: 0, // TODO: requires team-wide aggregation, hidden when 0
           totalCommissionsThisMonth: 0,
         });
       } catch (err) {
@@ -130,10 +237,10 @@ export default function ScorecardPage() {
         />
         <BigKPI
           icon={<Award size={18} />}
-          label="Team ranking"
-          value={`#${stats.rankingTeam}`}
+          label="Avg fit score"
+          value={stats.avgScore || "—"}
           gradient="from-purple-500 to-purple-600"
-          sub="out of all recruiters"
+          sub={stats.avgScore ? "candidats livrés (30j)" : "données après 1ère livraison"}
         />
       </div>
 
@@ -152,30 +259,54 @@ export default function ScorecardPage() {
         <Metric
           icon={<Clock size={13} />}
           label="Avg time-to-hire"
-          value={`${stats.avgTimeToHire}d`}
-          sub="industry: 47d"
+          value={stats.avgTimeToHire ? `${stats.avgTimeToHire}d` : "—"}
+          sub={stats.avgTimeToHire ? "industrie: 47j" : "data après 1ère embauche"}
         />
         <Metric
           icon={<TrendingUp size={13} />}
           label="Response rate"
           value={`${stats.responseRate}%`}
-          sub="LinkedIn outreach"
+          sub="outreach 30j"
         />
       </div>
 
-      {/* Achievements */}
+      {/* Achievements — earned status computed from real metrics */}
       <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Trophy size={18} className="text-amber-600" />
-          <h2 className="text-[16px] font-bold text-amber-900">Achievements this period</h2>
+          <h2 className="text-[16px] font-bold text-amber-900">Achievements</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Achievement label="Top sourcer" desc="Most candidates delivered this month" earned />
-          <Achievement label="Speed champion" desc="Time-to-hire 50% below industry" earned />
-          <Achievement label="Quality star" desc="Avg fit score 85+ on delivered candidates" earned />
-          <Achievement label="Client hero" desc="100% client satisfaction (NPS)" earned />
-          <Achievement label="Hire master" desc="10+ hires in single month" />
-          <Achievement label="Centurion" desc="100 candidates delivered total" />
+          <Achievement
+            label="First hire"
+            desc="Première embauche confirmée"
+            earned={stats.hiresYear >= 1}
+          />
+          <Achievement
+            label="Speed champion"
+            desc="Time-to-hire ≤ 23j (50% sous industrie)"
+            earned={stats.avgTimeToHire > 0 && stats.avgTimeToHire <= 23}
+          />
+          <Achievement
+            label="Quality star"
+            desc="Avg fit score ≥ 85 sur candidats livrés"
+            earned={stats.avgScore >= 85}
+          />
+          <Achievement
+            label="High response rate"
+            desc="Response rate outreach ≥ 30%"
+            earned={stats.responseRate >= 30}
+          />
+          <Achievement
+            label="Hire master"
+            desc="10+ embauches dans le mois"
+            earned={stats.hiresMonth >= 10}
+          />
+          <Achievement
+            label="Centurion"
+            desc="100+ candidats livrés cette année"
+            earned={stats.candidatesDelivered30d * 12 >= 100 || stats.hiresYear >= 100}
+          />
         </div>
       </div>
 

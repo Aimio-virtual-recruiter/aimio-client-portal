@@ -49,8 +49,10 @@ export default function OnboardNewClientPage() {
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
-    credentials?: { email: string; password: string };
+    client_id?: string;
     portal_url?: string;
+    email_sent?: boolean;
+    contact_email?: string;
   } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,8 +70,10 @@ export default function OnboardNewClientPage() {
       setResult({
         success: true,
         message: data.message,
-        credentials: data.credentials,
+        client_id: data.client_id,
         portal_url: data.portal_url,
+        email_sent: data.email_sent,
+        contact_email: form.contact_email,
       });
     } catch (err) {
       setResult({
@@ -104,28 +108,19 @@ export default function OnboardNewClientPage() {
             </div>
 
             <div className="bg-zinc-50 rounded-xl p-6 mb-6">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-4">Credentials client</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-4">Compte créé</p>
               <div className="space-y-3">
                 <div>
-                  <p className="text-[11px] text-zinc-500 mb-1">Email</p>
+                  <p className="text-[11px] text-zinc-500 mb-1">Email du client</p>
                   <div className="flex items-center gap-2">
-                    <code className="bg-white border border-zinc-200 rounded px-3 py-2 flex-1 text-[13px]">{result.credentials?.email}</code>
-                    <button onClick={() => copyToClipboard(result.credentials?.email || "")} className="p-2 hover:bg-zinc-100 rounded" title="Copier">
+                    <code className="bg-white border border-zinc-200 rounded px-3 py-2 flex-1 text-[13px]">{result.contact_email}</code>
+                    <button onClick={() => copyToClipboard(result.contact_email || "")} className="p-2 hover:bg-zinc-100 rounded" title="Copier">
                       <Copy size={14} className="text-zinc-500" />
                     </button>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[11px] text-zinc-500 mb-1">Mot de passe temporaire</p>
-                  <div className="flex items-center gap-2">
-                    <code className="bg-white border border-zinc-200 rounded px-3 py-2 flex-1 text-[13px] font-mono">{result.credentials?.password}</code>
-                    <button onClick={() => copyToClipboard(result.credentials?.password || "")} className="p-2 hover:bg-zinc-100 rounded" title="Copier">
-                      <Copy size={14} className="text-zinc-500" />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[11px] text-zinc-500 mb-1">URL Portal</p>
+                  <p className="text-[11px] text-zinc-500 mb-1">URL portail</p>
                   <div className="flex items-center gap-2">
                     <code className="bg-white border border-zinc-200 rounded px-3 py-2 flex-1 text-[13px]">{result.portal_url}</code>
                     <button onClick={() => copyToClipboard(result.portal_url || "")} className="p-2 hover:bg-zinc-100 rounded" title="Copier">
@@ -136,9 +131,15 @@ export default function OnboardNewClientPage() {
               </div>
             </div>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
-              <p className="text-[13px] font-bold text-purple-900 mb-2">✉️ Welcome email envoyé automatiquement</p>
-              <p className="text-[13px] text-purple-700">Le client a reçu un email avec ses credentials + lien Calendly pour booker le kickoff call.</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+              <p className="text-[13px] font-bold text-blue-900 mb-2">📧 2 emails envoyés au client</p>
+              <ul className="text-[13px] text-blue-800 space-y-1.5 list-disc list-inside">
+                <li><strong>Invitation Supabase</strong> — le client clique le lien et choisit lui-même son mot de passe (sécurisé, conforme Loi 25)</li>
+                <li><strong>{result.email_sent ? "Welcome Aimio envoyé ✅" : "Welcome Aimio en attente ⚠️ (RESEND_API_KEY manquante)"}</strong> — présentation + lien Calendly pour kickoff call</li>
+              </ul>
+              <p className="text-[12px] text-blue-700 mt-3 italic">
+                Si le client ne reçoit pas l&apos;email Supabase dans 5 min, vérifie qu&apos;il regarde son spam ou utilise &laquo; Mot de passe oublié &raquo; sur la page de login.
+              </p>
             </div>
 
             <div className="flex gap-3">

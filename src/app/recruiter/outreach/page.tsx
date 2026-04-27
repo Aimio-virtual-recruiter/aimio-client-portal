@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Sparkles,
 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface OutreachMessage {
   id: string;
@@ -116,10 +117,10 @@ function OutreachPageContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      alert(`✓ ${data.launches?.length || 0} Phantoms lancés`);
+      toast.success(`${data.launches?.length || 0} Phantoms lancés`);
       await loadCandidates();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     } finally {
       setSendingIds((prev) => {
         const next = new Set(prev);
@@ -143,10 +144,10 @@ function OutreachPageContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      alert(`✓ ${data.sent || 0} emails envoyés via ${data.provider}`);
+      toast.success(`${data.sent || 0} emails envoyés via ${data.provider}`);
       await loadCandidates();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     } finally {
       setSendingIds((prev) => {
         const next = new Set(prev);
@@ -166,7 +167,7 @@ function OutreachPageContent() {
       });
       await loadCandidates();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     } finally {
       setSendingIds((prev) => {
         const next = new Set(prev);

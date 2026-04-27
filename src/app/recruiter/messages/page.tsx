@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 import {
   Send,
   Loader2,
@@ -186,7 +187,7 @@ export default function RecruiterMessagesPage() {
     } catch (err) {
       console.error(err);
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-      alert("Failed to send.");
+      toast.error("Échec de l'envoi. Réessaie.");
     } finally {
       setSending(false);
     }

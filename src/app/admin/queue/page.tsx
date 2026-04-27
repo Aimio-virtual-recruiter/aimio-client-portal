@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
+import { toast } from "@/lib/toast";
 import {
   Loader2,
   Phone,
@@ -130,7 +131,7 @@ export default function QueuePage() {
     disposition: string
   ) => {
     if (!selectedRep) {
-      alert("Choisis d'abord un rep");
+      toast.warning("Choisis d'abord un rep");
       return;
     }
     setLogging(true);
@@ -162,7 +163,7 @@ export default function QueuePage() {
       // Optimistic update — just remove from local state
       setProspects((prev) => prev.filter((p) => p.id !== prospect.id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     } finally {
       setLogging(false);
     }

@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase, type Mandate } from "@/lib/supabase";
+import { toast } from "@/lib/toast";
 import { Sparkles, Loader2, ArrowLeft, Plus, Trash2, CheckCircle2, Send, Copy, Mail, Link2, AlertCircle } from "lucide-react";
 
 export default function NewCandidateWrapper() {
@@ -69,7 +70,7 @@ function NewCandidatePage() {
   // FULL PIPELINE — Score + Email + InMail in 1 click
   const handleProcessCandidate = async () => {
     if (!form.mandate_id || !form.name || !form.current_title) {
-      alert('Please fill in at least the mandate, name, and current title.');
+      toast.warning('Please fill in at least the mandate, name, and current title.');
       return;
     }
     setLoading(true);
@@ -100,10 +101,10 @@ function NewCandidatePage() {
         setResult(data);
         setStep('results');
       } else {
-        alert('Error: ' + (data.error || 'Unknown error'));
+        toast.error('Error: ' + (data.error || 'Unknown error'));
       }
     } catch (error) {
-      alert('Server connection error');
+      toast.error('Server connection error');
       console.error(error);
     } finally {
       setLoading(false);

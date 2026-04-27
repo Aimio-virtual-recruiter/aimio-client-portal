@@ -13,6 +13,7 @@ import {
   Zap,
   MessageCircle,
 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface SourcedCandidate {
   id: string;
@@ -119,12 +120,12 @@ function QueuePageContent() {
             c.id === candidateId ? { ...c, status: "outreach_ready" } : c
           )
         );
-        alert("Messages générés. Va dans Outreach pour les envoyer.");
+        toast.success("Messages générés. Va dans Outreach pour les envoyer.");
       } else {
-        alert(`Erreur: ${data.error}`);
+        toast.error(`Erreur: ${data.error}`);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);

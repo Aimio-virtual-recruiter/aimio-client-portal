@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Plus, CheckCircle2, Clock, Building2, TrendingUp, Loader2, Rocket, ListChecks, MessageCircle, BarChart3, LogOut } from "lucide-react";
+import { Users, Plus, CheckCircle2, Clock, Building2, TrendingUp, Loader2, Rocket, ListChecks, MessageCircle, BarChart3, LogOut, Award, MapPin, User as UserIcon, DollarSign, Target } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface Client {
@@ -95,7 +95,7 @@ export default function RecruiterDashboardPage() {
           <div className="flex items-center gap-3">
             {userName && (
               <span className="hidden sm:inline text-[12px] text-zinc-500">
-                Hi {userName.split(" ")[0]}
+                Bonjour {userName.split(" ")[0]}
               </span>
             )}
             <Link
@@ -116,10 +116,13 @@ export default function RecruiterDashboardPage() {
         {/* Sub-navigation */}
         <div className="max-w-6xl mx-auto px-6 py-2 border-t border-zinc-100 flex items-center gap-1 overflow-x-auto">
           <NavLink href="/recruiter" label="Dashboard" icon={<Building2 size={12} />} active />
-          <NavLink href="/recruiter/source" label="Sourcing auto" icon={<Rocket size={12} />} />
+          <NavLink href="/recruiter/clients" label="Clients" icon={<Users size={12} />} />
+          <NavLink href="/recruiter/source" label="Sourcing" icon={<Rocket size={12} />} />
           <NavLink href="/recruiter/queue" label="Queue" icon={<ListChecks size={12} />} />
           <NavLink href="/recruiter/outreach" label="Outreach" icon={<MessageCircle size={12} />} />
+          <NavLink href="/recruiter/messages" label="Messages" icon={<MessageCircle size={12} />} />
           <NavLink href="/recruiter/analytics" label="Analytics" icon={<BarChart3 size={12} />} />
+          <NavLink href="/recruiter/scorecard" label="Scorecard" icon={<Award size={12} />} />
         </div>
       </header>
 
@@ -209,14 +212,20 @@ export default function RecruiterDashboardPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-zinc-500 mb-3">
-                      <span>
-                        📍 {client.country}
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={11} /> {client.country}
                       </span>
-                      <span>
-                        👤 {client.contact_first_name} {client.contact_last_name}
+                      <span className="inline-flex items-center gap-1">
+                        <UserIcon size={11} /> {client.contact_first_name} {client.contact_last_name}
                       </span>
-                      <span>💰 ${client.mrr_usd?.toLocaleString()}/mo</span>
-                      {client.recruteur_lead && <span>🎯 {client.recruteur_lead}</span>}
+                      <span className="inline-flex items-center gap-1">
+                        <DollarSign size={11} /> {client.mrr_usd?.toLocaleString()}/mo
+                      </span>
+                      {client.recruteur_lead && (
+                        <span className="inline-flex items-center gap-1">
+                          <Target size={11} /> {client.recruteur_lead}
+                        </span>
+                      )}
                     </div>
 
                     {client.roles_hiring_for && (
@@ -274,18 +283,28 @@ export default function RecruiterDashboardPage() {
           <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Besoin d&apos;aide ?</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-[12px]">
             <div>
-              <p className="font-semibold text-zinc-700 mb-1">📖 Playbook complet</p>
-              <p className="text-zinc-500">
-                Voir AIMIO_RV_RECRUITER_ENABLEMENT.md sur le Desktop partagé
+              <p className="font-semibold text-zinc-700 mb-1 inline-flex items-center gap-1.5">
+                <MessageCircle size={12} /> Chat équipe
               </p>
+              <Link href="/recruiter/messages" className="text-[#2445EB] hover:text-[#1A36C4]">
+                Ouvrir la messagerie interne →
+              </Link>
             </div>
             <div>
-              <p className="font-semibold text-zinc-700 mb-1">❓ Questions</p>
-              <p className="text-zinc-500">Slack #rv-delivery ou marc@aimiorecrutement.com</p>
+              <p className="font-semibold text-zinc-700 mb-1 inline-flex items-center gap-1.5">
+                <BarChart3 size={12} /> Performance
+              </p>
+              <Link href="/recruiter/scorecard" className="text-[#2445EB] hover:text-[#1A36C4]">
+                Voir mon scorecard →
+              </Link>
             </div>
             <div>
-              <p className="font-semibold text-zinc-700 mb-1">🚨 Escalade client</p>
-              <p className="text-zinc-500">Direct à Marc-Antoine pour les 30 premiers jours</p>
+              <p className="font-semibold text-zinc-700 mb-1 inline-flex items-center gap-1.5">
+                <UserIcon size={12} /> Support
+              </p>
+              <a href="mailto:marc@aimiorecrutement.com" className="text-[#2445EB] hover:text-[#1A36C4]">
+                marc@aimiorecrutement.com
+              </a>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 import {
   ArrowLeft,
   Sparkles,
@@ -90,7 +91,7 @@ function DeliverContent() {
 
   const handleScore = async () => {
     if (!form.qualification_notes || !form.position_applying_for) {
-      alert("Ajoute les notes de qualification et le poste avant de scorer.");
+      toast.warning("Ajoute les notes de qualification et le poste avant de scorer.");
       return;
     }
     setScoring(true);
@@ -120,7 +121,7 @@ function DeliverContent() {
         fit_analysis: data.analysis,
       }));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur scoring");
+      toast.error(err instanceof Error ? err.message : "Erreur scoring");
     } finally {
       setScoring(false);
     }
@@ -129,7 +130,7 @@ function DeliverContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.client_id) {
-      alert("Sélectionne un client");
+      toast.warning("Sélectionne un client");
       return;
     }
     if (!form.ai_score) {

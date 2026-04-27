@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase, type Mandate } from "@/lib/supabase";
+import { toast } from "@/lib/toast";
 import { Plus, Briefcase, MapPin, DollarSign, Users, Loader2, CheckCircle2, Pause, X } from "lucide-react";
 
 export default function AdminMandatesPage() {
@@ -26,7 +27,7 @@ export default function AdminMandatesPage() {
   }
 
   const handleCreate = async () => {
-    if (!form.title || !form.location) { alert('Title and location are required.'); return; }
+    if (!form.title || !form.location) { toast.warning('Title and location are required.'); return; }
     setCreating(true);
     await supabase.from('mandates').insert({
       company_id: form.company_id,

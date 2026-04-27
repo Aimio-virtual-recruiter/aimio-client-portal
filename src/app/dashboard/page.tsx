@@ -39,10 +39,10 @@ interface DashboardStats {
   candidatesInPipeline: number;
   candidatesInterested: number;
   hires: number;
-  avgTimeToHire: number;
+  avgTimeToHire: number | null;
   daysActive: number;
   monthlySpend: number;
-  estimatedSavings: number;
+  estimatedSavings: number | null;
 }
 
 interface AIInsight {
@@ -151,39 +151,82 @@ export default function DashboardPage() {
 
           setNewCandidates(candidates);
 
-          const internalCost = (117500 / 12) * Math.max(daysActive / 30, 1);
-          const aimioCost = monthlyMrr * Math.max(daysActive / 30, 1);
-          const savings = Math.max(0, internalCost - aimioCost);
+          // Real avg time to hire — only show if we have at least 1 hire with timestamps
+          let realAvgTimeToHire: number | null = null;
+          if (clientId && hires > 0) {
+            const { data: hiredRows } = await supabase
+              .from("sourced_candidates")
+              .select("delivered_at, hired_at")
+              .eq("client_id", clientId)
+              .eq("status", "hired")
+              .not("delivered_at", "is", null)
+              .not("hired_at", "is", null);
+            if (hiredRows && hiredRows.length > 0) {
+              const totalDays = hiredRows.reduce((sum, r) => {
+                const d1 = new Date(r.delivered_at as string).getTime();
+                const d2 = new Date(r.hired_at as string).getTime();
+                return sum + Math.max(0, (d2 - d1) / 86400000);
+              }, 0);
+              realAvgTimeToHire = Math.round(totalDays / hiredRows.length);
+            }
+          }
+
+          // Estimated savings — only show after 30 days of activity
+          let estimatedSavings: number | null = null;
+          if (daysActive >= 30) {
+            const internalCost = (117500 / 12) * (daysActive / 30);
+            const aimioCost = monthlyMrr * (daysActive / 30);
+            estimatedSavings = Math.max(0, Math.round(internalCost - aimioCost));
+          }
 
           setStats({
             candidatesDelivered: delivered,
             candidatesInPipeline: inPipeline,
             candidatesInterested: interested,
             hires,
-            avgTimeToHire: 22,
+            avgTimeToHire: realAvgTimeToHire,
             daysActive,
             monthlySpend: monthlyMrr,
-            estimatedSavings: Math.round(savings),
+            estimatedSavings,
           });
 
-          // Demo AI insights
-          setInsights([
-            {
-              type: "info",
-              title: "Salary expectations 8% above your range",
-              description: "Most qualified candidates expect $130K+. Consider raising max budget to hire faster, or we can adjust profile to target less senior candidates.",
-            },
-            {
-              type: "success",
-              title: "High response rate on backend roles",
-              description: "Your backend candidates respond 35% more than industry average. We're focusing more sourcing here.",
-            },
-            {
+          // Real AI insights — derived from actual data, not fake
+          const realInsights: AIInsight[] = [];
+
+          // Insight: candidates pending decision
+          if (interested > 0) {
+            realInsights.push({
               type: "warning",
-              title: "Candidate Sarah needs decision",
-              description: "Sarah Tremblay expressed interest 5 days ago. Top candidates respond fast — schedule interview within 48h or risk losing her.",
-            },
-          ]);
+              title: `${interested} candidat${interested > 1 ? "s" : ""} en attente de votre décision`,
+              description: "Les meilleurs candidats répondent vite. Planifiez une entrevue dans les 48h pour ne pas les perdre.",
+            });
+          }
+
+          // Insight: pipeline health
+          if (delivered === 0 && daysActive < 14) {
+            realInsights.push({
+              type: "info",
+              title: "Sourcing en cours",
+              description: "Notre IA analyse 300-500 profils sur 10+ plateformes. Premier shortlist livré sous 5-7 jours.",
+            });
+          } else if (delivered > 0 && interested === 0 && daysActive > 7) {
+            realInsights.push({
+              type: "info",
+              title: "Aucune décision sur les candidats livrés",
+              description: `Vous avez ${delivered} candidat${delivered > 1 ? "s" : ""} en attente d'évaluation. Cliquez sur Candidats pour les examiner.`,
+            });
+          }
+
+          // Insight: hires achieved
+          if (hires > 0) {
+            realInsights.push({
+              type: "success",
+              title: `${hires} embauche${hires > 1 ? "s" : ""} confirmée${hires > 1 ? "s" : ""} 🎉`,
+              description: "Excellente progression. Notre équipe ajuste continuellement le profil de recherche selon vos feedbacks.",
+            });
+          }
+
+          setInsights(realInsights);
         }
       } catch (err) {
         console.error("Dashboard error:", err);
@@ -243,8 +286,8 @@ export default function DashboardPage() {
         <MetricCard
           icon={<Clock size={16} />}
           label="Avg time-to-hire"
-          value={`${stats?.avgTimeToHire || "—"}d`}
-          sub="vs industry 47d"
+          value={stats?.avgTimeToHire ? `${stats.avgTimeToHire}d` : "—"}
+          sub={stats?.avgTimeToHire ? "vs industry 47d" : "data after first hire"}
           color="amber"
         />
         <MetricCard

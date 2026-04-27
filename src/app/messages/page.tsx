@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { toast } from "@/lib/toast";
 
 interface Message {
   id: string;
@@ -57,6 +58,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 export default function MessagesPage() {
+  const [allThreads, setAllThreads] = useState<ThreadSummary[]>([]);
   const [thread, setThread] = useState<ThreadSummary | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -66,13 +68,12 @@ export default function MessagesPage() {
   const [userName, setUserName] = useState("there");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const loadThreadAndMessages = useCallback(async () => {
+  const loadThreadAndMessages = useCallback(async (selectThreadId?: string) => {
     try {
       const supabase = createSupabaseBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch user profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("first_name, client_company_id")
@@ -80,20 +81,23 @@ export default function MessagesPage() {
         .single();
       setUserName(profile?.first_name || "there");
 
-      // Fetch threads (clients have at most 1 thread with their recruiter)
       const threadsRes = await fetch("/api/messages?list=threads");
       if (!threadsRes.ok) {
         setLoading(false);
         return;
       }
       const { threads } = await threadsRes.json();
-      const myThread: ThreadSummary | undefined = threads?.[0];
+      const threadList: ThreadSummary[] = threads || [];
+      setAllThreads(threadList);
 
-      if (!myThread) {
-        // No thread yet — initialize empty
+      if (threadList.length === 0) {
         setLoading(false);
         return;
       }
+
+      // Pick selected thread, or default to first
+      const myThread =
+        threadList.find((t) => t.thread_id === selectThreadId) || threadList[0];
 
       setThread(myThread);
       if (myThread.recruiter_first_name) {
@@ -102,7 +106,6 @@ export default function MessagesPage() {
         );
       }
 
-      // Fetch messages for the thread
       const msgsRes = await fetch(`/api/messages?thread_id=${myThread.thread_id}`);
       if (msgsRes.ok) {
         const { messages: msgs } = await msgsRes.json();
@@ -114,6 +117,12 @@ export default function MessagesPage() {
       setLoading(false);
     }
   }, []);
+
+  const switchThread = (threadId: string) => {
+    setMessages([]);
+    setLoading(true);
+    loadThreadAndMessages(threadId);
+  };
 
   useEffect(() => {
     loadThreadAndMessages();
@@ -200,9 +209,8 @@ export default function MessagesPage() {
       }
     } catch (err) {
       console.error("Send error:", err);
-      // Remove optimistic message on failure
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-      alert("Failed to send. Please try again.");
+      toast.error("Échec de l'envoi. Réessayez.");
     } finally {
       setSending(false);
     }
@@ -231,8 +239,21 @@ export default function MessagesPage() {
                 Online
               </span>
             </div>
-            <p className="text-[11px] text-zinc-500">Dedicated recruiter · Replies in &lt; 4h</p>
+            <p className="text-[11px] text-zinc-500">Recruteur dédié</p>
           </div>
+          {allThreads.length > 1 && (
+            <select
+              value={thread?.thread_id || ""}
+              onChange={(e) => switchThread(e.target.value)}
+              className="text-[11px] border border-zinc-200 rounded-md px-2 py-1 bg-white text-zinc-700"
+            >
+              {allThreads.map((t) => (
+                <option key={t.thread_id} value={t.thread_id}>
+                  {t.recruiter_first_name || "Recruteur"}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Messages */}
