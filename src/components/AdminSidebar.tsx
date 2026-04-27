@@ -17,6 +17,7 @@ const mainNavItems = [
 // PIPELINE — the core sourcing/outreach flow (admin can do recruiter actions)
 const pipelineNavItems = [
   { label: "🚀 Sourcer candidats", href: "/recruiter/source", icon: Rocket },
+  { label: "👥 Banque candidats", href: "/recruiter/candidates", icon: Users },
   { label: "📥 Queue à valider", href: "/recruiter/queue", icon: ListChecks },
   { label: "✉️ Outreach", href: "/recruiter/outreach", icon: Send },
   { label: "📤 Livrer candidat", href: "/recruiter/deliver", icon: Inbox },
