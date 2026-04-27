@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 interface CSVRow {
   company_name?: string;
@@ -182,6 +183,12 @@ function normalizeRow(row: CSVRow): ReactivationEntry | null {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin') {
+      return NextResponse.json({ error: 'Accès admin requis' }, { status: 403 });
+    }
+
     const body = await request.json();
     const csvText: string = body.csv;
     const defaultOwner: string | undefined = body.default_owner;

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 // Apollo API endpoint for people search
 const APOLLO_SEARCH_URL = 'https://api.apollo.io/api/v1/mixed_people/search';
@@ -49,6 +50,12 @@ interface SearchRequest {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: SearchRequest = await request.json();
 
     const apolloApiKey = process.env.APOLLO_API_KEY;

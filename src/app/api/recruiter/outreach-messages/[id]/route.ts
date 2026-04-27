@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 /**
  * PATCH /api/recruiter/outreach-messages/[id]
@@ -10,6 +11,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "admin" && user.role !== "recruiter") {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+
     const { id } = await params;
     const body = await request.json();
 

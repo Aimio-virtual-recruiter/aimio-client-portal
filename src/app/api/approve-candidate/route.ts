@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getCurrentUser } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser()
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    }
+
     const body = await req.json()
     const { candidate_id, action, approved_by, internal_notes } = body
 

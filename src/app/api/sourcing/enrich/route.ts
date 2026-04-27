@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 // Apollo /people/match endpoint — works on all paid plans (including Basic)
 const APOLLO_MATCH_URL = 'https://api.apollo.io/api/v1/people/match';
@@ -51,6 +52,12 @@ interface ApolloMatchResponse {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: EnrichRequest = await request.json();
 
     const apolloApiKey = process.env.APOLLO_API_KEY;

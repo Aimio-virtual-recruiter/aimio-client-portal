@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 const NOTIFICATION_RECIPIENTS = ['marcantoine.cote@aimiorecrutement.com'];
@@ -14,6 +15,9 @@ interface NotifyRequest {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+
     const body: NotifyRequest = await request.json();
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

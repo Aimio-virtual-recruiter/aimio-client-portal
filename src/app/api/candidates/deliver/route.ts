@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 /**
  * Deliver a candidate to a client — marks candidate as delivered
@@ -20,6 +21,12 @@ interface DeliverRequest {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (user.role !== "admin" && user.role !== "recruiter") {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+
     const body: DeliverRequest = await request.json();
 
     if (!body.candidate_id || !body.client_id) {

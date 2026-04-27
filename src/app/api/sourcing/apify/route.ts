@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 const APIFY_BASE = 'https://api.apify.com/v2';
 
@@ -107,6 +108,12 @@ function normalizeApifyData(
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: ApifyRunRequest = await request.json();
 
     const apifyToken = process.env.APIFY_TOKEN;
@@ -170,6 +177,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  if (user.role !== 'admin' && user.role !== 'recruiter') {
+    return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+  }
   // Return list of recommended actors for the UI
   return NextResponse.json({
     recommended_actors: [

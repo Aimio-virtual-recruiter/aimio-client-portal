@@ -5,50 +5,73 @@ import { supabase, type Mandate } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
 import { Plus, Briefcase, MapPin, DollarSign, Users, Loader2, CheckCircle2, Pause, X } from "lucide-react";
 
+interface ClientLite {
+  id: string;
+  company_name: string;
+}
+
 export default function AdminMandatesPage() {
   const [mandates, setMandates] = useState<Mandate[]>([]);
+  const [clients, setClients] = useState<ClientLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const [form, setForm] = useState({
-    title: '', department: '', description: '', salary_min: '', salary_max: '',
-    location: '', work_mode: 'Hybrid', company_id: '11111111-1111-1111-1111-111111111111',
+    title: "",
+    department: "",
+    description: "",
+    salary_min: "",
+    salary_max: "",
+    location: "",
+    work_mode: "Hybrid",
+    company_id: "", // No more hardcoded UUID — admin must pick a client
   });
 
   useEffect(() => {
-    loadMandates();
+    loadAll();
   }, []);
 
-  async function loadMandates() {
-    const { data } = await supabase.from('mandates').select('*').order('created_at', { ascending: false });
-    setMandates(data || []);
+  async function loadAll() {
+    const [mandRes, clientRes] = await Promise.all([
+      supabase.from("mandates").select("*, clients(company_name)").order("created_at", { ascending: false }).limit(200),
+      supabase.from("clients").select("id, company_name").order("company_name"),
+    ]);
+    setMandates((mandRes.data as Mandate[]) || []);
+    setClients(clientRes.data || []);
     setLoading(false);
   }
 
   const handleCreate = async () => {
-    if (!form.title || !form.location) { toast.warning('Title and location are required.'); return; }
+    if (!form.company_id) { toast.warning("Sélectionne un client"); return; }
+    if (!form.title || !form.location) { toast.warning("Titre et localisation requis"); return; }
     setCreating(true);
-    await supabase.from('mandates').insert({
+    const { error } = await supabase.from("mandates").insert({
       company_id: form.company_id,
       title: form.title,
-      department: form.department,
-      description: form.description,
+      department: form.department || null,
+      description: form.description || null,
       salary_min: parseInt(form.salary_min) || null,
       salary_max: parseInt(form.salary_max) || null,
       location: form.location,
       work_mode: form.work_mode,
-      status: 'active',
+      status: "active",
     });
+    if (error) {
+      toast.error(error.message);
+      setCreating(false);
+      return;
+    }
+    toast.success("Mandat créé");
     setShowCreate(false);
-    setForm({ title: '', department: '', description: '', salary_min: '', salary_max: '', location: '', work_mode: 'Hybrid', company_id: '11111111-1111-1111-1111-111111111111' });
+    setForm({ title: "", department: "", description: "", salary_min: "", salary_max: "", location: "", work_mode: "Hybrid", company_id: "" });
     setCreating(false);
-    loadMandates();
+    loadAll();
   };
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from('mandates').update({ status }).eq('id', id);
-    loadMandates();
+    loadAll();
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>;
@@ -69,7 +92,30 @@ export default function AdminMandatesPage() {
       {/* Create form */}
       {showCreate && (
         <div className="bg-white rounded-xl border border-zinc-200 p-5 shadow-card mb-6">
-          <p className="label mb-4">New mandate</p>
+          <p className="label mb-4">Nouveau mandat (form rapide)</p>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <p className="text-[12px] text-blue-800">
+              💡 Pour un mandat avec critères Recruiter Lite (40+ filtres), utilise plutôt
+              <Link href="/mandats/nouveau" className="font-bold underline ml-1">/mandats/nouveau</Link>.
+            </p>
+          </div>
+
+          {/* Client selector — REQUIRED */}
+          <div className="mb-4">
+            <label className="text-[11px] text-zinc-500 font-medium mb-1.5 block">Client *</label>
+            <select
+              value={form.company_id}
+              onChange={(e) => setForm((prev) => ({ ...prev, company_id: e.target.value }))}
+              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-200 text-[13px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none bg-white"
+            >
+              <option value="">Sélectionner un client</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>{c.company_name}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3 mb-4">
             {[
               { label: "Position title *", field: "title", placeholder: "Senior Estimator" },

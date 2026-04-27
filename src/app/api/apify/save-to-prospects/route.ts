@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 /**
  * Takes Apify scraped candidates and saves them to the prospects table.
@@ -61,6 +62,12 @@ function parseLocation(location: string | null | undefined): {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: SaveRequest = await request.json();
 
     if (!body.candidates || body.candidates.length === 0) {

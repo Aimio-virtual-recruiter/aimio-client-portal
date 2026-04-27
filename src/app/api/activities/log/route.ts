@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentUser } from '@/lib/supabase/server';
 
 interface LogActivityRequest {
   prospect_id: string;
@@ -35,6 +36,12 @@ interface LogActivityRequest {
  */
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    if (user.role !== 'admin' && user.role !== 'recruiter') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body: LogActivityRequest = await request.json();
 
     // Validation
