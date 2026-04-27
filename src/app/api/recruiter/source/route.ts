@@ -61,6 +61,7 @@ interface GenerateBriefRequest {
 interface RunSourcingRequest {
   action: "run_sourcing";
   client_id: string;
+  mandate_id?: string;
   sourcing_run_id?: string; // if resuming
   position_title: string;
   search_brief: SearchBrief;
@@ -509,6 +510,7 @@ export async function POST(request: Request) {
         .from("sourcing_runs")
         .insert({
           client_id: body.client_id,
+          mandate_id: body.mandate_id || null,
           position_title: body.position_title,
           search_brief: body.search_brief,
           status: "running",

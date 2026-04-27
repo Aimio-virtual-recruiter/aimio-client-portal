@@ -205,16 +205,35 @@ function emptyCriteria(): SearchCriteria {
   };
 }
 
+interface MandateSummary {
+  id: string;
+  title: string;
+  company_id: string;
+  description: string | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  location: string | null;
+  status: string;
+  search_criteria: SearchCriteria | null;
+  criteria_updated_at: string | null;
+  created_at: string;
+}
+
 function SourcePageContent() {
   const searchParams = useSearchParams();
   const preselectedClientId = searchParams.get("client") || "";
+  const preselectedMandateId = searchParams.get("mandate") || "";
 
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState(preselectedClientId);
+  const [mandates, setMandates] = useState<MandateSummary[]>([]);
+  const [mandateId, setMandateId] = useState<string>(preselectedMandateId);
   const [positionTitle, setPositionTitle] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [maxResults, setMaxResults] = useState(50);
   const [criteria, setCriteria] = useState<SearchCriteria>(emptyCriteria());
+  const [savingCriteria, setSavingCriteria] = useState(false);
+  const [criteriaSaved, setCriteriaSaved] = useState(false);
   const [selectedSources, setSelectedSources] = useState({
     apify_linkedin: true,
     apify_sales_nav: false,
@@ -235,7 +254,65 @@ function SourcePageContent() {
       .then((data) => setClients(data.clients || []));
   }, []);
 
+  // Load mandates when client changes
+  useEffect(() => {
+    if (!clientId) {
+      setMandates([]);
+      setMandateId("");
+      return;
+    }
+    fetch(`/api/mandates?client_id=${clientId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setMandates(data.mandates || []);
+        // Auto-select the URL-preselected mandate if it belongs to this client
+        if (preselectedMandateId && data.mandates?.find((m: MandateSummary) => m.id === preselectedMandateId)) {
+          setMandateId(preselectedMandateId);
+        }
+      })
+      .catch(() => setMandates([]));
+  }, [clientId, preselectedMandateId]);
+
+  // Pre-fill form when mandate is selected
+  useEffect(() => {
+    if (!mandateId) return;
+    const m = mandates.find((x) => x.id === mandateId);
+    if (!m) return;
+    if (m.title) setPositionTitle(m.title);
+    if (m.search_criteria) setCriteria({ ...emptyCriteria(), ...m.search_criteria });
+    setCriteriaSaved(false);
+  }, [mandateId, mandates]);
+
   const selectedClient = clients.find((c) => c.id === clientId);
+  const selectedMandate = mandates.find((m) => m.id === mandateId);
+
+  const handleSaveCriteria = async () => {
+    if (!mandateId) {
+      setError("Sélectionne d'abord un mandat pour sauver les critères dessus");
+      return;
+    }
+    setSavingCriteria(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/mandates/${mandateId}/criteria`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ search_criteria: criteria }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Échec sauvegarde");
+      setCriteriaSaved(true);
+      setTimeout(() => setCriteriaSaved(false), 3000);
+      // refresh mandates list to get the new criteria_updated_at
+      fetch(`/api/mandates?client_id=${clientId}`)
+        .then((r) => r.json())
+        .then((d) => setMandates(d.mandates || []));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur");
+    } finally {
+      setSavingCriteria(false);
+    }
+  };
 
   const handleGenerateBrief = async () => {
     if (!clientId || !positionTitle) {
@@ -285,6 +362,7 @@ function SourcePageContent() {
         body: JSON.stringify({
           action: "run_sourcing",
           client_id: clientId,
+          mandate_id: mandateId || undefined,
           position_title: positionTitle,
           search_brief: brief,
           search_criteria: criteria,
@@ -415,11 +493,14 @@ function SourcePageContent() {
           title="Mandat client"
           description="Pour quel client recrutes-tu et quel est le poste à combler ?"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Field label="Client *">
               <select
                 value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
+                onChange={(e) => {
+                  setClientId(e.target.value);
+                  setMandateId("");
+                }}
                 className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none bg-white"
               >
                 <option value="">Sélectionner</option>
@@ -430,16 +511,44 @@ function SourcePageContent() {
                 ))}
               </select>
             </Field>
+            <Field
+              label="Mandat (charge critères sauvés)"
+              hint={
+                selectedMandate?.criteria_updated_at
+                  ? `Critères mis à jour le ${new Date(selectedMandate.criteria_updated_at).toLocaleDateString("fr-CA")}`
+                  : "Optionnel — sélectionne pour pré-remplir les critères"
+              }
+            >
+              <select
+                value={mandateId}
+                onChange={(e) => setMandateId(e.target.value)}
+                disabled={!clientId || mandates.length === 0}
+                className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none bg-white disabled:bg-zinc-50 disabled:text-zinc-400"
+              >
+                <option value="">
+                  {!clientId
+                    ? "Choisis un client d'abord"
+                    : mandates.length === 0
+                    ? "Aucun mandat pour ce client"
+                    : "Aucun (sourcing libre)"}
+                </option>
+                {mandates.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}{m.search_criteria ? " ✓" : ""}
+                  </option>
+                ))}
+              </select>
+            </Field>
             <Field label="Titre du poste *">
               <input
                 type="text"
                 value={positionTitle}
                 onChange={(e) => setPositionTitle(e.target.value)}
-                placeholder="Comptable CPA · Chargé de projet construction · Avocat litige"
+                placeholder="Comptable CPA · Chargé de projet construction"
                 className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none"
               />
             </Field>
-            <div className="md:col-span-2">
+            <div className="md:col-span-3">
               <Field
                 label="Notes internes (visibles seulement par toi et l'équipe Aimio)"
                 hint="Contexte, instructions spéciales, préférences du client mentionnées en appel"
@@ -455,7 +564,39 @@ function SourcePageContent() {
             </div>
           </div>
 
-          {selectedClient?.roles_hiring_for && (
+          {selectedMandate && (
+            <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold text-purple-900 uppercase tracking-wider mb-1">
+                  Mandat sélectionné — critères {selectedMandate.search_criteria ? "chargés" : "vides"}
+                </p>
+                <p className="text-[13px] text-purple-800">
+                  Ajuste les filtres ci-dessous pour optimiser le sourcing. Clique &laquo; Sauver critères &raquo; pour persister tes ajustements sur ce mandat.
+                </p>
+              </div>
+              <button
+                onClick={handleSaveCriteria}
+                disabled={savingCriteria}
+                className="shrink-0 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-[12px] font-semibold disabled:opacity-40 transition flex items-center gap-1.5"
+              >
+                {savingCriteria ? (
+                  <>
+                    <Loader2 size={11} className="animate-spin" /> Sauvegarde…
+                  </>
+                ) : criteriaSaved ? (
+                  <>
+                    <CheckCircle2 size={11} /> Sauvé ✓
+                  </>
+                ) : (
+                  <>
+                    💾 Sauver critères au mandat
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {!selectedMandate && selectedClient?.roles_hiring_for && (
             <div className="mt-4 bg-blue-50 rounded-lg p-3">
               <p className="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-1">
                 Postes du client (référence)
