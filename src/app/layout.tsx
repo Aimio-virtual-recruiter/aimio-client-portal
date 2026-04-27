@@ -131,26 +131,32 @@ const serviceSchema = {
       {
         "@type": "Offer",
         "name": "Starter",
-        "price": "1999",
-        "priceCurrency": "USD",
-        "priceSpecification": { "@type": "UnitPriceSpecification", "price": "1999", "priceCurrency": "USD", "billingIncrement": 1, "unitText": "MONTH" },
-        "description": "Up to 2 active positions, 8-12 qualified candidates per month, AI scoring, client portal, weekly reports, email support.",
-      },
-      {
-        "@type": "Offer",
-        "name": "Pro",
         "price": "2999",
         "priceCurrency": "USD",
         "priceSpecification": { "@type": "UnitPriceSpecification", "price": "2999", "priceCurrency": "USD", "billingIncrement": 1, "unitText": "MONTH" },
-        "description": "Up to 5 active positions, 15-25 qualified candidates per month, priority delivery, dedicated account manager, phone qualification.",
+        "description": "1 active position, 10-15 qualified candidates per month, AI scoring, client portal, weekly sync, 30-day refund guarantee.",
+      },
+      {
+        "@type": "Offer",
+        "name": "Growth",
+        "price": "4999",
+        "priceCurrency": "USD",
+        "priceSpecification": { "@type": "UnitPriceSpecification", "price": "4999", "priceCurrency": "USD", "billingIncrement": 1, "unitText": "MONTH" },
+        "description": "Up to 3 active positions, 30-45 qualified candidates per month, priority sourcing, dedicated recruiter.",
+      },
+      {
+        "@type": "Offer",
+        "name": "Scale",
+        "price": "9999",
+        "priceCurrency": "USD",
+        "priceSpecification": { "@type": "UnitPriceSpecification", "price": "9999", "priceCurrency": "USD", "billingIncrement": 1, "unitText": "MONTH" },
+        "description": "Up to 6 active positions, 60-90 qualified candidates per month, replaces a 2-person internal team.",
       },
       {
         "@type": "Offer",
         "name": "Enterprise",
-        "price": "4999",
         "priceCurrency": "USD",
-        "priceSpecification": { "@type": "UnitPriceSpecification", "price": "4999", "priceCurrency": "USD", "billingIncrement": 1, "unitText": "MONTH" },
-        "description": "10+ active positions, 30-40 qualified candidates per month, custom scoring criteria, SLA, custom reporting.",
+        "description": "Custom positions and volume, replaces a full hiring function. Contact sales for pricing.",
       },
     ],
   },
@@ -175,7 +181,7 @@ const faqSchema = {
       "name": "How much does Aimio cost?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Aimio has three pricing tiers: Starter at $1,999 USD/month for up to 2 active positions (8-12 candidates/month), Pro at $2,999 USD/month for up to 5 positions (15-25 candidates/month), and Enterprise at $4,999 USD/month for 10+ positions (30-40 candidates/month). No setup fees, no contracts, cancel anytime after month 1.",
+        "text": "Aimio has four pricing tiers: Starter at $2,999 USD/month for 1 active position (10-15 candidates/month), Growth at $4,999 USD/month for up to 3 positions (30-45 candidates/month), Scale at $9,999 USD/month for up to 6 positions (60-90 candidates/month), and Enterprise with custom pricing for full hiring function replacement. 30-day refund guarantee, no setup fees.",
       },
     },
     {
@@ -183,7 +189,7 @@ const faqSchema = {
       "name": "How fast can Aimio deliver candidates?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "First qualified shortlist delivered in 5-7 business days after kickoff. AI begins sourcing on day 1-3, human recruiters qualify in days 3-5, and your portal is populated with interview-ready candidates by day 5-7. Continuous delivery throughout the month for a total of 15-25 qualified candidates (Pro tier).",
+        "text": "First qualified shortlist delivered in 5-7 business days after kickoff. AI begins sourcing on day 1-3, human recruiters qualify in days 3-5, and your portal is populated with interview-ready candidates by day 5-7. Continuous delivery throughout the month for a total of 30-45 qualified candidates (Growth tier).",
       },
     },
     {
