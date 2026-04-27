@@ -11,7 +11,7 @@ interface OnboardRequest {
   contact_role?: string;
   country: string;
   company_size?: string;
-  plan: "starter" | "pro" | "enterprise";
+  plan: "starter" | "growth" | "scale" | "enterprise";
   roles_hiring_for?: string;
   mrr_usd: number;
   billing_start_date: string;
@@ -19,10 +19,12 @@ interface OnboardRequest {
   notes?: string;
 }
 
-const PLAN_DETAILS = {
-  starter: { name: "Starter", candidates: "8-12", positions: "2" },
-  pro: { name: "Pro", candidates: "15-25", positions: "5" },
-  enterprise: { name: "Enterprise", candidates: "30-40", positions: "10+" },
+// Aligned with public pricing on hireaimio.com
+const PLAN_DETAILS: Record<OnboardRequest["plan"], { name: string; candidates: string; positions: string }> = {
+  starter:    { name: "Starter",    candidates: "10-15", positions: "1" },
+  growth:     { name: "Growth",     candidates: "30-45", positions: "Jusqu'à 3" },
+  scale:      { name: "Scale",      candidates: "60-90", positions: "Jusqu'à 6" },
+  enterprise: { name: "Enterprise", candidates: "Sur mesure", positions: "Sur mesure" },
 };
 
 export async function POST(request: Request) {

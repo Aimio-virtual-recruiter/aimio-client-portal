@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Loader2, Copy, AlertCircle } from "lucide-react";
 
+type PlanKey = "starter" | "growth" | "scale" | "enterprise";
+
 interface FormData {
   company_name: string;
   contact_first_name: string;
@@ -13,7 +15,7 @@ interface FormData {
   contact_role: string;
   country: string;
   company_size: string;
-  plan: "starter" | "pro" | "enterprise";
+  plan: PlanKey;
   roles_hiring_for: string;
   mrr_usd: number;
   billing_start_date: string;
@@ -21,10 +23,12 @@ interface FormData {
   notes: string;
 }
 
-const PLANS = {
-  starter: { name: "Starter", price: 1999, candidates: "8-12 qualifiés/mois" },
-  pro: { name: "Pro", price: 2999, candidates: "15-25 qualifiés/mois" },
-  enterprise: { name: "Enterprise", price: 4999, candidates: "30-40 qualifiés/mois" },
+// Aligned with public pricing on hireaimio.com (src/app/page.tsx)
+const PLANS: Record<PlanKey, { name: string; price: number; positions: string; candidates: string; desc: string }> = {
+  starter:    { name: "Starter",    price: 2999, positions: "1 poste",          candidates: "10-15 qualifiés/mois", desc: "Remplace le recrutement DIY" },
+  growth:     { name: "Growth",     price: 4999, positions: "Jusqu'à 3 postes", candidates: "30-45 qualifiés/mois", desc: "Remplace 1 recruteur interne" },
+  scale:      { name: "Scale",      price: 9999, positions: "Jusqu'à 6 postes", candidates: "60-90 qualifiés/mois", desc: "Remplace une équipe de 2" },
+  enterprise: { name: "Enterprise", price: 0,    positions: "Sur mesure",       candidates: "Sur mesure",            desc: "Remplace ta fonction recrutement complète" },
 };
 
 // ISO 3166 — full list (200+ countries) with flag emoji + French name
@@ -239,9 +243,9 @@ export default function OnboardNewClientPage() {
     contact_role: "",
     country: "",
     company_size: "",
-    plan: "pro",
+    plan: "growth",
     roles_hiring_for: "",
-    mrr_usd: 2999,
+    mrr_usd: 4999,
     billing_start_date: new Date().toISOString().split("T")[0],
     recruteur_lead: "",
     notes: "",
@@ -285,7 +289,7 @@ export default function OnboardNewClientPage() {
     setSubmitting(false);
   };
 
-  const updatePlan = (plan: "starter" | "pro" | "enterprise") => {
+  const updatePlan = (plan: PlanKey) => {
     setForm({ ...form, plan, mrr_usd: PLANS[plan].price });
   };
 
@@ -501,21 +505,34 @@ export default function OnboardNewClientPage() {
             <h2 className="text-[16px] font-bold text-zinc-900 mb-1">Plan souscrit</h2>
             <p className="text-[12px] text-zinc-500 mb-6">Quel plan le client a signé</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-              {(Object.keys(PLANS) as Array<keyof typeof PLANS>).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => updatePlan(key)}
-                  className={`p-4 rounded-xl border-2 text-left transition ${
-                    form.plan === key ? "border-[#2445EB] bg-[#2445EB]/5" : "border-zinc-200 hover:border-zinc-300"
-                  }`}
-                >
-                  <p className="text-[13px] font-bold text-zinc-900">{PLANS[key].name}</p>
-                  <p className="text-[22px] font-bold text-[#2445EB] my-1">${PLANS[key].price}<span className="text-[12px] text-zinc-400">/mo</span></p>
-                  <p className="text-[11px] text-zinc-500">{PLANS[key].candidates}</p>
-                </button>
-              ))}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              {(Object.keys(PLANS) as Array<PlanKey>).map((key) => {
+                const plan = PLANS[key];
+                const isPop = key === "growth";
+                const isCustom = key === "enterprise";
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => updatePlan(key)}
+                    className={`p-4 rounded-xl border-2 text-left transition relative ${
+                      form.plan === key ? "border-[#2445EB] bg-[#2445EB]/5" : "border-zinc-200 hover:border-zinc-300"
+                    }`}
+                  >
+                    {isPop && (
+                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#2445EB] text-white text-[9px] font-bold rounded-full uppercase tracking-wider">
+                        Populaire
+                      </span>
+                    )}
+                    <p className="text-[13px] font-bold text-zinc-900">{plan.name}</p>
+                    <p className="text-[20px] font-bold text-[#2445EB] my-1">
+                      {isCustom ? "Sur mesure" : <>${plan.price.toLocaleString()}<span className="text-[12px] text-zinc-400">/mo</span></>}
+                    </p>
+                    <p className="text-[10px] text-zinc-600 font-semibold">{plan.positions}</p>
+                    <p className="text-[10px] text-zinc-500">{plan.candidates}</p>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
