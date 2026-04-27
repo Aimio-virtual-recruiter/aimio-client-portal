@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase, getCurrentClientId } from "@/lib/supabase";
+import { SearchCriteriaForm, type SearchCriteria, emptyCriteria } from "@/components/SearchCriteriaForm";
 import {
   ArrowLeft,
   Briefcase,
@@ -14,10 +15,15 @@ import {
   AlertCircle,
   Loader2,
   Send,
+  Sparkles,
+  Rocket,
 } from "lucide-react";
 
-export default function NewMandatPage() {
+function NewMandatContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedClientId = searchParams.get("client") || "";
+
   const [form, setForm] = useState({
     title: "",
     department: "",
@@ -34,8 +40,9 @@ export default function NewMandatPage() {
     start_date: "",
     additional_context: "",
   });
+  const [criteria, setCriteria] = useState<SearchCriteria>(emptyCriteria());
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message: string; mandate_id?: string } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; message: string; mandate_id?: string; client_id?: string } | null>(null);
 
   const updateField = (field: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -46,11 +53,16 @@ export default function NewMandatPage() {
     setResult(null);
 
     try {
-      const clientId = await getCurrentClientId();
+      // Use preselected client_id from URL (admin/recruiter creating for a client)
+      // OR fall back to auth-resolved client (client creating their own mandate)
+      let clientId = preselectedClientId;
+      if (!clientId) {
+        clientId = (await getCurrentClientId()) || "";
+      }
       if (!clientId) {
         setResult({
           success: false,
-          message: "Vous devez être connecté pour créer un mandat.",
+          message: "Vous devez être connecté ou avoir un client sélectionné pour créer un mandat.",
         });
         setSubmitting(false);
         return;
@@ -93,6 +105,8 @@ export default function NewMandatPage() {
           work_mode: form.work_mode || null,
           status: "pending_review",
           scoring_criteria: [...mustHavesArr, ...niceToHavesArr],
+          search_criteria: criteria,
+          criteria_updated_at: new Date().toISOString(),
           candidates_delivered: 0,
         })
         .select()
@@ -120,9 +134,11 @@ export default function NewMandatPage() {
 
       setResult({
         success: true,
-        message:
-          "Votre mandat a été transmis à votre recruteur dédié. Vous recevrez une confirmation dans les 4 prochaines heures et le premier shortlist sous 5-7 jours.",
+        message: preselectedClientId
+          ? "Mandat créé avec critères Recruiter Lite. Tu peux maintenant lancer un sourcing."
+          : "Votre mandat a été transmis à votre recruteur dédié. Vous recevrez une confirmation dans les 4 prochaines heures.",
         mandate_id: data.id,
+        client_id: clientId,
       });
 
       // Reset form
@@ -142,6 +158,7 @@ export default function NewMandatPage() {
         start_date: "",
         additional_context: "",
       });
+      setCriteria(emptyCriteria());
     } catch (err) {
       setResult({
         success: false,
@@ -174,24 +191,34 @@ export default function NewMandatPage() {
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center">
           <CheckCircle2 size={44} className="text-emerald-500 mx-auto mb-4" />
           <h2 className="text-[18px] font-semibold text-zinc-900 mb-3">
-            Mandat reçu!
+            Mandat créé ✓
           </h2>
           <p className="text-[14px] text-zinc-600 leading-relaxed max-w-lg mx-auto mb-6">
             {result.message}
           </p>
-          <div className="flex items-center justify-center gap-3">
-            <Link
-              href={`/mandats/${result.mandate_id}`}
-              className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[13px] font-medium"
-            >
-              Voir mon mandat
-            </Link>
-            <button
-              onClick={() => setResult(null)}
-              className="px-6 py-2.5 border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-medium hover:bg-zinc-50"
-            >
-              Soumettre un autre mandat
-            </button>
+          <div className="flex flex-col gap-3 max-w-md mx-auto">
+            {preselectedClientId && (
+              <Link
+                href={`/recruiter/source?client=${result.client_id}&mandate=${result.mandate_id}`}
+                className="w-full py-3 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] text-white rounded-lg text-[14px] font-bold hover:opacity-90 transition flex items-center justify-center gap-2 shadow-lg shadow-[#2445EB]/20"
+              >
+                <Rocket size={14} /> Lancer le sourcing maintenant
+              </Link>
+            )}
+            <div className="flex gap-3">
+              <Link
+                href={`/mandats/${result.mandate_id}`}
+                className="flex-1 py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-medium hover:bg-zinc-50"
+              >
+                Voir le mandat
+              </Link>
+              <button
+                onClick={() => setResult(null)}
+                className="flex-1 py-2.5 border border-zinc-200 text-zinc-700 rounded-lg text-[13px] font-medium hover:bg-zinc-50"
+              >
+                Créer un autre mandat
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -422,6 +449,28 @@ export default function NewMandatPage() {
             </div>
           </div>
 
+          {/* Recruiter Lite Filters — collapsible sections */}
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <Sparkles size={18} className="text-[#2445EB] mt-0.5" />
+              <div>
+                <h2 className="text-[15px] font-bold text-zinc-900">Critères de recherche détaillés</h2>
+                <p className="text-[12px] text-zinc-600 mt-0.5">
+                  Précisez les critères Recruiter Lite (40+ filtres). <strong>Optionnel</strong> mais aide énormément
+                  le sourcing à trouver les bons candidats dès le 1er jour.
+                  Les sections sont fermées par défaut — ouvre seulement celles que tu veux remplir.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <SearchCriteriaForm
+            criteria={criteria}
+            onChange={setCriteria}
+            startStep={1}
+            defaultOpen={false}
+          />
+
           {result && !result.success && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-2">
               <AlertCircle size={15} className="text-red-600 mt-0.5 shrink-0" />
@@ -460,5 +509,13 @@ export default function NewMandatPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function NewMandatPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>}>
+      <NewMandatContent />
+    </Suspense>
   );
 }

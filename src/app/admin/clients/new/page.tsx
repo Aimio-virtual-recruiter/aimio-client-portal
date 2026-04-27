@@ -383,10 +383,10 @@ export default function OnboardNewClientPage() {
             <div className="flex flex-col gap-3">
               {result.client_id && (
                 <Link
-                  href={`/recruiter/source?client=${result.client_id}`}
+                  href={`/mandats/nouveau?client=${result.client_id}`}
                   className="w-full py-3 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] text-white rounded-lg text-[14px] font-bold text-center hover:opacity-90 transition flex items-center justify-center gap-2 shadow-lg shadow-[#2445EB]/20"
                 >
-                  🚀 Commencer une recherche pour ce client
+                  🎯 Créer le 1er mandat (avec critères Recruiter Lite)
                 </Link>
               )}
               <div className="flex gap-3">
