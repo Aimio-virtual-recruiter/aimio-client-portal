@@ -153,7 +153,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Client not found" }, { status: 404 });
       }
 
-      // Insert sourced candidate as delivered
+      // Insert sourced candidate as delivered.
+      // Build payload defensively — only include columns that exist in the schema.
+      // Append interview_notes to qualification_notes since interview_notes column may not exist.
+      const combinedNotes = [
+        body.qualification_notes,
+        body.interview_notes ? `\n\n--- Notes d'entrevue ---\n${body.interview_notes}` : "",
+      ].filter(Boolean).join("");
+
       const { data: candidate, error: insertError } = await supabase
         .from("sourced_candidates")
         .insert({
@@ -167,13 +174,12 @@ export async function POST(request: Request) {
           location_city: body.city,
           salary_expectation: body.salary_expectation,
           availability: body.availability,
-          qualification_notes: body.qualification_notes,
-          interview_notes: body.interview_notes,
+          qualification_notes: combinedNotes,
           ai_score: body.ai_score,
-          source: "manual",
+          ai_verdict: body.ai_score && body.ai_score >= 85 ? "STRONG_MATCH" : body.ai_score && body.ai_score >= 70 ? "GOOD_MATCH" : body.ai_score && body.ai_score >= 50 ? "BORDERLINE" : null,
+          source: "recruiter_delivered",
           status: "delivered",
           delivered_at: new Date().toISOString(),
-          delivered_to_client_id: body.client_id,
         })
         .select()
         .single();
