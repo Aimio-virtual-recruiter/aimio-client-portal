@@ -491,6 +491,22 @@ function SourcePageContent() {
           </div>
         </div>
 
+        {/* Quick action: manual entry — for candidates found via referrals/network */}
+        <div className="mb-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-[13px] font-bold text-purple-900">📝 Tu as déjà un candidat en tête ?</p>
+            <p className="text-[12px] text-purple-700 mt-0.5">
+              Référence, conférence, réseau, LinkedIn perso… ajoute-le manuellement et l&apos;IA le scorera quand même.
+            </p>
+          </div>
+          <Link
+            href={`/recruiter/source/manual${clientId ? `?client=${clientId}${mandateId ? `&mandate=${mandateId}` : ""}` : ""}`}
+            className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[12px] font-semibold transition"
+          >
+            <Plus size={12} /> Ajouter manuellement
+          </Link>
+        </div>
+
         {/* Step 1 — Client + position */}
         <Section
           step={1}
