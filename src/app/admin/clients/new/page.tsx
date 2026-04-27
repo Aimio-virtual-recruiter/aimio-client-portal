@@ -290,7 +290,19 @@ export default function OnboardNewClientPage() {
   };
 
   const updatePlan = (plan: PlanKey) => {
-    setForm({ ...form, plan, mrr_usd: PLANS[plan].price });
+    // Enterprise = custom pricing → don't reset MRR (user types own value).
+    // Other plans → reset to default plan price.
+    if (plan === "enterprise") {
+      setForm((prev) => ({ ...prev, plan, mrr_usd: prev.mrr_usd > 0 ? prev.mrr_usd : 14999 }));
+      // Auto-focus the MRR input so admin can immediately type custom amount
+      setTimeout(() => {
+        const mrrInput = document.querySelector<HTMLInputElement>('input[name="mrr_usd_field"]');
+        mrrInput?.focus();
+        mrrInput?.select();
+      }, 50);
+    } else {
+      setForm({ ...form, plan, mrr_usd: PLANS[plan].price });
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -535,13 +547,23 @@ export default function OnboardNewClientPage() {
               })}
             </div>
 
+            {form.plan === "enterprise" && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 text-[12px] text-purple-800">
+                💡 <strong>Enterprise = prix sur mesure.</strong> Tape le montant négocié avec le client dans le champ MRR ci-dessous (USD/mois).
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">MRR USD *</label>
+                <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">
+                  MRR USD * {form.plan === "enterprise" && <span className="text-purple-600 normal-case font-normal">— sur mesure</span>}
+                </label>
                 <input
                   type="number"
                   required
+                  name="mrr_usd_field"
                   value={form.mrr_usd}
+                  placeholder={form.plan === "enterprise" ? "ex: 14999" : ""}
                   onChange={(e) => setForm({ ...form, mrr_usd: parseInt(e.target.value) || 0 })}
                   className="w-full px-4 py-2.5 rounded-lg border border-zinc-200 text-[14px] focus:border-[#2445EB] focus:ring-2 focus:ring-[#2445EB]/10 outline-none"
                 />
