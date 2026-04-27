@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase, getCurrentClientId } from "@/lib/supabase";
@@ -23,6 +23,8 @@ function NewMandatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedClientId = searchParams.get("client") || "";
+  const editMandateId = searchParams.get("edit") || "";
+  const isEditMode = !!editMandateId;
 
   const [form, setForm] = useState({
     title: "",
@@ -42,7 +44,67 @@ function NewMandatContent() {
   });
   const [criteria, setCriteria] = useState<SearchCriteria>(emptyCriteria());
   const [submitting, setSubmitting] = useState(false);
+  const [loadingMandate, setLoadingMandate] = useState(isEditMode);
+  const [clientName, setClientName] = useState<string>("");
   const [result, setResult] = useState<{ success: boolean; message: string; mandate_id?: string; client_id?: string } | null>(null);
+
+  // EDIT MODE: load existing mandate
+  useEffect(() => {
+    if (!isEditMode) {
+      // For new mandate, optionally load client name to display
+      if (preselectedClientId) {
+        supabase
+          .from("clients")
+          .select("company_name")
+          .eq("id", preselectedClientId)
+          .single()
+          .then(({ data }) => setClientName(data?.company_name || ""));
+      }
+      return;
+    }
+    (async () => {
+      const { data, error } = await supabase
+        .from("mandates")
+        .select("*, clients(company_name)")
+        .eq("id", editMandateId)
+        .single();
+      if (error || !data) {
+        setLoadingMandate(false);
+        return;
+      }
+      // Pre-fill form with existing mandate data
+      setForm({
+        title: data.title || "",
+        department: data.department || "",
+        description: data.description || "",
+        must_haves: (data.scoring_criteria || [])
+          .filter((c: { weight: number }) => c.weight === 10)
+          .map((c: { criteria: string }) => c.criteria)
+          .join("\n"),
+        nice_to_haves: (data.scoring_criteria || [])
+          .filter((c: { weight: number }) => c.weight === 5)
+          .map((c: { criteria: string }) => c.criteria)
+          .join("\n"),
+        salary_min: data.salary_min ? String(data.salary_min) : "",
+        salary_max: data.salary_max ? String(data.salary_max) : "",
+        location: data.location || "",
+        work_mode: data.work_mode || "",
+        urgency: "normal",
+        team_size: "",
+        reporting_to: "",
+        start_date: "",
+        additional_context: "",
+      });
+      if (data.search_criteria) {
+        setCriteria({ ...emptyCriteria(), ...data.search_criteria });
+      }
+      // Type-cast clients data — Supabase select with relation returns nested object
+      const clientsData = data.clients as { company_name?: string } | { company_name?: string }[] | null;
+      const cName = Array.isArray(clientsData) ? clientsData[0]?.company_name : clientsData?.company_name;
+      setClientName(cName || "");
+      setLoadingMandate(false);
+    })();
+  }, [isEditMode, editMandateId, preselectedClientId]);
 
   const updateField = (field: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -92,25 +154,36 @@ function NewMandatContent() {
         .filter(Boolean)
         .join("");
 
-      const { data, error } = await supabase
-        .from("mandates")
-        .insert({
-          company_id: clientId,
-          title: form.title,
-          department: form.department || null,
-          description,
-          salary_min: form.salary_min ? parseFloat(form.salary_min) : null,
-          salary_max: form.salary_max ? parseFloat(form.salary_max) : null,
-          location: form.location || null,
-          work_mode: form.work_mode || null,
-          status: "pending_review",
-          scoring_criteria: [...mustHavesArr, ...niceToHavesArr],
-          search_criteria: criteria,
-          criteria_updated_at: new Date().toISOString(),
-          candidates_delivered: 0,
-        })
-        .select()
-        .single();
+      const mandatePayload = {
+        company_id: clientId,
+        title: form.title,
+        department: form.department || null,
+        description,
+        salary_min: form.salary_min ? parseFloat(form.salary_min) : null,
+        salary_max: form.salary_max ? parseFloat(form.salary_max) : null,
+        location: form.location || null,
+        work_mode: form.work_mode || null,
+        scoring_criteria: [...mustHavesArr, ...niceToHavesArr],
+        search_criteria: criteria,
+        criteria_updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = isEditMode
+        ? await supabase
+            .from("mandates")
+            .update(mandatePayload)
+            .eq("id", editMandateId)
+            .select()
+            .single()
+        : await supabase
+            .from("mandates")
+            .insert({
+              ...mandatePayload,
+              status: "pending_review",
+              candidates_delivered: 0,
+            })
+            .select()
+            .single();
 
       if (error) throw error;
 
@@ -134,7 +207,9 @@ function NewMandatContent() {
 
       setResult({
         success: true,
-        message: preselectedClientId
+        message: isEditMode
+          ? "Mandat mis à jour avec succès. Les critères raffinés s'appliqueront aux prochains sourcings."
+          : preselectedClientId
           ? "Mandat créé avec critères Recruiter Lite. Tu peux maintenant lancer un sourcing."
           : "Votre mandat a été transmis à votre recruteur dédié. Vous recevrez une confirmation dans les 4 prochaines heures.",
         mandate_id: data.id,
@@ -177,15 +252,30 @@ function NewMandatContent() {
         <ArrowLeft size={14} /> Retour aux mandats
       </Link>
 
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-[24px] font-bold text-zinc-900 tracking-tight">
-          Soumettre un nouveau mandat
+          {isEditMode ? "Modifier le mandat" : "Nouveau mandat"}
         </h1>
-        <p className="text-[14px] text-zinc-500 mt-2">
-          Remplissez ce formulaire. Votre recruteur dédié prendra contact sous 4 heures
-          et vous recevrez votre premier shortlist en 5-7 jours.
-        </p>
+        {clientName ? (
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-[#2445EB]/10 border border-[#2445EB]/20 rounded-lg">
+            <Briefcase size={12} className="text-[#2445EB]" />
+            <span className="text-[12px] text-[#2445EB] font-semibold">Pour le client : {clientName}</span>
+          </div>
+        ) : (
+          <p className="text-[14px] text-zinc-500 mt-2">
+            {isEditMode
+              ? "Modifiez les critères pour optimiser le sourcing — vos changements s'appliqueront au prochain run."
+              : "Votre recruteur dédié prendra contact sous 4 heures."}
+          </p>
+        )}
       </div>
+
+      {loadingMandate && (
+        <div className="bg-white rounded-2xl border border-zinc-200 p-12 flex items-center justify-center mb-4">
+          <Loader2 size={20} className="animate-spin text-zinc-300" />
+          <span className="ml-3 text-[13px] text-zinc-500">Chargement du mandat…</span>
+        </div>
+      )}
 
       {result?.success ? (
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center">
@@ -293,14 +383,22 @@ function NewMandatContent() {
             <div className="flex items-center gap-2 mb-4">
               <DollarSign size={14} className="text-[#6C2BD9]" />
               <h2 className="text-[13px] font-semibold text-zinc-900">
-                Rémunération & localisation
+                Ce que le client offre <span className="text-zinc-400 font-normal">(infos internes — non utilisé pour le sourcing)</span>
               </h2>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                ℹ️ <strong>Important :</strong> Ces champs (salaire, mode de travail) ne sont <strong>PAS utilisés pour filtrer les candidats LinkedIn</strong> —
+                LinkedIn n&apos;expose pas ces infos sur les profils. Ils servent au recruteur pour qualifier le candidat
+                (matcher l&apos;offre du client à ses attentes) et apparaissent dans la fiche du candidat livré au client.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
-                  Salaire min (CAD)
+                  Salaire offert min (CAD)
                 </label>
                 <input
                   type="number"
@@ -312,7 +410,7 @@ function NewMandatContent() {
               </div>
               <div>
                 <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
-                  Salaire max (CAD)
+                  Salaire offert max (CAD)
                 </label>
                 <input
                   type="number"
@@ -325,19 +423,22 @@ function NewMandatContent() {
               <div>
                 <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
                   <MapPin size={10} className="inline mr-1" />
-                  Localisation
+                  Lieu du poste
                 </label>
                 <input
                   type="text"
                   value={form.location}
                   onChange={(e) => updateField("location", e.target.value)}
-                  placeholder="ex: Montréal, QC"
+                  placeholder="ex: Montréal, QC (où sera basé le poste)"
                   className="w-full px-3 py-2.5 border border-zinc-200 rounded-lg text-[13px] focus:outline-none focus:border-[#6C2BD9]"
                 />
+                <p className="text-[10px] text-zinc-400 mt-1">
+                  Pour filtrer les candidats par ville, utilise « Géographie » dans Recruiter Lite ↓
+                </p>
               </div>
               <div>
                 <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">
-                  Mode de travail
+                  Mode de travail offert
                 </label>
                 <select
                   value={form.work_mode}
@@ -349,6 +450,9 @@ function NewMandatContent() {
                   <option value="hybrid">Hybride</option>
                   <option value="remote">100% Remote</option>
                 </select>
+                <p className="text-[10px] text-zinc-400 mt-1">
+                  Pour filtrer les candidats ouverts au remote, coche « Ouvert au télétravail » dans Recruiter Lite ↓
+                </p>
               </div>
             </div>
           </div>
@@ -449,16 +553,22 @@ function NewMandatContent() {
             </div>
           </div>
 
-          {/* Recruiter Lite Filters — collapsible sections */}
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-5">
-            <div className="flex items-start gap-3 mb-4">
-              <Sparkles size={18} className="text-[#2445EB] mt-0.5" />
+          {/* Recruiter Lite Filters — same as LinkedIn Recruiter Lite */}
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-[#2445EB]/30 rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#2445EB] to-[#4B5DF5] flex items-center justify-center shrink-0">
+                <Sparkles size={18} className="text-white" />
+              </div>
               <div>
-                <h2 className="text-[15px] font-bold text-zinc-900">Critères de recherche détaillés</h2>
-                <p className="text-[12px] text-zinc-600 mt-0.5">
-                  Précisez les critères Recruiter Lite (40+ filtres). <strong>Optionnel</strong> mais aide énormément
-                  le sourcing à trouver les bons candidats dès le 1er jour.
-                  Les sections sont fermées par défaut — ouvre seulement celles que tu veux remplir.
+                <h2 className="text-[16px] font-bold text-zinc-900">🎯 Critères Recruiter Lite (40+ filtres)</h2>
+                <p className="text-[13px] text-zinc-700 mt-1 leading-relaxed">
+                  Mêmes filtres que LinkedIn Recruiter Lite : titres d&apos;emploi, langues, écoles, employeurs cibles, certifications,
+                  signaux Open to Work, etc. <strong>Plus tu remplis, meilleur est le sourcing</strong> dès le 1er jour.
+                </p>
+                <p className="text-[12px] text-[#2445EB] mt-2 font-semibold">
+                  {isEditMode
+                    ? "↓ Sections ouvertes : modifie les critères et sauve"
+                    : "↓ Clique pour ouvrir chaque section et remplir ce qui s'applique"}
                 </p>
               </div>
             </div>
@@ -468,7 +578,7 @@ function NewMandatContent() {
             criteria={criteria}
             onChange={setCriteria}
             startStep={1}
-            defaultOpen={false}
+            defaultOpen={isEditMode}
           />
 
           {result && !result.success && (
@@ -488,24 +598,30 @@ function NewMandatContent() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-3 bg-[#6C2BD9] hover:bg-[#5521B5] disabled:opacity-50 text-white rounded-lg text-[14px] font-semibold flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] hover:opacity-90 disabled:opacity-50 text-white rounded-lg text-[14px] font-semibold flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>
-                  <Loader2 size={15} className="animate-spin" /> Envoi du mandat...
+                  <Loader2 size={15} className="animate-spin" /> {isEditMode ? "Sauvegarde..." : "Création..."}
+                </>
+              ) : isEditMode ? (
+                <>
+                  <CheckCircle2 size={15} /> Sauvegarder les modifications
                 </>
               ) : (
                 <>
-                  <Send size={15} /> Soumettre le mandat à mon recruteur
+                  <Send size={15} /> {clientName ? "Créer le mandat" : "Soumettre le mandat"}
                 </>
               )}
             </button>
           </div>
 
-          <p className="text-[11px] text-zinc-400 text-center pt-2">
-            Votre recruteur vous contactera sous 4 heures pour un call de briefing.
-            Premier shortlist livré en 5-7 jours.
-          </p>
+          {!isEditMode && !clientName && (
+            <p className="text-[11px] text-zinc-400 text-center pt-2">
+              Votre recruteur vous contactera sous 4 heures pour un call de briefing.
+              Premier shortlist livré en 5-7 jours.
+            </p>
+          )}
         </form>
       )}
     </div>
