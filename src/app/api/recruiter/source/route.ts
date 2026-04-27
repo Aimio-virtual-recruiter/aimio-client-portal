@@ -73,6 +73,7 @@ interface RunSourcingRequest {
     | "apify_recruiter_lite"
     | "apollo"
     | "indeed_resume"
+    | "internal_db"
   )[];
   recruiter_email?: string;
 }
@@ -432,6 +433,95 @@ async function runApolloSearch(
   }
 }
 
+// ============ INTERNAL DB SOURCE — reuse already-sourced candidates matching criteria ============
+
+interface SupabaseClient {
+  from: (table: string) => {
+    select: (columns: string) => unknown;
+  };
+}
+
+async function runInternalDbSearch(
+  supabase: SupabaseClient,
+  searchBrief: SearchBrief,
+  searchCriteria: SearchCriteria | undefined,
+  excludeClientId: string,
+  maxResults: number
+): Promise<NormalizedCandidate[]> {
+  try {
+    // Pull recent (last 6 months) candidates from sourced_candidates that:
+    // - Belong to a DIFFERENT client (don't re-pitch same candidate to same client)
+    // - Are not currently delivered/hired (not actively in another pipeline)
+    // - Have basic data (name, email, linkedin_url)
+    const sixMonthsAgo = new Date(Date.now() - 180 * 86400000).toISOString();
+
+    // Cast to any here because building dynamic Supabase chains is hard to type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let query: any = (supabase as unknown as { from: (t: string) => any }).from("sourced_candidates")
+      .select("*")
+      .neq("client_id", excludeClientId)
+      .gte("created_at", sixMonthsAgo)
+      .not("status", "in", "(hired,client_interested,qualified)") // not already in active pipeline
+      .or("linkedin_url.not.is.null,email.not.is.null"); // must have contact info
+
+    // Filter by location if criteria has locations
+    const locations = searchCriteria?.locations || searchBrief.location_filters;
+    if (locations && locations.length > 0) {
+      query = query.or(locations.map((loc) => `location_city.ilike.%${loc}%,location_country.ilike.%${loc}%`).join(","));
+    }
+
+    // Filter by current title keywords if available
+    const titleKeywords = searchCriteria?.jobTitlesCurrent || searchBrief.seniority_titles;
+    if (titleKeywords && titleKeywords.length > 0) {
+      const titleFilters = titleKeywords.slice(0, 5).map((t) => `current_title.ilike.%${t}%`).join(",");
+      query = query.or(titleFilters);
+    }
+
+    query = query.order("ai_score", { ascending: false, nullsFirst: false }).limit(maxResults);
+
+    const { data, error } = await query;
+    if (error) {
+      console.error("[Internal DB] Query error:", error.message);
+      return [];
+    }
+
+    return ((data as Array<{
+      id: string;
+      first_name?: string;
+      last_name?: string;
+      full_name?: string;
+      current_title?: string;
+      current_company?: string;
+      linkedin_url?: string;
+      email?: string;
+      email_verified?: boolean;
+      phone?: string;
+      location_city?: string;
+      location_country?: string;
+      headline?: string;
+    }>) || []).map((c) => ({
+      source: "internal_db",
+      external_id: c.id,
+      first_name: c.first_name || "",
+      last_name: c.last_name || "",
+      full_name: c.full_name || `${c.first_name || ""} ${c.last_name || ""}`.trim(),
+      current_title: c.current_title || "",
+      current_company: c.current_company || "",
+      linkedin_url: c.linkedin_url || null,
+      email: c.email || null,
+      email_verified: c.email_verified || false,
+      phone: c.phone || null,
+      location_city: c.location_city || "",
+      location_country: c.location_country || "",
+      headline: c.headline || "",
+      raw: c,
+    }));
+  } catch (err) {
+    console.error("[Internal DB] Exception:", err);
+    return [];
+  }
+}
+
 // ============ DEDUPLICATION ============
 
 function dedupe(candidates: NormalizedCandidate[]): NormalizedCandidate[] {
@@ -534,6 +624,17 @@ export async function POST(request: Request) {
       }
       if (sources.includes("apollo")) {
         promises.push(runApolloSearch(body.search_brief, maxPerSource));
+      }
+      if (sources.includes("internal_db")) {
+        promises.push(
+          runInternalDbSearch(
+            supabase as unknown as SupabaseClient,
+            body.search_brief,
+            body.search_criteria,
+            body.client_id,
+            maxPerSource
+          )
+        );
       }
 
       const results = await Promise.all(promises);

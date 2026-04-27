@@ -3,31 +3,39 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, UserPlus, Briefcase, CheckSquare, MessageCircle, Settings, LogOut, Shield, Send, Search, Database, UserCheck, TrendingUp, Flame, Trophy, Phone, Activity, Users2, Sparkles, CreditCard } from "lucide-react";
+import { LayoutDashboard, Briefcase, Settings, LogOut, Shield, Sparkles, CreditCard, Users, ChevronDown, ChevronRight, BarChart3 } from "lucide-react";
+import { useState } from "react";
 
-const navItems = [
+// Main nav — kept lean: only the things admin uses daily
+const mainNavItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Onboard client RV", href: "/admin/clients/new", icon: Sparkles, badge: "NEW" },
-  { label: "Billing · Invoices", href: "/admin/billing", icon: CreditCard },
-  { label: "Sales · Live", href: "/admin/sales", icon: Activity },
-  { label: "Lead Queue", href: "/admin/queue", icon: Phone },
-  { label: "Prospects DB", href: "/admin/prospects", icon: Users2 },
-  { label: "Pilotage", href: "/admin/pilotage", icon: TrendingUp },
-  { label: "Nouveau placement", href: "/admin/placements/new", icon: Trophy },
-  { label: "Réactivation 500+", href: "/admin/reactivation", icon: Flame },
-  { label: "Sourcing Apollo", href: "/admin/sourcing", icon: Search },
-  { label: "Enrich (Apollo)", href: "/admin/sourcing/enrich", icon: UserCheck },
-  { label: "Sourcing Apify", href: "/admin/sourcing/apify", icon: Database },
-  { label: "New candidate", href: "/admin/candidates/new", icon: UserPlus },
-  { label: "Outreach", href: "/admin/outreach", icon: Send },
-  { label: "Mandates", href: "/admin/mandates", icon: Briefcase },
-  { label: "Approvals", href: "/admin/approvals", icon: CheckSquare, badge: 2 },
-  { label: "Client messages", href: "/admin/messages", icon: MessageCircle },
+  { label: "Clients", href: "/admin/clients", icon: Users },
+  { label: "Onboard client", href: "/admin/clients/new", icon: Sparkles, badge: "NEW" },
+  { label: "Mandats", href: "/admin/mandates", icon: Briefcase },
+  { label: "Billing", href: "/admin/billing", icon: CreditCard },
+  { label: "Recruteurs", href: "/admin/recruiters", icon: Users },
+  { label: "Analytics", href: "/admin/analytics/outreach", icon: BarChart3 },
   { label: "Settings", href: "/admin/settings", icon: Settings },
+];
+
+// Secondary tools — collapsible (less-used, advanced/legacy features)
+const advancedNavItems = [
+  { label: "Sales pipeline", href: "/admin/sales" },
+  { label: "Lead queue", href: "/admin/queue" },
+  { label: "Prospects DB", href: "/admin/prospects" },
+  { label: "Pilotage", href: "/admin/pilotage" },
+  { label: "Réactivation 500+", href: "/admin/reactivation" },
+  { label: "Sourcing Apollo (manuel)", href: "/admin/sourcing" },
+  { label: "Sourcing Apify (manuel)", href: "/admin/sourcing/apify" },
+  { label: "Enrich Apollo", href: "/admin/sourcing/enrich" },
+  { label: "New placement", href: "/admin/placements/new" },
+  { label: "New candidate (legacy)", href: "/admin/candidates/new" },
+  { label: "Admin outreach", href: "/admin/outreach" },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   return (
     <aside className="w-56 bg-zinc-900 min-h-screen flex flex-col">
@@ -48,9 +56,9 @@ export function AdminSidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-3 space-y-px">
-        {navItems.map((item) => {
+      {/* Main navigation */}
+      <nav className="flex-1 px-3 py-3 space-y-px overflow-y-auto">
+        {mainNavItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           return (
@@ -58,7 +66,7 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 px-3 h-8 rounded-md text-[13px] transition-premium relative",
+                "flex items-center gap-2.5 px-3 h-8 rounded-md text-[13px] transition relative",
                 isActive
                   ? "bg-zinc-800 text-white font-medium"
                   : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
@@ -74,17 +82,45 @@ export function AdminSidebar() {
             </Link>
           );
         })}
+
+        {/* Advanced (collapsed by default) */}
+        <div className="pt-4">
+          <button
+            onClick={() => setAdvancedOpen(!advancedOpen)}
+            className="w-full flex items-center gap-1.5 px-3 h-7 text-[10px] text-zinc-600 hover:text-zinc-400 uppercase tracking-wider font-semibold transition"
+          >
+            {advancedOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+            Outils avancés
+          </button>
+          {advancedOpen && (
+            <div className="mt-1 space-y-px">
+              {advancedNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-2.5 px-3 h-7 rounded-md text-[12px] transition pl-7",
+                      isActive
+                        ? "bg-zinc-800 text-white"
+                        : "text-zinc-600 hover:bg-zinc-800/50 hover:text-zinc-400"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* User */}
       <div className="px-3 pb-3 border-t border-zinc-800 pt-3">
-        <div className="px-3 py-2 mb-2">
-          <p className="text-[12px] text-zinc-400 font-medium">Alexandre D.</p>
-          <p className="text-[10px] text-zinc-600">Gestionnaire IA</p>
-        </div>
         <Link
           href="/"
-          className="flex items-center gap-2.5 px-3 h-8 rounded-md text-[13px] text-zinc-600 hover:text-red-400 hover:bg-zinc-800/50 transition-premium"
+          className="flex items-center gap-2.5 px-3 h-8 rounded-md text-[13px] text-zinc-600 hover:text-red-400 hover:bg-zinc-800/50 transition"
         >
           <LogOut size={15} strokeWidth={1.5} />
           Déconnexion

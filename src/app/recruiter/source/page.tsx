@@ -234,13 +234,17 @@ function SourcePageContent() {
   const [criteria, setCriteria] = useState<SearchCriteria>(emptyCriteria());
   const [savingCriteria, setSavingCriteria] = useState(false);
   const [criteriaSaved, setCriteriaSaved] = useState(false);
-  const [selectedSources, setSelectedSources] = useState({
-    apify_linkedin: true,
+  // Single source selection — pick ONE source per sourcing run for clarity.
+  // Matches user's vision: "tu as l'option de choisir apify ou apollo ou banque de candidat"
+  const [primarySource, setPrimarySource] = useState<"apify_linkedin" | "apollo" | "internal_db">("apify_linkedin");
+  const selectedSources = {
+    apify_linkedin: primarySource === "apify_linkedin",
     apify_sales_nav: false,
     apify_recruiter_lite: false,
-    apollo: true,
+    apollo: primarySource === "apollo",
     indeed_resume: false,
-  });
+    internal_db: primarySource === "internal_db",
+  };
 
   const [brief, setBrief] = useState<SearchBrief | null>(null);
   const [generatingBrief, setGeneratingBrief] = useState(false);
@@ -1015,63 +1019,50 @@ function SourcePageContent() {
           </div>
         )}
 
-        {/* Sources + launch */}
+        {/* Source picker — 3 big cards (Apify / Apollo / Banque interne) + launch */}
         {brief && (
           <div className="bg-white rounded-2xl border border-zinc-200 p-6 mb-4">
             <div className="flex items-center gap-2 mb-4">
               <Rocket size={16} className="text-[#2445EB]" />
-              <h2 className="text-[16px] font-bold text-zinc-900">Sources et volume</h2>
+              <h2 className="text-[16px] font-bold text-zinc-900">Choisis ta source</h2>
             </div>
 
-            <div className="space-y-3 mb-4">
-              <SourceCheckbox
-                checked={selectedSources.apify_linkedin}
-                onChange={(v) =>
-                  setSelectedSources({ ...selectedSources, apify_linkedin: v })
-                }
-                label="LinkedIn Public Search (Apify)"
-                desc="Recherche publique LinkedIn — pas besoin de cookie"
-                cost="$0.50 / 50 profils"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <SourceCard
+                active={primarySource === "apify_linkedin"}
+                onClick={() => setPrimarySource("apify_linkedin")}
+                badge="🔵"
+                title="Apify LinkedIn"
+                desc="Scrape LinkedIn public + emails inclus. Sans cookie."
+                detail="apimaestro/linkedin-profile-search-scraper"
+                cost={`~$${(maxResults * 0.005).toFixed(2)} pour ${maxResults} profils`}
+                bestFor="Volume + emails vérifiés"
               />
-              <SourceCheckbox
-                checked={selectedSources.apify_sales_nav}
-                onChange={(v) =>
-                  setSelectedSources({ ...selectedSources, apify_sales_nav: v })
-                }
-                label="LinkedIn Sales Navigator (Apify)"
-                desc="Filtres avancés — cookie Sales Nav requis"
-                cost="$2.00 / 50 profils"
-              />
-              <SourceCheckbox
-                checked={selectedSources.apify_recruiter_lite}
-                onChange={(v) =>
-                  setSelectedSources({ ...selectedSources, apify_recruiter_lite: v })
-                }
-                label="LinkedIn Recruiter Lite (Apify)"
-                desc="Tous les filtres avancés (langues, écoles, employeurs passés)"
-                cost="$3.00 / 50 profils"
-              />
-              <SourceCheckbox
-                checked={selectedSources.apollo}
-                onChange={(v) => setSelectedSources({ ...selectedSources, apollo: v })}
-                label="Apollo.io"
-                desc="275M contacts avec emails vérifiés (faible au QC francophone)"
+              <SourceCard
+                active={primarySource === "apollo"}
+                onClick={() => setPrimarySource("apollo")}
+                badge="🟢"
+                title="Apollo.io"
+                desc="275M contacts B2B. Bons emails pour USA/UK. Faible au QC francophone."
+                detail="API Apollo — credits"
                 cost="Inclus dans plan Apollo"
+                bestFor="Marchés US/UK"
               />
-              <SourceCheckbox
-                checked={selectedSources.indeed_resume}
-                onChange={(v) =>
-                  setSelectedSources({ ...selectedSources, indeed_resume: v })
-                }
-                label="Indeed Resume Canada"
-                desc="CV publics canadiens — fort au Québec, non-tech"
-                cost="Inclus dans plan Indeed"
+              <SourceCard
+                active={primarySource === "internal_db"}
+                onClick={() => setPrimarySource("internal_db")}
+                badge="🟣"
+                title="Banque interne"
+                desc="Cherche dans les candidats déjà sourcés pour autres clients matchant les critères."
+                detail="Réutilise + économise du budget API"
+                cost="Gratuit"
+                bestFor="2è/3è mandat similaire"
               />
             </div>
 
             <div className="mb-4">
               <label className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-2 block">
-                Profils par source : <span className="text-zinc-900 font-bold">{maxResults}</span>
+                Nombre de candidats à ramener : <span className="text-zinc-900 font-bold">{maxResults}</span>
               </label>
               <input
                 type="range"
@@ -1091,7 +1082,7 @@ function SourcePageContent() {
             <button
               onClick={handleRunSourcing}
               disabled={runningSourcing}
-              className="w-full py-4 bg-[#2445EB] text-white rounded-lg text-[14px] font-bold hover:bg-[#1A36C4] disabled:opacity-40 transition flex items-center justify-center gap-2 shadow-lg shadow-[#2445EB]/20"
+              className="w-full py-4 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] text-white rounded-lg text-[15px] font-bold hover:opacity-90 disabled:opacity-40 transition flex items-center justify-center gap-2 shadow-lg shadow-[#2445EB]/20"
             >
               {runningSourcing ? (
                 <>
@@ -1104,13 +1095,9 @@ function SourcePageContent() {
               )}
             </button>
             <p className="text-[11px] text-zinc-400 text-center mt-2">
-              Coût estimé : ~$
-              {(
-                (selectedSources.apify_linkedin ? 0.5 : 0) +
-                (selectedSources.apify_sales_nav ? 2 : 0) +
-                (selectedSources.apify_recruiter_lite ? 3 : 0) +
-                (selectedSources.apollo ? 0.3 : 0)
-              ).toFixed(2)}
+              {primarySource === "internal_db"
+                ? "Source gratuite — pas d'appel API externe"
+                : `Coût estimé : ~$${primarySource === "apify_linkedin" ? (maxResults * 0.005).toFixed(2) : "0.30"}`}
             </p>
           </div>
         )}
@@ -1517,39 +1504,49 @@ function BriefArrayField({
   );
 }
 
-function SourceCheckbox({
-  checked,
-  onChange,
-  label,
+function SourceCard({
+  active,
+  onClick,
+  badge,
+  title,
   desc,
+  detail,
   cost,
+  bestFor,
 }: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
+  active: boolean;
+  onClick: () => void;
+  badge: string;
+  title: string;
   desc: string;
+  detail: string;
   cost: string;
+  bestFor: string;
 }) {
   return (
-    <label
-      className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition ${
-        checked ? "border-[#2445EB] bg-[#2445EB]/5" : "border-zinc-200 hover:border-zinc-300"
+    <button
+      type="button"
+      onClick={onClick}
+      className={`text-left p-4 rounded-xl border-2 transition relative ${
+        active
+          ? "border-[#2445EB] bg-[#2445EB]/5 shadow-md shadow-[#2445EB]/10"
+          : "border-zinc-200 bg-white hover:border-zinc-300"
       }`}
     >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 accent-[#2445EB]"
-      />
-      <div className="flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[13px] font-semibold text-zinc-900">{label}</p>
-          <span className="text-[11px] text-zinc-400">{cost}</span>
-        </div>
-        <p className="text-[12px] text-zinc-500">{desc}</p>
+      {active && (
+        <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#2445EB] text-white text-[12px] flex items-center justify-center font-bold">
+          ✓
+        </span>
+      )}
+      <div className="text-[24px] mb-2">{badge}</div>
+      <p className="text-[14px] font-bold text-zinc-900 mb-1">{title}</p>
+      <p className="text-[12px] text-zinc-600 leading-relaxed mb-3">{desc}</p>
+      <div className="space-y-1 pt-2 border-t border-zinc-100">
+        <p className="text-[10px] text-zinc-400 font-mono">{detail}</p>
+        <p className="text-[11px] text-zinc-700"><strong>Coût :</strong> {cost}</p>
+        <p className="text-[11px] text-emerald-700"><strong>Idéal pour :</strong> {bestFor}</p>
       </div>
-    </label>
+    </button>
   );
 }
 
