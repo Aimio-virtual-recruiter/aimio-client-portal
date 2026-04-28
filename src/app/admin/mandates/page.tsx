@@ -1,226 +1,260 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase, type Mandate } from "@/lib/supabase";
-import { toast } from "@/lib/toast";
-import { Plus, Briefcase, MapPin, DollarSign, Users, Loader2, CheckCircle2, Pause, X } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  Plus,
+  Briefcase,
+  MapPin,
+  DollarSign,
+  Loader2,
+  ChevronRight,
+  Building2,
+  Search,
+  Filter,
+} from "lucide-react";
 
-interface ClientLite {
+interface MandateRow {
   id: string;
-  company_name: string;
+  title: string | null;
+  department: string | null;
+  location: string | null;
+  work_mode: string | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  status: string;
+  candidates_delivered: number | null;
+  search_criteria: Record<string, unknown> | null;
+  created_at: string;
+  company_id: string;
+  clients?: { company_name: string } | null;
 }
 
-export default function AdminMandatesPage() {
-  const [mandates, setMandates] = useState<Mandate[]>([]);
-  const [clients, setClients] = useState<ClientLite[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [creating, setCreating] = useState(false);
+const STATUS_PILL: Record<string, { label: string; color: string; dot: string }> = {
+  active: { label: "Actif", color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+  pending_review: { label: "En revue", color: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
+  paused: { label: "Pause", color: "bg-zinc-100 text-zinc-700 border-zinc-200", dot: "bg-zinc-400" },
+  filled: { label: "Comblé", color: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
+  closed: { label: "Fermé", color: "bg-zinc-100 text-zinc-700 border-zinc-200", dot: "bg-zinc-400" },
+};
 
-  const [form, setForm] = useState({
-    title: "",
-    department: "",
-    description: "",
-    salary_min: "",
-    salary_max: "",
-    location: "",
-    work_mode: "Hybrid",
-    company_id: "", // No more hardcoded UUID — admin must pick a client
-  });
+export default function AdminMandatesPage() {
+  const [mandates, setMandates] = useState<MandateRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
-    loadAll();
+    const load = async () => {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = await supabase
+        .from("mandates")
+        .select("*, clients(company_name)")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      setMandates((data as MandateRow[]) || []);
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  async function loadAll() {
-    const [mandRes, clientRes] = await Promise.all([
-      supabase.from("mandates").select("*, clients(company_name)").order("created_at", { ascending: false }).limit(200),
-      supabase.from("clients").select("id, company_name").order("company_name"),
-    ]);
-    setMandates((mandRes.data as Mandate[]) || []);
-    setClients(clientRes.data || []);
-    setLoading(false);
+  const filtered = mandates.filter((m) => {
+    if (statusFilter !== "all" && m.status !== statusFilter) return false;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      m.title?.toLowerCase().includes(q) ||
+      m.location?.toLowerCase().includes(q) ||
+      m.department?.toLowerCase().includes(q) ||
+      m.clients?.company_name.toLowerCase().includes(q)
+    );
+  });
+
+  const stats = {
+    total: mandates.length,
+    active: mandates.filter((m) => m.status === "active").length,
+    pending: mandates.filter((m) => m.status === "pending_review").length,
+    filled: mandates.filter((m) => m.status === "filled").length,
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>;
   }
 
-  const handleCreate = async () => {
-    if (!form.company_id) { toast.warning("Sélectionne un client"); return; }
-    if (!form.title || !form.location) { toast.warning("Titre et localisation requis"); return; }
-    setCreating(true);
-    const { error } = await supabase.from("mandates").insert({
-      company_id: form.company_id,
-      title: form.title,
-      department: form.department || null,
-      description: form.description || null,
-      salary_min: parseInt(form.salary_min) || null,
-      salary_max: parseInt(form.salary_max) || null,
-      location: form.location,
-      work_mode: form.work_mode,
-      status: "active",
-    });
-    if (error) {
-      toast.error(error.message);
-      setCreating(false);
-      return;
-    }
-    toast.success("Mandat créé");
-    setShowCreate(false);
-    setForm({ title: "", department: "", description: "", salary_min: "", salary_max: "", location: "", work_mode: "Hybrid", company_id: "" });
-    setCreating(false);
-    loadAll();
-  };
-
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from('mandates').update({ status }).eq('id', id);
-    loadAll();
-  };
-
-  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>;
-
   return (
-    <div className="max-w-4xl">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">Mandates</h1>
-          <p className="text-zinc-400 text-[13px] mt-0.5">Manage client positions</p>
+    <div className="bg-zinc-50 min-h-screen -m-4 md:-m-6 lg:-m-8">
+      {/* Top bar */}
+      <div className="bg-white border-b border-zinc-200">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[12px] text-zinc-500">
+            <Link href="/admin" className="hover:text-[#2445EB]">Admin</Link>
+            <ChevronRight size={11} />
+            <span className="text-zinc-900 font-semibold">Mandats</span>
+          </div>
+          <Link
+            href="/mandats/nouveau"
+            className="px-4 py-2 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] text-white rounded-md text-[12px] font-bold hover:opacity-90 inline-flex items-center gap-1.5 shadow-md shadow-[#2445EB]/20"
+          >
+            <Plus size={12} /> Créer un mandat (avec filtres Recruiter Lite)
+          </Link>
         </div>
-        <button onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[13px] font-medium btn-press">
-          <Plus size={15} /> New mandate
-        </button>
       </div>
 
-      {/* Create form */}
-      {showCreate && (
-        <div className="bg-white rounded-xl border border-zinc-200 p-5 shadow-card mb-6">
-          <p className="label mb-4">Nouveau mandat (form rapide)</p>
+      {/* Hero */}
+      <div className="bg-white border-b border-zinc-200">
+        <div className="max-w-7xl mx-auto px-6 py-5">
+          <h1 className="text-[24px] font-bold text-zinc-900 tracking-tight">Mandats</h1>
+          <p className="text-[13px] text-zinc-500 mt-1">
+            {mandates.length} mandats au total · {filtered.length} affichés
+          </p>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <p className="text-[12px] text-blue-800">
-              💡 Pour un mandat avec critères Recruiter Lite (40+ filtres), utilise plutôt
-              <Link href="/mandats/nouveau" className="font-bold underline ml-1">/mandats/nouveau</Link>.
-            </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-5">
+            <Stat label="Total" value={stats.total} />
+            <Stat label="Actifs" value={stats.active} color="emerald" />
+            <Stat label="En revue" value={stats.pending} color="amber" />
+            <Stat label="Comblés" value={stats.filled} color="blue" />
           </div>
 
-          {/* Client selector — REQUIRED */}
-          <div className="mb-4">
-            <label className="text-[11px] text-zinc-500 font-medium mb-1.5 block">Client *</label>
+          {/* Filters */}
+          <div className="flex items-center gap-2 mt-4">
+            <div className="relative flex-1 max-w-md">
+              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher par titre, client, ville…"
+                className="w-full pl-8 pr-3 py-1.5 rounded-md border border-zinc-200 text-[12px] focus:border-[#2445EB] outline-none bg-white"
+              />
+            </div>
             <select
-              value={form.company_id}
-              onChange={(e) => setForm((prev) => ({ ...prev, company_id: e.target.value }))}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-200 text-[13px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-2 py-1.5 rounded-md border border-zinc-200 text-[12px] bg-white"
             >
-              <option value="">Sélectionner un client</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.company_name}</option>
+              <option value="all">Tous statuts</option>
+              {Object.entries(STATUS_PILL).map(([k, v]) => (
+                <option key={k} value={k}>{v.label}</option>
               ))}
             </select>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {[
-              { label: "Position title *", field: "title", placeholder: "Senior Estimator" },
-              { label: "Department", field: "department", placeholder: "Estimation" },
-              { label: "Location *", field: "location", placeholder: "Toronto, ON" },
-              { label: "Work mode", field: "work_mode", placeholder: "Hybrid (3 days)" },
-              { label: "Salary min", field: "salary_min", placeholder: "95000", type: "number" },
-              { label: "Salary max", field: "salary_max", placeholder: "120000", type: "number" },
-            ].map((input) => (
-              <div key={input.field}>
-                <label className="text-[11px] text-zinc-500 font-medium mb-1.5 block">{input.label}</label>
-                <input
-                  type={input.type || "text"}
-                  value={form[input.field as keyof typeof form]}
-                  onChange={(e) => setForm(prev => ({ ...prev, [input.field]: e.target.value }))}
-                  placeholder={input.placeholder}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-200 text-[13px] focus:border-[#6C2BD9] focus:ring-2 focus:ring-[#6C2BD9]/10 outline-none placeholder:text-zinc-300"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mb-4">
-            <label className="text-[11px] text-zinc-500 font-medium mb-1.5 block">Description</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Role description, requirements, responsibilities..."
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-200 text-[13px] resize-none h-20 focus:border-[#6C2BD9] outline-none placeholder:text-zinc-300"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={handleCreate} disabled={creating}
-              className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[13px] font-medium btn-press disabled:opacity-50 flex items-center gap-2">
-              {creating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Create mandate
-            </button>
-            <button onClick={() => setShowCreate(false)} className="px-5 py-2.5 bg-zinc-100 text-zinc-600 rounded-lg text-[13px] font-medium btn-press">Cancel</button>
-          </div>
         </div>
-      )}
+      </div>
 
-      {/* Mandate list */}
-      <div className="space-y-3">
-        {mandates.map((m) => (
-          <div key={m.id} className="bg-white rounded-xl border border-zinc-200 p-5 shadow-card hover:shadow-card-hover transition-all">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center">
-                  <Briefcase size={16} className="text-zinc-500" />
-                </div>
-                <div>
-                  <h3 className="text-[14px] font-semibold text-zinc-900">{m.title}</h3>
-                  <p className="text-[11px] text-zinc-400">{m.department || "No department"}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold ${
-                  m.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
-                  m.status === 'paused' ? 'bg-zinc-100 text-zinc-600' :
-                  m.status === 'filled' ? 'bg-blue-50 text-blue-700' :
-                  'bg-zinc-50 text-zinc-500'
-                }`}>
-                  <div className={`w-1 h-1 rounded-full ${
-                    m.status === 'active' ? 'bg-emerald-500' :
-                    m.status === 'paused' ? 'bg-zinc-500' :
-                    m.status === 'filled' ? 'bg-blue-500' :
-                    'bg-zinc-400'
-                  }`} />
-                  {m.status === 'active' ? 'Active' : m.status === 'paused' ? 'Paused' : m.status === 'filled' ? 'Filled' : 'Cancelled'}
-                </span>
-              </div>
-            </div>
+      {/* Hint banner */}
+      <div className="max-w-7xl mx-auto px-6 pt-4">
+        <div className="bg-gradient-to-r from-[#2445EB]/5 to-purple-500/5 border border-[#2445EB]/20 rounded-lg p-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Filter size={14} className="text-[#2445EB]" />
+            <p className="text-[12px] text-zinc-700">
+              <strong>Tous les nouveaux mandats</strong> sont créés avec les <strong>filtres Recruiter Lite (40+ critères)</strong> : titres, employeurs, langues, écoles, certifications, etc.
+            </p>
+          </div>
+          <Link href="/mandats/nouveau" className="shrink-0 text-[12px] text-[#2445EB] font-semibold hover:underline">
+            Créer un mandat →
+          </Link>
+        </div>
+      </div>
 
-            <div className="flex items-center gap-4 text-[11px] text-zinc-400 mb-4">
-              <span className="flex items-center gap-1"><MapPin size={11} /> {m.location}</span>
-              {m.salary_min && <span className="flex items-center gap-1"><DollarSign size={11} /> ${(m.salary_min/1000).toFixed(0)}-{(m.salary_max/1000).toFixed(0)}K</span>}
-              <span className="flex items-center gap-1">{m.work_mode}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link href={`/admin/candidates/new?mandate=${m.id}`}
-                className="px-3 py-1.5 bg-[#6C2BD9] hover:bg-[#5521B5] text-white rounded-md text-[11px] font-medium btn-press flex items-center gap-1.5">
-                <Plus size={11} /> Add candidate
-              </Link>
-              {m.status === 'active' && (
-                <button onClick={() => updateStatus(m.id, 'paused')}
-                  className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-md text-[11px] font-medium btn-press flex items-center gap-1.5">
-                  <Pause size={11} /> Pause
-                </button>
-              )}
-              {m.status === 'paused' && (
-                <button onClick={() => updateStatus(m.id, 'active')}
-                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-[11px] font-medium btn-press flex items-center gap-1.5">
-                  <CheckCircle2 size={11} /> Reactivate
-                </button>
-              )}
-              {m.status === 'active' && (
-                <button onClick={() => updateStatus(m.id, 'filled')}
-                  className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-md text-[11px] font-medium btn-press flex items-center gap-1.5">
-                  <CheckCircle2 size={11} /> Mark filled
-                </button>
-              )}
+      {/* Mandates list */}
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-lg border border-zinc-200 p-12 text-center">
+            <Briefcase size={32} className="mx-auto text-zinc-300 mb-3" />
+            <p className="text-[14px] font-semibold text-zinc-700">Aucun mandat trouvé</p>
+            <p className="text-[12px] text-zinc-500 mt-1 mb-4">
+              {search || statusFilter !== "all" ? "Ajuste tes filtres." : "Crée le premier mandat avec les filtres Recruiter Lite complets."}
+            </p>
+            <Link
+              href="/mandats/nouveau"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#2445EB] text-white rounded-md text-[12px] font-bold hover:bg-[#1A36C4]"
+            >
+              <Plus size={12} /> Créer un mandat
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+            <div className="divide-y divide-zinc-100">
+              {filtered.map((m) => {
+                const statusInfo = STATUS_PILL[m.status] || { label: m.status, color: "bg-zinc-100 text-zinc-700 border-zinc-200", dot: "bg-zinc-400" };
+                const criteriaCount = m.search_criteria
+                  ? Object.values(m.search_criteria).filter((v) => Array.isArray(v) ? v.length > 0 : !!v).length
+                  : 0;
+                const daysAgo = Math.floor((Date.now() - new Date(m.created_at).getTime()) / 86400000);
+                return (
+                  <Link
+                    key={m.id}
+                    href={`/mandats/${m.id}`}
+                    className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-zinc-50 transition group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
+                        <Briefcase size={14} className="text-purple-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[14px] font-bold text-zinc-900 group-hover:text-[#2445EB] truncate">
+                            {m.title || "Sans titre"}
+                          </p>
+                          {criteriaCount > 0 && (
+                            <span className="text-[9px] bg-purple-50 text-purple-700 rounded px-1.5 py-0.5 font-bold">
+                              ✓ {criteriaCount} CRITÈRES
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-x-3 gap-y-0.5 mt-0.5 flex-wrap">
+                          {m.clients?.company_name && (
+                            <span className="text-[11px] text-[#2445EB] font-semibold inline-flex items-center gap-1">
+                              <Building2 size={10} /> {m.clients.company_name}
+                            </span>
+                          )}
+                          {m.location && (
+                            <span className="text-[11px] text-zinc-500 inline-flex items-center gap-1">
+                              <MapPin size={10} /> {m.location}
+                            </span>
+                          )}
+                          {(m.salary_min || m.salary_max) && (
+                            <span className="text-[11px] text-zinc-500 inline-flex items-center gap-1">
+                              <DollarSign size={10} />
+                              {m.salary_min ? `${(m.salary_min / 1000).toFixed(0)}K` : "?"}-
+                              {m.salary_max ? `${(m.salary_max / 1000).toFixed(0)}K` : "?"}
+                            </span>
+                          )}
+                          {m.work_mode && (
+                            <span className="text-[11px] text-zinc-500">{m.work_mode}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${statusInfo.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`} />
+                        {statusInfo.label}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 hidden md:inline">il y a {daysAgo}j</span>
+                      <ChevronRight size={14} className="text-zinc-400" />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
-        ))}
+        )}
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, color }: { label: string; value: number; color?: "blue" | "emerald" | "amber" | "purple" }) {
+  const styles = {
+    blue: "bg-blue-50 border-blue-200",
+    emerald: "bg-emerald-50 border-emerald-200",
+    amber: "bg-amber-50 border-amber-200",
+    purple: "bg-purple-50 border-purple-200",
+  };
+  return (
+    <div className={`rounded-md border px-3 py-2 ${color ? styles[color] : "bg-white border-zinc-200"}`}>
+      <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none">{label}</p>
+      <p className="text-[20px] font-bold text-zinc-900 tabular-nums mt-1.5 leading-none">{value}</p>
     </div>
   );
 }
