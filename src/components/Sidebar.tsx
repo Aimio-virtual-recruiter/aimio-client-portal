@@ -94,14 +94,13 @@ export function Sidebar() {
     router.refresh();
   };
 
+  // Stripped to 4 essentials. The base flow: see dashboard → manage mandates →
+  // review delivered candidates → chat with recruiter. Everything else is hidden.
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, badge: 0 },
-    { label: "Candidates", href: "/candidats", icon: Briefcase, badge: newCandidates },
-    { label: "Pipeline", href: "/dashboard/pipeline", icon: GitBranch, badge: 0 },
-    { label: "AI Insights", href: "/dashboard/insights", icon: Sparkles, badge: 0 },
-    { label: "Reports", href: "/rapports", icon: BarChart3, badge: 0 },
-    { label: "QBR", href: "/dashboard/qbr", icon: FileText, badge: 0 },
-    { label: "Messages", href: "/messages", icon: MessageCircle, badge: unreadMessages },
+    { label: "Mes mandats", href: "/mandats", icon: Briefcase, badge: 0 },
+    { label: "Mes candidats", href: "/candidats", icon: Sparkles, badge: newCandidates },
+    { label: "Messagerie", href: "/messages", icon: MessageCircle, badge: unreadMessages },
   ];
 
   return (

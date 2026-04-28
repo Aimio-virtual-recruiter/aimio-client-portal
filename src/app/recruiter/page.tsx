@@ -113,16 +113,15 @@ export default function RecruiterDashboardPage() {
             </button>
           </div>
         </div>
-        {/* Sub-navigation */}
+        {/* Sub-navigation — stripped to the daily essentials.
+            Order = the actual workflow: see clients → source → review → outreach → chat */}
         <div className="max-w-6xl mx-auto px-6 py-2 border-t border-zinc-100 flex items-center gap-1 overflow-x-auto">
           <NavLink href="/recruiter" label="Dashboard" icon={<Building2 size={12} />} active />
-          <NavLink href="/recruiter/clients" label="Clients" icon={<Users size={12} />} />
-          <NavLink href="/recruiter/source" label="Sourcing" icon={<Rocket size={12} />} />
+          <NavLink href="/recruiter/source" label="Sourcer" icon={<Rocket size={12} />} />
+          <NavLink href="/recruiter/candidates" label="Banque" icon={<Users size={12} />} />
           <NavLink href="/recruiter/queue" label="Queue" icon={<ListChecks size={12} />} />
           <NavLink href="/recruiter/outreach" label="Outreach" icon={<MessageCircle size={12} />} />
           <NavLink href="/recruiter/messages" label="Messages" icon={<MessageCircle size={12} />} />
-          <NavLink href="/recruiter/analytics" label="Analytics" icon={<BarChart3 size={12} />} />
-          <NavLink href="/recruiter/scorecard" label="Scorecard" icon={<Award size={12} />} />
         </div>
       </header>
 
