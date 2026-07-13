@@ -75,7 +75,7 @@ async function sendFollowUp(originalEmail: Record<string, unknown>, step: number
     : `Write a final, brief follow-up email (step 3 of 3, last attempt) to a candidate named ${candidate.name} who hasn't responded to 2 previous messages about a ${candidate.current_title} opportunity. Keep it very short (2-3 sentences), respectful, and make it clear this is the last follow-up. In English. Reply ONLY with the email body text, no subject line, no greeting or signature — just the body.`
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 300,
     messages: [{ role: 'user', content: prompt }],
   })

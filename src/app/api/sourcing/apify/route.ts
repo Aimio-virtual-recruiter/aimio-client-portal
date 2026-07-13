@@ -26,12 +26,14 @@ interface ApifyItem {
   companyName?: string;
   company?: string;
   currentCompany?: { name?: string };
+  currentPosition?: { title?: string; companyName?: string };
   experience?: Array<{ company?: string; title?: string; companyName?: string }>;
-  location?: string;
+  location?: string | { linkedinText?: string; parsed?: unknown };
   city?: string;
   geoLocationName?: string;
   email?: string;
   emailAddress?: string;
+  emails?: Array<string | { email?: string }>;
   phone?: string;
   industryName?: string;
   industry?: string;
@@ -66,12 +68,29 @@ function normalizeApifyData(
 
   return data.map((item) => {
     const firstCompany =
+      item.currentPosition?.companyName ??
       item.companyName ??
       item.company ??
       item.currentCompany?.name ??
       item.experience?.[0]?.companyName ??
       item.experience?.[0]?.company ??
       '';
+
+    // location can be a plain string or an object (e.g. harvestapi: { linkedinText })
+    const locationText =
+      typeof item.location === 'string'
+        ? item.location
+        : item.location?.linkedinText ??
+          item.city ??
+          item.geoLocationName ??
+          '';
+
+    // email can be item.email, or an `emails` array of strings/objects (harvestapi)
+    const firstEmailEntry = item.emails?.[0];
+    const emailFromArray =
+      typeof firstEmailEntry === 'string'
+        ? firstEmailEntry
+        : firstEmailEntry?.email ?? null;
 
     return {
       source: 'apify',
@@ -92,10 +111,11 @@ function normalizeApifyData(
         item.title ??
         item.jobTitle ??
         item.occupation ??
+        item.currentPosition?.title ??
         '',
       company: firstCompany,
-      location: item.location ?? item.city ?? item.geoLocationName ?? '',
-      email: item.email ?? item.emailAddress ?? null,
+      location: locationText,
+      email: item.email ?? item.emailAddress ?? emailFromArray ?? null,
       phone: item.phone ?? null,
       linkedin_url:
         item.profileUrl ?? item.url ?? item.linkedinUrl ?? null,
@@ -186,54 +206,45 @@ export async function GET() {
   return NextResponse.json({
     recommended_actors: [
       {
-        id: 'apimaestro/linkedin-search-people',
+        id: 'harvestapi/linkedin-profile-search',
         name: 'LinkedIn People Search',
         description:
-          'Search public LinkedIn profiles by keywords. No cookie required.',
+          'Recherche de profils LinkedIn par mots-clés + filtres (titre, lieu). Sans cookie. Renvoie emails, expérience, compétences.',
         example_input: {
-          searchTerm: 'Software Engineer Toronto',
-          maxResults: 25,
+          searchQuery: 'contrôleur financier',
+          currentJobTitles: ['Financial Controller', 'Contrôleur financier'],
+          locations: ['Montreal, Quebec, Canada'],
+          maxItems: 25,
         },
       },
       {
-        id: 'dev_fusion/linkedin-profile-scraper',
-        name: 'LinkedIn Profile Scraper',
+        id: 'harvestapi/linkedin-profile-scraper',
+        name: 'LinkedIn Profile Scraper (par URL)',
         description:
-          'Scrape full LinkedIn profile from URL (experience, education, skills).',
+          'Scrape un profil LinkedIn complet depuis son URL (expérience, formation, compétences, email). Sans cookie.',
         example_input: {
           profileUrls: ['https://www.linkedin.com/in/some-profile/'],
         },
       },
       {
-        id: 'harvestapi/linkedin-sales-navigator-search-scraper',
-        name: 'LinkedIn Sales Navigator Search',
+        id: 'harvestapi/linkedin-company-employees',
+        name: 'Employés d\'une entreprise (LinkedIn)',
         description:
-          'Scrape Sales Navigator search results. Requires Sales Nav cookie.',
+          'Liste les employés d\'une entreprise ciblée. Idéal pour débaucher chez un concurrent. Sans cookie.',
+        example_input: {
+          companies: ['https://www.linkedin.com/company/some-company/'],
+          maxItems: 50,
+        },
+      },
+      {
+        id: 'curious_coder/linkedin-jobs-scraper',
+        name: 'LinkedIn Jobs (entreprises qui embauchent)',
+        description:
+          'Scrape les offres d\'emploi LinkedIn. Identifie les entreprises qui recrutent (leads de mandats).',
         example_input: {
           searchUrl:
-            'https://www.linkedin.com/sales/search/people?...',
-          maxItems: 50,
-        },
-      },
-      {
-        id: 'apify/linkedin-jobs-scraper',
-        name: 'LinkedIn Jobs Scraper (Lead Finder)',
-        description:
-          'Scrape job postings from LinkedIn. Identifies companies actively hiring.',
-        example_input: {
-          query: 'Software Engineer',
-          location: 'Canada',
-          maxItems: 100,
-        },
-      },
-      {
-        id: 'apify/crunchbase-scraper',
-        name: 'Crunchbase Companies (Lead Finder)',
-        description:
-          'Scrape Crunchbase for companies with recent funding. Great for B2B leads.',
-        example_input: {
-          startUrls: ['https://www.crunchbase.com/discover/organization.companies/...'],
-          maxItems: 50,
+            'https://www.linkedin.com/jobs/search/?keywords=contr%C3%B4leur&location=Montreal',
+          count: 50,
         },
       },
     ],

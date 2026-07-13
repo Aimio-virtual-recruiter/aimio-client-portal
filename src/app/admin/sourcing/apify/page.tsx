@@ -411,7 +411,7 @@ export default function ApifySourcingPage() {
             ▸ Cherche par mot-clé : &quot;LinkedIn&quot;, &quot;Sales Navigator&quot;, &quot;Indeed&quot;, &quot;Crunchbase&quot;
           </li>
           <li>
-            ▸ Copie l&apos;ID de l&apos;actor (ex: <code className="text-[10px] bg-white px-1 rounded">apimaestro/linkedin-search-people</code>) et colle-le dans Actor ID
+            ▸ Copie l&apos;ID de l&apos;actor (ex: <code className="text-[10px] bg-white px-1 rounded">harvestapi/linkedin-profile-search</code>) et colle-le dans Actor ID
           </li>
           <li>
             ▸ Lis la documentation de l&apos;actor pour comprendre les paramètres d&apos;input JSON
