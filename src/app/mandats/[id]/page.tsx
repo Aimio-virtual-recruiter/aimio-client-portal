@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Filter,
   AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 
 interface MandateRow {
@@ -67,6 +68,19 @@ export default function MandateDetailPage() {
   const [candidates, setCandidates] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
+
+  const activateMandate = async () => {
+    if (!mandate) return;
+    setActivating(true);
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase
+      .from("mandates")
+      .update({ status: "active" })
+      .eq("id", mandate.id);
+    if (!error) setMandate({ ...mandate, status: "active" });
+    setActivating(false);
+  };
 
   useEffect(() => {
     async function load() {
@@ -217,6 +231,15 @@ export default function MandateDetailPage() {
               >
                 <Edit3 size={12} /> Modifier
               </Link>
+              {mandate.status === "pending_review" && (
+                <button
+                  onClick={activateMandate}
+                  disabled={activating}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-[12px] font-bold hover:bg-emerald-700 transition shadow-md shadow-emerald-600/20 disabled:opacity-60"
+                >
+                  {activating ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />} Activer le mandat
+                </button>
+              )}
               <Link
                 href={`/recruiter/source?client=${mandate.company_id}&mandate=${mandate.id}`}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#2445EB] to-[#4B5DF5] text-white rounded-lg text-[12px] font-bold hover:opacity-90 transition shadow-md shadow-[#2445EB]/20"
