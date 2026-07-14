@@ -228,7 +228,7 @@ interface ApifyLinkedInProfile {
   companyName?: string;
   company?: string;
   currentCompany?: { name?: string };
-  currentPosition?: { title?: string; companyName?: string };
+  currentPosition?: Array<{ title?: string; position?: string; companyName?: string }>;
   experience?: Array<{ companyName?: string; company?: string; title?: string; position?: string }>;
   location?: string | { linkedinText?: string };
   geoLocationName?: string;
@@ -332,7 +332,7 @@ function normalizeApify(item: ApifyLinkedInProfile, source: string): NormalizedC
   const lastName = rest.join(" ");
 
   const company =
-    item.currentPosition?.companyName ||
+    item.currentPosition?.[0]?.companyName ||
     item.experience?.[0]?.companyName ||
     item.experience?.[0]?.company ||
     item.companyName ||
@@ -341,7 +341,8 @@ function normalizeApify(item: ApifyLinkedInProfile, source: string): NormalizedC
     "";
   const title =
     item.headline ||
-    item.currentPosition?.title ||
+    item.currentPosition?.[0]?.title ||
+    item.currentPosition?.[0]?.position ||
     item.experience?.[0]?.title ||
     item.experience?.[0]?.position ||
     item.title ||
