@@ -228,9 +228,12 @@ interface ApifyLinkedInProfile {
   companyName?: string;
   company?: string;
   currentCompany?: { name?: string };
-  location?: string;
+  currentPosition?: { title?: string; companyName?: string };
+  experience?: Array<{ companyName?: string; company?: string; title?: string; position?: string }>;
+  location?: string | { linkedinText?: string };
   geoLocationName?: string;
   email?: string;
+  emails?: Array<string | { email?: string }>;
   phone?: string;
 }
 
@@ -242,32 +245,31 @@ async function runApifyLinkedIn(
   if (!apifyToken) return [];
 
   try {
-    // Default: apimaestro/linkedin-profile-search-scraper ($5/1000 results, includes email, no cookies)
+    // Default: harvestapi/linkedin-profile-search (keyword search, no cookies, returns emails)
     // Override via APIFY_LINKEDIN_SEARCH_ACTOR if you want to swap actor.
     const actorSlug =
-      process.env.APIFY_LINKEDIN_SEARCH_ACTOR || "apimaestro/linkedin-profile-search-scraper";
+      process.env.APIFY_LINKEDIN_SEARCH_ACTOR || "harvestapi/linkedin-profile-search";
     const actorId = actorSlug.replace("/", "~");
     const url = `${APIFY_BASE}/acts/${actorId}/run-sync-get-dataset-items?token=${apifyToken}&timeout=180`;
 
-    const jobTitle = searchBrief.seniority_titles[0] || searchBrief.primary_keywords.slice(0, 2).join(" ");
-    const location = searchBrief.location_filters[0] || "";
+    const searchQuery =
+      searchBrief.primary_keywords.slice(0, 3).join(" ") ||
+      searchBrief.seniority_titles[0] ||
+      "";
 
-    // Input format for apimaestro/linkedin-profile-search-scraper
-    // - firstName/lastName: optional (omit for broad search)
-    // - maximumProfiles: cap on results
-    // - searchFilters: jobTitle, location, currentCompany, etc.
+    // Input format for harvestapi/linkedin-profile-search
+    // - searchQuery: free-text keywords
+    // - currentJobTitles: array of titles to match
+    // - locations: array of canonical LinkedIn geo names (e.g. "Montreal, Quebec, Canada")
+    // - maxItems: cap on results
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        maximumProfiles: maxResults,
-        searchFilters: {
-          jobTitle,
-          location,
-          ...(searchBrief.target_companies.length > 0 && {
-            currentCompany: searchBrief.target_companies[0],
-          }),
-        },
+        searchQuery,
+        currentJobTitles: searchBrief.seniority_titles.slice(0, 5),
+        locations: searchBrief.location_filters,
+        maxItems: maxResults,
       }),
     });
 
@@ -329,11 +331,33 @@ function normalizeApify(item: ApifyLinkedInProfile, source: string): NormalizedC
   const [firstName, ...rest] = fullName.split(" ");
   const lastName = rest.join(" ");
 
-  const company = item.companyName || item.company || item.currentCompany?.name || "";
-  const title = item.headline || item.title || item.jobTitle || "";
+  const company =
+    item.currentPosition?.companyName ||
+    item.experience?.[0]?.companyName ||
+    item.experience?.[0]?.company ||
+    item.companyName ||
+    item.company ||
+    item.currentCompany?.name ||
+    "";
+  const title =
+    item.headline ||
+    item.currentPosition?.title ||
+    item.experience?.[0]?.title ||
+    item.experience?.[0]?.position ||
+    item.title ||
+    item.jobTitle ||
+    "";
   const linkedinUrl = item.profileUrl || item.url || item.linkedinUrl || null;
-  const location = item.location || item.geoLocationName || "";
-  const [city, ...locParts] = location.split(",").map((s) => s.trim());
+  const locationText =
+    (typeof item.location === "string" ? item.location : item.location?.linkedinText) ||
+    item.geoLocationName ||
+    "";
+  const [city, ...locParts] = locationText.split(",").map((s) => s.trim());
+  const firstEmail = item.emails?.[0];
+  const email =
+    item.email ||
+    (typeof firstEmail === "string" ? firstEmail : firstEmail?.email) ||
+    null;
 
   return {
     source,
@@ -344,7 +368,7 @@ function normalizeApify(item: ApifyLinkedInProfile, source: string): NormalizedC
     current_title: title,
     current_company: company,
     linkedin_url: linkedinUrl,
-    email: item.email || null,
+    email,
     email_verified: false,
     phone: item.phone || null,
     location_city: city || "",
