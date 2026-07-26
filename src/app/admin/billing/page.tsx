@@ -11,7 +11,7 @@ interface Client {
   contact_last_name: string;
   contact_email: string;
   country: string;
-  plan: "starter" | "pro" | "enterprise";
+  plan: "starter" | "growth" | "scale" | "enterprise";
   mrr_usd: number;
   billing_start_date: string;
   billing_status: string;
@@ -180,7 +180,8 @@ export default function BillingAdminPage() {
                           <p className="text-[15px] font-bold text-zinc-900">{client.company_name}</p>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${
                             client.plan === "enterprise" ? "bg-purple-100 text-purple-700" :
-                            client.plan === "pro" ? "bg-[#2445EB]/10 text-[#2445EB]" :
+                            client.plan === "scale" ? "bg-[#2445EB]/10 text-[#2445EB]" :
+                            client.plan === "growth" ? "bg-emerald-100 text-emerald-700" :
                             "bg-zinc-100 text-zinc-700"
                           }`}>
                             {client.plan}

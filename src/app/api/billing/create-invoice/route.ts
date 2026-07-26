@@ -20,7 +20,8 @@ interface CreateInvoiceRequest {
 
 const PLAN_NAMES = {
   starter: "Recruteur Virtuel — Starter",
-  pro: "Recruteur Virtuel — Pro",
+  growth: "Recruteur Virtuel — Growth",
+  scale: "Recruteur Virtuel — Scale",
   enterprise: "Recruteur Virtuel — Enterprise",
 };
 
