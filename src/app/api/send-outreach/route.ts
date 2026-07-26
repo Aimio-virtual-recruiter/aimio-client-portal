@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import { supabase } from '@/lib/supabase'
 import { getCurrentUser } from '@/lib/supabase/server'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendCompliantEmail } from '@/lib/email-utils'
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,17 +14,21 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { candidate_id, subject, html_body, to_email } = body
 
-    // Send email via Resend
-    const { data, error: sendError } = await resend.emails.send({
-      from: 'Marc-Antoine Cote <marcantoine@send.aimiorecrutement.com>',
-      to: [to_email],
-      subject: subject,
+    // Send via compliant wrapper: adds CAN-SPAM footer (physical address + unsubscribe),
+    // List-Unsubscribe headers, and checks the opt-out suppression list before sending.
+    const result = await sendCompliantEmail({
+      to: to_email,
+      subject,
       html: html_body,
+      from: 'Marc-Antoine Cote <marcantoine@send.aimiorecrutement.com>',
       replyTo: 'marcantoine.cote@aimiorecrutement.com',
     })
 
-    if (sendError) {
-      return NextResponse.json({ error: sendError.message }, { status: 500 })
+    if (!result.sent) {
+      if (result.reason === 'opted_out') {
+        return NextResponse.json({ success: false, skipped: 'opted_out' }, { status: 200 })
+      }
+      return NextResponse.json({ error: result.error || 'Send failed' }, { status: 500 })
     }
 
     // Log the outreach in Supabase
@@ -35,13 +37,13 @@ export async function POST(req: NextRequest) {
       to_email,
       subject,
       body: html_body,
-      resend_id: data?.id,
+      resend_id: result.id,
       status: 'sent',
       sent_at: new Date().toISOString(),
       sequence_step: 1,
     })
 
-    return NextResponse.json({ success: true, email_id: data?.id })
+    return NextResponse.json({ success: true, email_id: result.id })
 
   } catch (error) {
     console.error('Send outreach error:', error)

@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import Anthropic from '@anthropic-ai/sdk'
 import { supabase } from '@/lib/supabase'
 import { getCurrentUser } from '@/lib/supabase/server'
+import { sendCompliantEmail } from '@/lib/email-utils'
 
 export const maxDuration = 300
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 // This API is called by a cron job (Vercel Cron or external) every day
@@ -95,14 +94,26 @@ async function sendFollowUp(originalEmail: Record<string, unknown>, step: number
     </div>
   `
 
-  // Send via Resend
-  const { data } = await resend.emails.send({
-    from: 'Marc-Antoine Cote <marcantoine@send.aimiorecrutement.com>',
-    to: [originalEmail.to_email as string],
+  // Send via compliant wrapper: checks opt-out list first, adds CAN-SPAM footer + headers.
+  const result = await sendCompliantEmail({
+    to: originalEmail.to_email as string,
     subject: subjects[step],
     html: htmlBody,
+    from: 'Marc-Antoine Cote <marcantoine@send.aimiorecrutement.com>',
     replyTo: 'marcantoine.cote@aimiorecrutement.com',
   })
+
+  // Recipient opted out (any channel) — stop the sequence, do not send further.
+  // Bump to the terminal step (3) so this email exits the follow-up loop.
+  if (!result.sent) {
+    if (result.reason === 'opted_out') {
+      await supabase
+        .from('outreach_emails')
+        .update({ sequence_step: 3 })
+        .eq('id', originalEmail.id)
+    }
+    return
+  }
 
   // Update the original email step
   await supabase
@@ -116,7 +127,7 @@ async function sendFollowUp(originalEmail: Record<string, unknown>, step: number
     to_email: originalEmail.to_email,
     subject: subjects[step],
     body: htmlBody,
-    resend_id: data?.id,
+    resend_id: result.id,
     status: 'sent',
     sent_at: new Date().toISOString(),
     sequence_step: step,

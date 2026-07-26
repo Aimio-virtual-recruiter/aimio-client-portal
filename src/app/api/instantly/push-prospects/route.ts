@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { getCurrentUser, createSupabaseAdminClient } from '@/lib/supabase/server';
 
 export const maxDuration = 60;
 
@@ -73,10 +73,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Compliance (CAN-SPAM): drop anyone on the unified opt-out list before pushing to
+    // Instantly. `unsubscribed_emails` is the single source of truth across all channels,
+    // so a prospect who unsubscribed via Resend or the web page is never re-emailed here.
+    const adminDb = createSupabaseAdminClient();
+    const { data: optedRows } = await adminDb
+      .from('unsubscribed_emails')
+      .select('email')
+      .in('email', withEmails.map((p) => (p.email as string).toLowerCase()))
+      .is('resubscribed_at', null);
+    const optedOutSet = new Set((optedRows ?? []).map((r) => (r.email as string).toLowerCase()));
+    const compliant = withEmails.filter((p) => !optedOutSet.has((p.email as string).toLowerCase()));
+
+    if (compliant.length === 0) {
+      return NextResponse.json(
+        { error: 'All selected prospects with emails have opted out.' },
+        { status: 400 }
+      );
+    }
+
     // Format for Instantly API
     // Instantly API: https://developer.instantly.ai/
     // POST https://api.instantly.ai/api/v1/lead/add with campaign_id + leads[]
-    const leads = withEmails.map((p) => ({
+    const leads = compliant.map((p) => ({
       email: p.email,
       first_name: p.first_name ?? '',
       last_name: p.last_name ?? '',
@@ -118,7 +137,7 @@ export async function POST(request: Request) {
     const instantlyResult = await response.json();
 
     // Update prospects status + log activities
-    const prospectIdsUpdated = withEmails.map((p) => p.id);
+    const prospectIdsUpdated = compliant.map((p) => p.id);
 
     await supabase
       .from('prospects')
@@ -126,7 +145,7 @@ export async function POST(request: Request) {
       .in('id', prospectIdsUpdated);
 
     // Log activities (one per prospect)
-    const activities = withEmails.map((p) => ({
+    const activities = compliant.map((p) => ({
       prospect_id: p.id,
       rep_id: body.rep_id ?? null,
       activity_type: 'email',
@@ -140,9 +159,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      pushed: withEmails.length,
+      pushed: compliant.length,
       total_selected: prospects.length,
       skipped_no_email: prospects.length - withEmails.length,
+      skipped_unsubscribed: withEmails.length - compliant.length,
       skipped_quebec: body.prospect_ids.length - prospects.length,
       instantly_response: instantlyResult,
     });

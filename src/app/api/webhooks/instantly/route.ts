@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
+import { markUnsubscribed } from '@/lib/email-utils';
 
 /**
  * Instantly.ai webhook receiver.
@@ -172,6 +173,16 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', prospectId);
+
+      // Compliance: also write to the unified opt-out list so this person is suppressed
+      // on the Resend channel too (single source of truth across all channels).
+      if (body.lead_email) {
+        await markUnsubscribed({
+          email: body.lead_email,
+          reason: 'user_clicked',
+          source: 'instantly',
+        });
+      }
     } else if (body.event === 'email_bounced') {
       await supabase
         .from('prospects')
