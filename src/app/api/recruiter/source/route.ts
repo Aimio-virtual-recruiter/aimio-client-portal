@@ -154,7 +154,7 @@ async function generateSearchBrief(
 
   const criteriaBlock = formatCriteria(criteria);
 
-  const prompt = `You are an expert recruiter. Generate an optimal LinkedIn Recruiter Lite + Apollo sourcing search brief in French (Quebec recruiting context: comptables, ingénieurs, avocats, chargés de projet construction — NOT tech).
+  const prompt = `You are an expert recruiter. Generate an optimal LinkedIn Recruiter Lite + Apollo sourcing search brief in English (US recruiting market — ANY sector, including tech; infer the sector and role type from the POSITION and CLIENT CONTEXT below, do not assume an industry).
 
 POSITION: ${positionTitle}
 CLIENT CONTEXT: ${clientContext}
@@ -171,7 +171,7 @@ Return ONLY valid JSON with this exact structure:
   "boolean_search": "a LinkedIn Boolean search string with AND/OR/NOT operators (combines titles, skills, certifications, exclusions)",
   "primary_keywords": ["5-7 must-have keywords - reflect skills + certifications + key job titles"],
   "secondary_keywords": ["5-7 nice-to-have keywords - past employers, schools, languages"],
-  "location_filters": ["2-4 locations in LinkedIn format"],
+  "location_filters": ["2-4 US locations in canonical LinkedIn format, e.g. 'Miami, Florida, United States' or 'New York City Metropolitan Area'"],
   "experience_range": "X-Y years (reflect yearsExperienceMin/Max)",
   "target_companies": ["8-12 companies where ideal candidates work - prioritize criteria.currentEmployers + competitors of client + top talent pools in industry"],
   "exclude_companies": ["respect criteria.excludeEmployers + add competitors of client to avoid awkward outreach"],
@@ -181,8 +181,8 @@ Return ONLY valid JSON with this exact structure:
 IMPORTANT:
 - Boolean search must be under 200 chars, LinkedIn-compatible
 - Use criteria provided — don't invent skills/companies the recruiter didn't mention unless inferring from job title
-- For Quebec non-tech roles, prefer francophone companies (Cogeco, Banque Nationale, Hydro-Québec, Desjardins, BRP, CGI, etc.) when relevant
-- Seniority titles should mix English + French (Quebec market often uses both)`;
+- For target_companies, prefer US employers relevant to the client's industry: the client's direct competitors, industry leaders, and top US talent pools for that role
+- Seniority titles must be in English, using standard US job-title conventions`;
 
   const response = await fetch(CLAUDE_API_URL, {
     method: "POST",
