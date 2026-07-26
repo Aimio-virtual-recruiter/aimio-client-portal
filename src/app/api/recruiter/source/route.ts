@@ -252,25 +252,36 @@ async function runApifyLinkedIn(
     const actorId = actorSlug.replace("/", "~");
     const url = `${APIFY_BASE}/acts/${actorId}/run-sync-get-dataset-items?token=${apifyToken}&timeout=180`;
 
-    const searchQuery =
-      searchBrief.primary_keywords.slice(0, 3).join(" ") ||
-      searchBrief.seniority_titles[0] ||
-      "";
-
     // Input format for harvestapi/linkedin-profile-search
     // - searchQuery: free-text keywords
     // - currentJobTitles: array of titles to match
     // - locations: array of canonical LinkedIn geo names (e.g. "Montreal, Quebec, Canada")
     // - maxItems: cap on results
+    //
+    // IMPORTANT: harvestapi AND-combines searchQuery + currentJobTitles, which
+    // over-constrains and returns 0 results. Send only ONE: prefer the job-title
+    // filter (more reliable); fall back to a free-text query when no titles exist.
+    const titles = searchBrief.seniority_titles.slice(0, 5);
+    const input: {
+      locations: string[];
+      maxItems: number;
+      currentJobTitles?: string[];
+      searchQuery?: string;
+    } = {
+      locations: searchBrief.location_filters,
+      maxItems: maxResults,
+    };
+    if (titles.length > 0) {
+      input.currentJobTitles = titles;
+    } else {
+      input.searchQuery =
+        searchBrief.primary_keywords.slice(0, 3).join(" ") || "";
+    }
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        searchQuery,
-        currentJobTitles: searchBrief.seniority_titles.slice(0, 5),
-        locations: searchBrief.location_filters,
-        maxItems: maxResults,
-      }),
+      body: JSON.stringify(input),
     });
 
     if (!response.ok) {
