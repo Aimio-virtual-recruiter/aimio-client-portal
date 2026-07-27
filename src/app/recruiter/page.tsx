@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Plus, CheckCircle2, Clock, Building2, TrendingUp, Loader2, Rocket, ListChecks, MessageCircle, BarChart3, LogOut, Award, MapPin, User as UserIcon, DollarSign, Target } from "lucide-react";
+import { Users, Plus, CheckCircle2, Clock, Building2, TrendingUp, Loader2, Rocket, ListChecks, MessageCircle, BarChart3, LogOut, Award, MapPin, User as UserIcon, DollarSign, Target, CalendarCheck } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface Client {
@@ -122,6 +122,7 @@ export default function RecruiterDashboardPage() {
           <NavLink href="/recruiter/queue" label="Queue" icon={<ListChecks size={12} />} />
           <NavLink href="/recruiter/outreach" label="Outreach" icon={<MessageCircle size={12} />} />
           <NavLink href="/recruiter/messages" label="Messages" icon={<MessageCircle size={12} />} />
+          <NavLink href="/recruiter/eod" label="EOD" icon={<CalendarCheck size={12} />} />
         </div>
       </header>
 
